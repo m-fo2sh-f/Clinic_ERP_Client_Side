@@ -16,14 +16,10 @@ import {
 } from 'lucide-react';
 import Select from '../components/ui/Select';
 import Badge from '../components/ui/Badge';
+import { useBranchContext } from '../context/BranchContext';
 
-
-export default function DashboardLayout({ 
-  children, 
-  branches, 
-  selectedBranchId, 
-  setSelectedBranchId 
-}) {
+export default function DashboardLayout({ children }) {
+  const { branches, selectedBranchId, setSelectedBranchId, activeBranch } = useBranchContext();
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [isProfileOpen, setIsProfileOpen] = useState(false);
 
@@ -35,7 +31,6 @@ export default function DashboardLayout({
     token: 'jwt_placeholder_receptionist_token_xyz123'
   };
 
-  const activeBranch = branches.find(b => b.id === selectedBranchId) || branches[0];
   const simulatedSubdomain = activeBranch ? activeBranch.clinicSubdomain : 'maadi.my-saas.test';
 
   const menuItems = [

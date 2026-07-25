@@ -2,33 +2,38 @@ import React from 'react';
 import { Users, GripVertical, Play, CheckCircle2, UserMinus, ArrowUp, ArrowDown } from 'lucide-react';
 import Badge from '../ui/Badge';
 import Button from '../ui/Button';
+import { useUpdateAppointmentMutation, useDeleteAppointmentMutation } from '../../hooks/useAppointments';
+import { useLiveQueueQuery, useUpdateQueueStatus } from '../../hooks/useQueue';
+import { useBranchContext } from '../../context/BranchContext';
 
-export default function LiveQueue({ queue, onStatusChange, onReorderQueue, branchName }) {
-  
-  const handleMoveUp = (index) => {
-    if (index === 0) return;
-    const newQueue = [...queue];
-    // Swap items
-    const temp = newQueue[index];
-    newQueue[index] = newQueue[index - 1];
-    newQueue[index - 1] = temp;
-    
-    // Re-index queueNo for consistency
-    const updated = newQueue.map((item, idx) => ({ ...item, queueNo: idx + 1 }));
-    onReorderQueue(updated);
+export default function LiveQueue() {
+  const updateAppointmentMutation = useUpdateAppointmentMutation();
+  const deleteAppointmentMutation = useDeleteAppointmentMutation();
+
+  const updateQueueMutation = useUpdateQueueStatus();
+  const { activeBranch } = useBranchContext();
+
+  const branchId = activeBranch?.id;
+  const branchName = activeBranch?.name || 'Unknown Branch';
+
+
+  // 🎯 استدعاء الـ Hook الجديد لجلب بيانات الانتظار
+  const { data: queueData, isLoading: isLoadingQueue, error } = useLiveQueueQuery(branchId);
+
+
+  const queue = queueData || [];
+  // console.log(queue)
+
+
+  const handleStatusChange = (id, newStatus) => {
+    console.log(id, newStatus)
+    updateQueueMutation.mutate({ id, status: newStatus });
   };
 
-  const handleMoveDown = (index) => {
-    if (index === queue.length - 1) return;
-    const newQueue = [...queue];
-    // Swap items
-    const temp = newQueue[index];
-    newQueue[index] = newQueue[index + 1];
-    newQueue[index + 1] = temp;
-    
-    // Re-index queueNo for consistency
-    const updated = newQueue.map((item, idx) => ({ ...item, queueNo: idx + 1 }));
-    onReorderQueue(updated);
+  const handleRemove = (id) => {
+    if (confirm("Remove patient from the queue?")) {
+      deleteAppointmentMutation.mutate(id);
+    }
   };
 
   return (
@@ -58,19 +63,18 @@ export default function LiveQueue({ queue, onStatusChange, onReorderQueue, branc
           </div>
         ) : (
           queue.map((item, index) => {
-            const isUnderExam = item.status === 'Under Examination';
-            
+            const isUnderExam = item.status === 'under_examination';
+
             return (
               <div
                 key={item.id}
-                className={`relative flex items-center gap-3 p-4 rounded-xl border transition-all duration-200 ${
-                  isUnderExam 
-                    ? 'border-clinic-500 bg-clinic-50/45 shadow-sm ring-1 ring-clinic-100' 
-                    : 'border-slate-150 bg-white hover:border-slate-300'
-                }`}
+                className={`relative flex items-center gap-3 p-4 rounded-xl border transition-all duration-200 ${isUnderExam
+                  ? 'border-clinic-500 bg-clinic-50/45 shadow-sm ring-1 ring-clinic-100'
+                  : 'border-slate-150 bg-white hover:border-slate-300'
+                  }`}
               >
                 {/* Drag handle placeholder */}
-                <div 
+                <div
                   className="text-slate-350 cursor-grab active:cursor-grabbing p-1 rounded hover:bg-slate-100"
                   title="Drag handles - Order can be dynamically adjusted"
                 >
@@ -78,29 +82,28 @@ export default function LiveQueue({ queue, onStatusChange, onReorderQueue, branc
                 </div>
 
                 {/* Queue Number Badge */}
-                <div className={`flex items-center justify-center h-8 w-8 rounded-lg font-bold text-sm ${
-                  isUnderExam 
-                    ? 'bg-clinic-600 text-white shadow-sm shadow-clinic-200' 
-                    : 'bg-slate-100 text-slate-750'
-                }`}>
-                  #{item.queueNo}
+                <div className={`flex items-center justify-center h-8 w-8 rounded-lg font-bold text-sm ${isUnderExam
+                  ? 'bg-clinic-600 text-white shadow-sm shadow-clinic-200'
+                  : 'bg-slate-100 text-slate-750'
+                  }`}>
+                  #{index + 1}
                 </div>
 
                 {/* Patient Information */}
                 <div className="flex-1 min-w-0">
                   <div className="flex items-center gap-2 flex-wrap">
                     <h4 className="font-bold text-slate-800 text-sm truncate">
-                      {item.patientName}
+                      {item.patient.name}
                     </h4>
-                    <Badge 
-                      variant={isUnderExam ? 'success' : 'default'} 
+                    <Badge
+                      variant={isUnderExam ? 'success' : 'default'}
                       className={`text-[9px] font-bold px-1.5 py-0.2 ${isUnderExam ? 'bg-emerald-500 text-white border-0' : 'bg-slate-100 text-slate-600 border border-slate-200'}`}
                     >
                       {item.status}
                     </Badge>
                   </div>
                   <p className="text-[11px] text-slate-400 mt-0.5">
-                    Checked-in at {item.checkedInTime}
+                    Checked-in at {item.checked_in_at}
                   </p>
                 </div>
 
@@ -108,16 +111,16 @@ export default function LiveQueue({ queue, onStatusChange, onReorderQueue, branc
                 <div className="flex items-center gap-1">
                   {/* Up / Down simple interactive controls */}
                   <div className="flex flex-col gap-0.5 mr-1">
-                    <button 
-                      onClick={() => handleMoveUp(index)}
+                    <button
+                      onClick={() => { }}
                       disabled={index === 0}
                       className="p-0.5 rounded text-slate-450 hover:bg-slate-100 hover:text-slate-700 disabled:opacity-30 cursor-pointer"
                       title="Move patient up in queue"
                     >
                       <ArrowUp className="h-3 w-3" />
                     </button>
-                    <button 
-                      onClick={() => handleMoveDown(index)}
+                    <button
+                      onClick={() => { }}
                       disabled={index === queue.length - 1}
                       className="p-0.5 rounded text-slate-450 hover:bg-slate-100 hover:text-slate-700 disabled:opacity-30 cursor-pointer"
                       title="Move patient down in queue"
@@ -131,7 +134,7 @@ export default function LiveQueue({ queue, onStatusChange, onReorderQueue, branc
                     <Button
                       variant="success"
                       size="sm"
-                      onClick={() => onStatusChange(item.id, 'Completed')}
+                      onClick={() => handleStatusChange(item.id, 'completed')}
                       className="h-8 w-8 p-0 rounded-lg flex items-center justify-center shadow-xs bg-emerald-600 hover:bg-emerald-700 focus:ring-emerald-500"
                       title="Mark Examination as Completed & discharge"
                     >
@@ -142,7 +145,7 @@ export default function LiveQueue({ queue, onStatusChange, onReorderQueue, branc
                       <Button
                         variant="default"
                         size="sm"
-                        onClick={() => onStatusChange(item.id, 'Under Examination')}
+                        onClick={() => handleStatusChange(item.id, 'under_examination')}
                         className="h-8 w-8 p-0 rounded-lg flex items-center justify-center shadow-xs bg-clinic-600 hover:bg-clinic-700 focus:ring-clinic-500"
                         title="Send patient into Examination Room"
                       >
@@ -151,7 +154,7 @@ export default function LiveQueue({ queue, onStatusChange, onReorderQueue, branc
                       <Button
                         variant="ghost"
                         size="sm"
-                        onClick={() => onStatusChange(item.id, 'No-Show')}
+                        onClick={() => handleRemove(item.id)}
                         className="h-8 w-8 p-0 rounded-lg flex items-center justify-center hover:bg-red-50 hover:text-red-600 text-slate-400"
                         title="Mark as No-Show / Remove"
                       >

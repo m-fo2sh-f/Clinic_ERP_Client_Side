@@ -44,6 +44,10 @@ api.interceptors.response.use(
   }
 );
 
+
+
+
+
 // --- SEED/MOCK FRONTEND STATE STORE ---
 // We persist changes locally in localStorage to simulate real-time operations and transitions
 const STORAGE_KEY = 'clinic_dashboard_state';
