@@ -14,6 +14,7 @@
     "@tanstack/react-query": "^5.101.2",
     "@tanstack/react-query-devtools": "^5.101.2",
     "axios": "^1.18.1",
+    "dayjs": "^1.11.21",
     "laravel-echo": "^2.3.7",
     "lucide-react": "^1.22.0",
     "pusher-js": "^8.5.0",

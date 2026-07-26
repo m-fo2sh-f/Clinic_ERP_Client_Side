@@ -2,27 +2,23 @@ import React from 'react';
 import { Users, GripVertical, Play, CheckCircle2, UserMinus, ArrowUp, ArrowDown } from 'lucide-react';
 import Badge from '../ui/Badge';
 import Button from '../ui/Button';
-import { useUpdateAppointmentMutation, useDeleteAppointmentMutation } from '../../hooks/useAppointments';
-import { useLiveQueueQuery, useUpdateQueueStatus } from '../../hooks/useQueue';
+import { useLiveQueueQuery, useUpdateQueueStatus, useDeleteQueueMutation } from '../../hooks/useQueue';
 import { useBranchContext } from '../../context/BranchContext';
 
 export default function LiveQueue() {
-  const updateAppointmentMutation = useUpdateAppointmentMutation();
-  const deleteAppointmentMutation = useDeleteAppointmentMutation();
-
-  const updateQueueMutation = useUpdateQueueStatus();
   const { activeBranch } = useBranchContext();
-
   const branchId = activeBranch?.id;
   const branchName = activeBranch?.name || 'Unknown Branch';
 
-
-  // 🎯 استدعاء الـ Hook الجديد لجلب بيانات الانتظار
   const { data: queueData, isLoading: isLoadingQueue, error } = useLiveQueueQuery(branchId);
+  const deleteQueueMutation = useDeleteQueueMutation();
+  const updateQueueMutation = useUpdateQueueStatus();
+
+
 
 
   const queue = queueData || [];
-  // console.log(queue)
+
 
 
   const handleStatusChange = (id, newStatus) => {
@@ -32,7 +28,7 @@ export default function LiveQueue() {
 
   const handleRemove = (id) => {
     if (confirm("Remove patient from the queue?")) {
-      deleteAppointmentMutation.mutate(id);
+      deleteQueueMutation.mutate(id);
     }
   };
 

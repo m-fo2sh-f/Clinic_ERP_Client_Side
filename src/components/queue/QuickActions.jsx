@@ -1,9 +1,11 @@
 import React, { useState } from 'react';
 import { PlusCircle, Calendar, UserCheck, Clock } from 'lucide-react';
 import Button from '../ui/Button';
+import dayjs from 'dayjs';
 import AppointmentModal from '../ui/AppointmentModal';
 import { useBranchContext } from '../../context/BranchContext';
 import { useCreateAppointmentMutation } from '../../hooks/useAppointments';
+
 
 export default function QuickActions({ stats = { total: 0, checkedIn: 0, remaining: 0 }, patients = [] }) {
   const { selectedBranchId } = useBranchContext();
@@ -16,8 +18,8 @@ export default function QuickActions({ stats = { total: 0, checkedIn: 0, remaini
     const payload = {
       branch_id: selectedBranchId,
       appointment_time: data.apptTime,
-      type: data.apptType, 
-      status: "booking",  
+      type: data.apptType,
+      status: "booking",
     };
 
     if (selectedPatientIdFromModal) {
@@ -110,7 +112,7 @@ export default function QuickActions({ stats = { total: 0, checkedIn: 0, remaini
           patientName: '',
           patientPhone: '',
           apptType: 'check_up',
-          apptTime: '2026-07-19 02:30:00' // Keeping the original default for now
+          apptTime: dayjs().format('YYYY-MM-DD HH:mm:ss')
         }}
         onSubmit={onSubmit}
         patients={patients}

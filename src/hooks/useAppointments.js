@@ -13,7 +13,6 @@ export const appointmentKeys = {
  */
 export const useAppointmentsQuery = (branchId, targetDate) => {
   return useQuery({
-    // 🎯 إضافة targetDate للـ queryKey يضمن إعادة الجلب تلقائياً عند تغيير اليوم في التقويم
     queryKey: appointmentKeys.list(branchId, targetDate),
     queryFn: async () => {
       const response = await api.get('/appointments', {
@@ -37,14 +36,13 @@ export const useCreateAppointmentMutation = () => {
       return response.data;
     },
     onSuccess: () => {
-      // Invalidate and refetch appointments
       queryClient.invalidateQueries({ queryKey: appointmentKeys.all });
     },
   });
 };
 
 /**
- * Update an existing appointment (e.g. status change, reordering)
+ * Update an existing appointment
  */
 export const useUpdateAppointmentMutation = () => {
   const queryClient = useQueryClient();
@@ -56,6 +54,7 @@ export const useUpdateAppointmentMutation = () => {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: appointmentKeys.all });
+      queryClient.invalidateQueries({ queryKey: ['liveQueue'] });
     },
   });
 };
@@ -73,21 +72,22 @@ export const useDeleteAppointmentMutation = () => {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: appointmentKeys.all });
+      queryClient.invalidateQueries({ queryKey: ['liveQueue'] });
     },
   });
 };
-/**
- * checkIn an appointment
- */
 
+/**
+ * Check-In an appointment
+ */
 export const useCheckInMutation = () => {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: (id) => api.post(`/appointments/${id}/check-in`), // Direct URL parameter
+    mutationFn: (id) => api.post(`/appointments/${id}/check-in`),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: appointmentKeys.all });
-      queryClient.invalidateQueries({ queryKey: ['liveQueue'] }); // Refresh live queue list
+      queryClient.invalidateQueries({ queryKey: ['liveQueue'] });
     },
   });
 };
