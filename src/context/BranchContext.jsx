@@ -12,8 +12,8 @@ export const useBranchContext = () => {
 
 export const BranchProvider = ({ children }) => {
   const branches = [
-    { id: '019f7c1e-bdf9-72ee-908c-cc55d9a81afc', name: 'Maadi Branch', clinicSubdomain: 'maadi.my-saas.test' },
-    { id: '019f7c1e-be18-726c-aafb-3457151e6038', name: 'Tagamoa Branch', clinicSubdomain: 'tagamoa.my-saas.test' },
+    { id: '019f9f77-355d-7094-b223-dc822a2bc79f', name: 'Maadi Branch', clinicSubdomain: 'maadi.my-saas.test' },
+    { id: '019f9f77-3569-72f3-a596-2ddc8ded0be5', name: 'Tagamoa Branch', clinicSubdomain: 'tagamoa.my-saas.test' },
   ];
 
   const [selectedBranchId, setSelectedBranchId] = useState(branches[0].id);

@@ -56,3 +56,49 @@ export const useDeleteQueueMutation = () => {
         },
     });
 };
+export const useReorderQueueMutation = () => {
+    const queryClient = useQueryClient();
+
+    return useMutation({
+        mutationFn: ({ orderedIds, branchId }) => 
+            api.post('/live-queues/reorder', { 
+                ordered_ids: orderedIds, 
+                branch_id: branchId 
+            }),
+        onSuccess: () => {
+            // إنعاش كاش الصالة وكاش الحجوزات لتحديث الترتيب في الشاشة فوراً
+            queryClient.invalidateQueries({ queryKey: queueKeys.all });
+            queryClient.invalidateQueries({ queryKey: ['appointments'] });
+        },
+    });
+};
+
+/**
+ * Call the next waiting patient for examination (Doctor Dashboard CTA)
+ */
+export const useCallNextPatientMutation = () => {
+    const queryClient = useQueryClient();
+
+    return useMutation({
+        mutationFn: (branchId) =>
+            api.post('/live-queues/next', { branch_id: branchId }),
+        onSuccess: () => {
+            queryClient.invalidateQueries({ queryKey: queueKeys.all });
+            queryClient.invalidateQueries({ queryKey: ['appointments'] });
+        },
+    });
+};
+
+/**
+ * Fetch full patient medical history for the Doctor Dashboard active patient view
+ */
+export const usePatientHistoryQuery = (patientId) => {
+    return useQuery({
+        queryKey: ['patientHistory', patientId],
+        queryFn: async () => {
+            const response = await api.get(`/patients/${patientId}/history`);
+            return response.data?.data || null;
+        },
+        enabled: !!patientId,
+    });
+};

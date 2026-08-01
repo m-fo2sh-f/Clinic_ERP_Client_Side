@@ -2,27 +2,29 @@ import React from 'react';
 import { Users, GripVertical, Play, CheckCircle2, UserMinus, ArrowUp, ArrowDown } from 'lucide-react';
 import Badge from '../ui/Badge';
 import Button from '../ui/Button';
-import { useLiveQueueQuery, useUpdateQueueStatus, useDeleteQueueMutation } from '../../hooks/useQueue';
+import {
+  useLiveQueueQuery,
+  useUpdateQueueStatus,
+  useDeleteQueueMutation,
+  useReorderQueueMutation
+} from '../../hooks/useQueue';
 import { useBranchContext } from '../../context/BranchContext';
+import { useQueueWebSocket } from '../../hooks/useQueueWebSocket';
 
 export default function LiveQueue() {
+
   const { activeBranch } = useBranchContext();
   const branchId = activeBranch?.id;
   const branchName = activeBranch?.name || 'Unknown Branch';
-
+  useQueueWebSocket(branchId);
   const { data: queueData, isLoading: isLoadingQueue, error } = useLiveQueueQuery(branchId);
   const deleteQueueMutation = useDeleteQueueMutation();
   const updateQueueMutation = useUpdateQueueStatus();
-
-
-
+  const reorderQueueMutation = useReorderQueueMutation();
 
   const queue = queueData || [];
 
-
-
   const handleStatusChange = (id, newStatus) => {
-    console.log(id, newStatus)
     updateQueueMutation.mutate({ id, status: newStatus });
   };
 
@@ -30,6 +32,28 @@ export default function LiveQueue() {
     if (confirm("Remove patient from the queue?")) {
       deleteQueueMutation.mutate(id);
     }
+  };
+
+  // 🎯 دالة تبديل الأماكن وإرسال الترتيب الجديد للسيرفر
+  const handleMove = (currentIndex, direction) => {
+    if (!branchId || queue.length <= 1) return;
+
+    const targetIndex = direction === 'up' ? currentIndex - 1 : currentIndex + 1;
+
+    // منع الخروج عن حدود المصفوفة
+    if (targetIndex < 0 || targetIndex >= queue.length) return;
+
+    // 1. عمل نسخة من الطابور وتبديل أماكن المريضين (Swap)
+    const updatedQueue = [...queue];
+    const temp = updatedQueue[currentIndex];
+    updatedQueue[currentIndex] = updatedQueue[targetIndex];
+    updatedQueue[targetIndex] = temp;
+
+    // 2. استخراج مصفوفة الـ IDs بالترتيب الجديد
+    const orderedIds = updatedQueue.map((item) => item.id);
+
+    // 3. إرسال الترتيب الجديد للباكيند
+    reorderQueueMutation.mutate({ orderedIds, branchId });
   };
 
   return (
@@ -69,7 +93,7 @@ export default function LiveQueue() {
                   : 'border-slate-150 bg-white hover:border-slate-300'
                   }`}
               >
-                {/* Drag handle placeholder */}
+                {/* Drag handle */}
                 <div
                   className="text-slate-350 cursor-grab active:cursor-grabbing p-1 rounded hover:bg-slate-100"
                   title="Drag handles - Order can be dynamically adjusted"
@@ -82,14 +106,14 @@ export default function LiveQueue() {
                   ? 'bg-clinic-600 text-white shadow-sm shadow-clinic-200'
                   : 'bg-slate-100 text-slate-750'
                   }`}>
-                  #{index + 1}
+                  #{item.queue_no}
                 </div>
 
                 {/* Patient Information */}
                 <div className="flex-1 min-w-0">
                   <div className="flex items-center gap-2 flex-wrap">
                     <h4 className="font-bold text-slate-800 text-sm truncate">
-                      {item.patient.name}
+                      {item.patient?.name || 'Unknown Patient'}
                     </h4>
                     <Badge
                       variant={isUnderExam ? 'success' : 'default'}
@@ -108,17 +132,17 @@ export default function LiveQueue() {
                   {/* Up / Down simple interactive controls */}
                   <div className="flex flex-col gap-0.5 mr-1">
                     <button
-                      onClick={() => { }}
-                      disabled={index === 0}
-                      className="p-0.5 rounded text-slate-450 hover:bg-slate-100 hover:text-slate-700 disabled:opacity-30 cursor-pointer"
+                      onClick={() => handleMove(index, 'up')}
+                      disabled={index === 0 || reorderQueueMutation.isPending}
+                      className="p-0.5 rounded text-slate-450 hover:bg-slate-100 hover:text-slate-700 disabled:opacity-30 cursor-pointer transition-colors"
                       title="Move patient up in queue"
                     >
                       <ArrowUp className="h-3 w-3" />
                     </button>
                     <button
-                      onClick={() => { }}
-                      disabled={index === queue.length - 1}
-                      className="p-0.5 rounded text-slate-450 hover:bg-slate-100 hover:text-slate-700 disabled:opacity-30 cursor-pointer"
+                      onClick={() => handleMove(index, 'down')}
+                      disabled={index === queue.length - 1 || reorderQueueMutation.isPending}
+                      className="p-0.5 rounded text-slate-450 hover:bg-slate-100 hover:text-slate-700 disabled:opacity-30 cursor-pointer transition-colors"
                       title="Move patient down in queue"
                     >
                       <ArrowDown className="h-3 w-3" />

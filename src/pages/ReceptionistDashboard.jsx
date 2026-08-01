@@ -8,13 +8,14 @@ import { useBranchContext } from '../context/BranchContext';
 import { formatDateToYMD } from '../utils/dateFormat'
 import { useAppointmentsQuery } from '../hooks/useAppointments'
 
+import { useQueueWebSocket } from '../hooks/useQueueWebSocket';
 
 export default function ReceptionistDashboard() {
   const { activeBranch } = useBranchContext();
   const [targetDate, setTargetDate] = useState(formatDateToYMD(new Date()));
   const branchId = activeBranch?.id;
   const branchName = activeBranch ? activeBranch.name : 'Unknown Branch';
-
+  useQueueWebSocket(branchId);
 
   const { data: appointments = [], isLoading, isError } = useAppointmentsQuery(branchId, targetDate);
   const { bookings, queue, stats, patients } = useMemo(() => {
@@ -115,7 +116,7 @@ export default function ReceptionistDashboard() {
 
         {/* COLUMN 3: LIVE WAITING QUEUE */}
         <div className="lg:col-span-5">
-          <LiveQueue/> 
+          <LiveQueue />
         </div>
       </div>
     </div>
