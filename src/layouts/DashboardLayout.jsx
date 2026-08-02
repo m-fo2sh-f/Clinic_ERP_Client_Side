@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { 
   LayoutDashboard, 
   Users, 
@@ -19,19 +20,19 @@ import Badge from '../components/ui/Badge';
 import { useBranchContext } from '../context/BranchContext';
 
 export default function DashboardLayout({ children }) {
-  const { branches, selectedBranchId, setSelectedBranchId, activeBranch } = useBranchContext();
+  const { branches, selectedBranchId, selectBranch, activeBranch, user, logout } = useBranchContext();
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [isProfileOpen, setIsProfileOpen] = useState(false);
+  const navigate = useNavigate();
 
-  // In production, get user from Context or JWT token payload
-  const mockUser = {
+  const currentUser = user || {
     name: 'Sarah Connor',
     role: 'Clinic Receptionist',
     email: 'sarah.c@my-saas.com',
-    token: 'jwt_placeholder_receptionist_token_xyz123'
+    token: 'sanctum_session_active'
   };
 
-  const simulatedSubdomain = activeBranch ? activeBranch.clinicSubdomain : 'maadi.my-saas.test';
+  const simulatedSubdomain = activeBranch ? (activeBranch.clinicSubdomain || `${activeBranch.name.toLowerCase().replace(/\s+/g, '')}.my-saas.test`) : 'maadi.my-saas.test';
 
   const menuItems = [
     { name: 'Dashboard', icon: LayoutDashboard, href: '#', active: true },
@@ -39,6 +40,11 @@ export default function DashboardLayout({ children }) {
     { name: 'Billing & Invoice', icon: CreditCard, href: '#', active: false },
     { name: 'Clinic Settings', icon: Settings, href: '#', active: false },
   ];
+
+  const handleLogout = async () => {
+    await logout();
+    navigate('/login');
+  };
 
   return (
     <div className="min-h-screen bg-slate-50 flex">
@@ -77,7 +83,7 @@ export default function DashboardLayout({ children }) {
         <div className="p-4 border-t border-slate-850 bg-slate-950/40 text-xs text-slate-500 space-y-2">
           <div className="flex items-center gap-1.5 text-[10px] font-mono text-slate-400 bg-slate-800/50 p-2 rounded-md border border-slate-800">
             <Key className="h-3.5 w-3.5 text-clinic-400" />
-            <span className="truncate" title={mockUser.token}>Token: {mockUser.token.slice(0, 15)}...</span>
+            <span className="truncate">Active Branch: {activeBranch?.name}</span>
           </div>
           <div className="text-center text-[10px] text-slate-650">
             v1.2.0-beta.1 (Multi-tenant)
@@ -117,7 +123,7 @@ export default function DashboardLayout({ children }) {
               ))}
             </nav>
             <div className="p-4 border-t border-slate-800 text-[10px] font-mono text-slate-450 bg-slate-950/20">
-              Token: {mockUser.token.slice(0, 18)}...
+              Branch: {activeBranch?.name}
             </div>
           </aside>
         </div>
@@ -148,17 +154,14 @@ export default function DashboardLayout({ children }) {
 
           {/* Right Controls: Branch Switcher & User Profile */}
           <div className="flex items-center gap-4">
-            {/* Branch Switcher Select */}
+            {/* Branch Switcher Select Header */}
             <div className="w-44 sm:w-52">
               <Select 
-                value={selectedBranchId} 
+                value={selectedBranchId || ''} 
                 onChange={(e) => {
-                  setSelectedBranchId(e.target.value);
-                  // In Laravel multi-tenant with subdomain routing, this would trigger:
-                  // const selected = branches.find(b => b.id === e.target.value);
-                  // window.location.href = `http://${selected.clinicSubdomain}:${window.location.port || '8000'}/`;
+                  selectBranch(e.target.value);
                 }}
-                className="py-1.5 pl-2.5 pr-8 border-slate-200 bg-slate-50/50 hover:bg-white text-xs font-bold text-slate-700"
+                className="py-1.5 pl-2.5 pr-8 border-slate-200 bg-slate-50/50 hover:bg-white text-xs font-bold text-slate-700 cursor-pointer"
               >
                 {branches.map((b) => (
                   <option key={b.id} value={b.id}>{b.name}</option>
@@ -179,11 +182,11 @@ export default function DashboardLayout({ children }) {
                 className="flex items-center gap-2 p-1.5 rounded-lg hover:bg-slate-50 text-left transition-colors cursor-pointer"
               >
                 <div className="h-8 w-8 rounded-full bg-clinic-100 border border-clinic-250 flex items-center justify-center font-bold text-clinic-700 text-xs">
-                  SC
+                  {currentUser.name ? currentUser.name.split(' ').map(n => n[0]).join('').substring(0, 2).toUpperCase() : 'US'}
                 </div>
                 <div className="hidden lg:block">
-                  <p className="text-xs font-bold text-slate-800 leading-none">{mockUser.name}</p>
-                  <p className="text-[10px] text-slate-450 mt-0.5 leading-none">{mockUser.role}</p>
+                  <p className="text-xs font-bold text-slate-800 leading-none">{currentUser.name}</p>
+                  <p className="text-[10px] text-slate-450 mt-0.5 leading-none">{currentUser.role || (currentUser.roles?.[0] || 'User')}</p>
                 </div>
                 <ChevronDown className="h-3.5 w-3.5 text-slate-400 hidden sm:block" />
               </button>
@@ -194,10 +197,10 @@ export default function DashboardLayout({ children }) {
                   <div className="fixed inset-0 z-40" onClick={() => setIsProfileOpen(false)} />
                   <div className="absolute right-0 mt-2.5 w-64 bg-white border border-slate-200 rounded-xl shadow-xl z-50 p-4 animate-in fade-in slide-in-from-top-2 duration-150">
                     <div className="border-b border-slate-100 pb-3 mb-3">
-                      <p className="text-sm font-bold text-slate-900">{mockUser.name}</p>
-                      <p className="text-xs text-slate-450">{mockUser.email}</p>
+                      <p className="text-sm font-bold text-slate-900">{currentUser.name}</p>
+                      <p className="text-xs text-slate-450">{currentUser.email}</p>
                       <p className="text-[10px] text-clinic-700 font-bold bg-clinic-50 w-fit px-2 py-0.5 rounded mt-1.5 uppercase">
-                        {mockUser.role}
+                        {currentUser.role || (currentUser.roles?.[0] || 'User')}
                       </p>
                     </div>
                     <div className="space-y-1">
@@ -205,7 +208,10 @@ export default function DashboardLayout({ children }) {
                         <User className="h-4 w-4" />
                         <span>My Profile Settings</span>
                       </button>
-                      <button className="w-full text-left text-xs font-medium text-red-650 hover:bg-red-50 px-2 py-2 rounded-md flex items-center gap-2 cursor-pointer">
+                      <button 
+                        onClick={handleLogout}
+                        className="w-full text-left text-xs font-medium text-red-650 hover:bg-red-50 px-2 py-2 rounded-md flex items-center gap-2 cursor-pointer"
+                      >
                         <LogOut className="h-4 w-4" />
                         <span>Logout Session</span>
                       </button>
