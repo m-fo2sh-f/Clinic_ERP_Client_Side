@@ -9,7 +9,7 @@ import WaitingRoomDisplay from './pages/WaitingRoomDisplay';
 import LoginPage from './pages/LoginPage';
 import { BranchProvider, useBranchContext } from './context/BranchContext';
 import { ProtectedRoute, getRoleDefaultRoute } from './components/ProtectedRoute';
-
+import ErrorBoundary from './components/ErrorBoundary';
 const queryClient = new QueryClient({
   defaultOptions: {
     queries: {
@@ -50,36 +50,39 @@ function App() {
     <QueryClientProvider client={queryClient}>
       <BranchProvider>
         <BrowserRouter>
-          <Routes>
-            {/* Smart Root Landing Redirect */}
-            <Route path="/" element={<RootRedirect />} />
+          <ErrorBoundary>
+            <Routes>
+              {/* Smart Root Landing Redirect */}
+              <Route path="/" element={<RootRedirect />} />
 
-            {/* Public authentication route */}
-            <Route path="/login" element={<LoginPage />} />
-            
-            {/* Receptionist Dashboard - Protected */}
-            <Route
-              path="/dashboard"
-              element={
-                <ProtectedRoute allowedRoles={['receptionist', 'tenant_admin']}>
-                  <DashboardLayout><ReceptionistDashboard /></DashboardLayout>
-                </ProtectedRoute>
-              }
-            />
+              {/* Public authentication route */}
+              <Route path="/login" element={<LoginPage />} />
 
-            {/* Doctor Dashboard - Protected */}
-            <Route
-              path="/doctor"
-              element={
-                <ProtectedRoute allowedRoles={['doctor', 'tenant_admin']}>
-                  <DashboardLayout><DoctorDashboard /></DashboardLayout>
-                </ProtectedRoute>
-              }
-            />
+              {/* Receptionist Dashboard - Protected */}
+              <Route
+                path="/dashboard"
+                element={
+                  <ProtectedRoute allowedRoles={['receptionist', 'tenant_admin']}>
+                    <DashboardLayout><ReceptionistDashboard /></DashboardLayout>
+                  </ProtectedRoute>
+                }
+              />
 
-            {/* Standalone TV display */}
-            <Route path="/waiting-room" element={<WaitingRoomDisplay />} />
-          </Routes>
+              {/* Doctor Dashboard - Protected */}
+              <Route
+                path="/doctor"
+                element={
+                  <ProtectedRoute allowedRoles={['doctor', 'tenant_admin']}>
+                    <DashboardLayout><DoctorDashboard /></DashboardLayout>
+                  </ProtectedRoute>
+                }
+              />
+
+              {/* Standalone TV display */}
+              <Route path="/waiting-room" element={<WaitingRoomDisplay />} />
+            </Routes>
+          </ErrorBoundary>
+
         </BrowserRouter>
       </BranchProvider>
     </QueryClientProvider>
