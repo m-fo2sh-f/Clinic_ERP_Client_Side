@@ -101,4 +101,20 @@ export const usePatientHistoryQuery = (patientId) => {
         },
         enabled: !!patientId,
     });
-};
+};
+
+/**
+ * Direct Walk-In patient check-in mutation
+ */
+export const useWalkInMutation = () => {
+    const queryClient = useQueryClient();
+
+    return useMutation({
+        mutationFn: (walkInData) => api.post('/live-queues/check-in-walkin', walkInData),
+        onSuccess: () => {
+            queryClient.invalidateQueries({ queryKey: queueKeys.all });
+            queryClient.invalidateQueries({ queryKey: ['appointments'] });
+        },
+    });
+};
+

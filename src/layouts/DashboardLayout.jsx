@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useLocation, Link } from 'react-router-dom';
 import { 
   LayoutDashboard, 
   Users, 
@@ -34,11 +34,16 @@ export default function DashboardLayout({ children }) {
 
   const simulatedSubdomain = activeBranch ? (activeBranch.clinicSubdomain || `${activeBranch.name.toLowerCase().replace(/\s+/g, '')}.my-saas.test`) : 'maadi.my-saas.test';
 
+  const location = useLocation();
+
+  const userRoles = currentUser.roles || (currentUser.role ? [currentUser.role] : []);
+  const isDoctorOnly = userRoles.includes('doctor') && !userRoles.includes('receptionist') && !userRoles.includes('clinic_owner') && !userRoles.includes('tenant_admin');
+  const dashboardPath = isDoctorOnly ? '/doctor' : '/dashboard';
+
   const menuItems = [
-    { name: 'Dashboard', icon: LayoutDashboard, href: '#', active: true },
-    { name: 'Patients Directory', icon: Users, href: '#', active: false },
-    { name: 'Billing & Invoice', icon: CreditCard, href: '#', active: false },
-    { name: 'Clinic Settings', icon: Settings, href: '#', active: false },
+    { name: 'Dashboard', icon: LayoutDashboard, href: dashboardPath, active: location.pathname === '/dashboard' || location.pathname === '/doctor' },
+    { name: 'Patients Directory', icon: Users, href: '/patients', active: location.pathname === '/patients' },
+    { name: 'Waiting Room TV', icon: Activity, href: '/waiting-room', active: location.pathname === '/waiting-room' },
   ];
 
   const handleLogout = async () => {
@@ -64,9 +69,9 @@ export default function DashboardLayout({ children }) {
         {/* Sidebar Menu Items */}
         <nav className="flex-1 px-4 py-6 space-y-1.5">
           {menuItems.map((item) => (
-            <a
+            <Link
               key={item.name}
-              href={item.href}
+              to={item.href}
               className={`flex items-center gap-3 px-4 py-3 rounded-lg text-sm font-semibold transition-all ${
                 item.active 
                   ? 'bg-clinic-600 text-white shadow-md shadow-clinic-600/10' 
@@ -75,7 +80,7 @@ export default function DashboardLayout({ children }) {
             >
               <item.icon className="h-5 w-5 shrink-0" />
               <span>{item.name}</span>
-            </a>
+            </Link>
           ))}
         </nav>
 
@@ -107,9 +112,9 @@ export default function DashboardLayout({ children }) {
             </div>
             <nav className="flex-1 px-4 py-6 space-y-1.5">
               {menuItems.map((item) => (
-                <a
+                <Link
                   key={item.name}
-                  href={item.href}
+                  to={item.href}
                   className={`flex items-center gap-3 px-4 py-3 rounded-lg text-sm font-semibold transition-all ${
                     item.active 
                       ? 'bg-clinic-600 text-white' 
@@ -119,7 +124,7 @@ export default function DashboardLayout({ children }) {
                 >
                   <item.icon className="h-5 w-5 shrink-0" />
                   <span>{item.name}</span>
-                </a>
+                </Link>
               ))}
             </nav>
             <div className="p-4 border-t border-slate-800 text-[10px] font-mono text-slate-450 bg-slate-950/20">
