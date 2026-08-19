@@ -1,18 +1,12 @@
 import { useEffect, useRef } from 'react';
 import { useQueryClient } from '@tanstack/react-query';
 import echo from '../services/echo';
+import { shouldSkipWebSocketInvalidate, markQueryInvalidated } from '../utils/invalidationTracker';
 
-/**
- * Subscribe to real-time queue events for a branch.
- *
- * @param {string}   branchId         - Active branch UUID
- * @param {function} onPatientCalled  - Callback fired on `.patient.called` with payload data
- */
 export function useQueueWebSocket(branchId, onPatientCalled) {
     const queryClient = useQueryClient();
     const callbackRef = useRef(onPatientCalled);
 
-    // Keep callback ref fresh without re-subscribing on every render
     useEffect(() => {
         callbackRef.current = onPatientCalled;
     }, [onPatientCalled]);
@@ -20,29 +14,41 @@ export function useQueueWebSocket(branchId, onPatientCalled) {
     useEffect(() => {
         if (!branchId) return;
 
-        const channelName = `branch.${branchId}`;
-        const channel = echo.channel(channelName);
+        const channel = echo.private(`live-queue.${branchId}`);
 
-        // Silent refresh — all screens re-fetch their query data
-        channel.listen('.queue.updated', () => {
-            queryClient.invalidateQueries({ queryKey: ['liveQueue'] });
-            queryClient.invalidateQueries({ queryKey: ['appointments'] });
-        });
+        // 🎯 Prevent duplicate network request storms from WebSocket events arriving right after local mutations
+        const safeInvalidate = (queryKeys = ['liveQueue', 'appointments']) => {
+            if (shouldSkipWebSocketInvalidate(2000)) {
+                return;
+            }
+            markQueryInvalidated();
+            queryKeys.forEach((key) => {
+                queryClient.invalidateQueries({ queryKey: [key] });
+            });
+        };
 
-        // Also handle existing QueueReordered event for backward compatibility
-        channel.listen('.QueueReordered', () => {
-            queryClient.invalidateQueries({ queryKey: ['liveQueue'] });
-        });
+        const handleQueueUpdated = () => {
+            safeInvalidate(['liveQueue', 'appointments']);
+        };
 
-        // Explicit patient announcement — TV chime + doctor dashboard notification
-        channel.listen('.patient.called', (data) => {
+        const handleQueueReordered = () => {
+            safeInvalidate(['liveQueue']);
+        };
+
+        const handlePatientCalled = (data) => {
+            safeInvalidate(['liveQueue', 'appointments']);
             callbackRef.current?.(data);
-        });
+        };
 
+        channel.listen('.queue.updated', handleQueueUpdated);
+        channel.listen('.QueueReordered', handleQueueReordered);
+        channel.listen('.patient.called', handlePatientCalled);
+
+        // 🛑 Stop event listeners without destroying full WebSocket channel
         return () => {
-            channel.stopListening('.queue.updated');
-            channel.stopListening('.QueueReordered');
-            channel.stopListening('.patient.called');
+            channel.stopListening('.queue.updated', handleQueueUpdated);
+            channel.stopListening('.QueueReordered', handleQueueReordered);
+            channel.stopListening('.patient.called', handlePatientCalled);
         };
     }, [branchId, queryClient]);
 }

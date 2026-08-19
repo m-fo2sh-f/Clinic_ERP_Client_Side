@@ -3,8 +3,8 @@ import axios from 'axios';
 // 1. تحديد الـ Base URL بناءً على الـ Subdomain الحالية
 const hostname = window.location.hostname;
 const baseURL = hostname && hostname !== 'localhost' && hostname !== '127.0.0.1'
-  ? `http://${hostname}:8000/api`
-  : `http://localhost:8000/api`;
+  ? `http://${hostname}:8000/api/v1`
+  : `http://localhost:8000/api/v1`;
 
 const api = axios.create({
   baseURL,

@@ -1,5 +1,6 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import api from '../services/api';
+import { markQueryInvalidated } from '../utils/invalidationTracker';
 
 // Query Keys
 export const appointmentKeys = {
@@ -23,22 +24,6 @@ export const useAppointmentsQuery = (branchId, targetDate) => {
     enabled: !!branchId,
   });
 };
-export const useSearchPatientsQuery = (searchTerm) => {
-  return useQuery({
-    queryKey: ['patients', 'search', searchTerm],
-    queryFn: async () => {
-      if (!searchTerm || searchTerm.trim().length < 2) return [];
-
-      const response = await api.get('/patients/search', {
-        params: { q: searchTerm }
-      });
-      return response.data?.data || [];
-    },
-    // الاستعلام لن يعمل إلا إذا كتب المستخدم حرفين أو أكثر
-    enabled: !!searchTerm && searchTerm.trim().length >= 2,
-    staleTime: 1000 * 60 * 2, // الاحتفاظ بالنتائج في الكاش لمدة دقيقتين
-  });
-};
 
 /**
  * Create a new appointment
@@ -52,6 +37,7 @@ export const useCreateAppointmentMutation = () => {
       return response.data;
     },
     onSuccess: () => {
+      markQueryInvalidated();
       queryClient.invalidateQueries({ queryKey: appointmentKeys.all });
     },
   });
@@ -69,6 +55,7 @@ export const useUpdateAppointmentMutation = () => {
       return response.data;
     },
     onSuccess: () => {
+      markQueryInvalidated();
       queryClient.invalidateQueries({ queryKey: appointmentKeys.all });
       queryClient.invalidateQueries({ queryKey: ['liveQueue'] });
     },
@@ -87,6 +74,7 @@ export const useDeleteAppointmentMutation = () => {
       return response.data;
     },
     onSuccess: () => {
+      markQueryInvalidated();
       queryClient.invalidateQueries({ queryKey: appointmentKeys.all });
       queryClient.invalidateQueries({ queryKey: ['liveQueue'] });
     },
@@ -102,6 +90,7 @@ export const useCheckInMutation = () => {
   return useMutation({
     mutationFn: (id) => api.post(`/appointments/${id}/check-in`),
     onSuccess: () => {
+      markQueryInvalidated();
       queryClient.invalidateQueries({ queryKey: appointmentKeys.all });
       queryClient.invalidateQueries({ queryKey: ['liveQueue'] });
     },

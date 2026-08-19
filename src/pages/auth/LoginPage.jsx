@@ -8,7 +8,7 @@ import Button from '../../components/ui/Button';
 
 export default function LoginPage() {
   const [email, setEmail] = useState('doctor@healios.com');
-  const [password, setPassword] = useState('password');
+  const [password, setPassword] = useState(12345678);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState('');
   const [pendingBranches, setPendingBranches] = useState([]);

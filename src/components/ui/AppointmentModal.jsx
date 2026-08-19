@@ -4,7 +4,7 @@ import { Search, PlusCircle, ArrowRight, Edit2, Loader2, UserCheck } from 'lucid
 import Button from './Button';
 import { Dialog, DialogHeader, DialogTitle, DialogDescription, DialogFooter, DialogClose } from './Dialog';
 import Select from './Select';
-import { useSearchPatientsQuery } from '../../hooks/useAppointments';
+import { useSearchPatientsQuery } from '../../hooks/usePatients';
 
 export default function AppointmentModal({
   isOpen,

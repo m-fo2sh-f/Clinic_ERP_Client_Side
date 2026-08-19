@@ -32,7 +32,7 @@ export default function PatientsPage() {
   const [selectedPatientId, setSelectedPatientId] = useState(null);
 
   // Fetch patient directory
-  const { data: patients = [], isLoading, isError, refetch } = usePatientsQuery(branchId, searchQuery);
+  const { data: patients = [], isLoading, isError } = usePatientsQuery(branchId, searchQuery);
 
   // Fetch detailed record for selected patient
   const { data: patientDetail, isLoading: isDetailLoading } = usePatientDetailQuery(selectedPatientId);

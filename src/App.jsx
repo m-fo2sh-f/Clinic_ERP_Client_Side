@@ -8,6 +8,8 @@ import AppRoutes from './routes/AppRoutes';
 const queryClient = new QueryClient({
   defaultOptions: {
     queries: {
+      staleTime: 1000 * 10, // 👈 جعل البيانات طازجة لمدة 10 ثواني (تمنع عاصفة الريكويستات)
+      gcTime: 1000 * 60 * 5, // الاحتفاظ بالتايم في الكاش لمدة 5 دقائق
       refetchOnWindowFocus: false,
       retry: 1,
     },

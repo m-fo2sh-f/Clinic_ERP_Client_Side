@@ -9,14 +9,12 @@ import {
   useReorderQueueMutation
 } from '../../hooks/useQueue';
 import { useBranchContext } from '../../context/BranchContext';
-import { useQueueWebSocket } from '../../hooks/useQueueWebSocket';
 
 export default function LiveQueue() {
 
   const { activeBranch } = useBranchContext();
   const branchId = activeBranch?.id;
   const branchName = activeBranch?.name || 'Unknown Branch';
-  useQueueWebSocket(branchId);
   const { data: queueData, isLoading: isLoadingQueue, error } = useLiveQueueQuery(branchId);
   const deleteQueueMutation = useDeleteQueueMutation();
   const updateQueueMutation = useUpdateQueueStatus();

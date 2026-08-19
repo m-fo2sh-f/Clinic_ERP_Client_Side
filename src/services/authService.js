@@ -27,4 +27,4 @@ export const logoutApi = async () => {
 export const getMeApi = async () => {
   const response = await api.get('/me');
   return response.data;
-};
+};
