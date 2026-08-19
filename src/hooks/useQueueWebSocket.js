@@ -3,7 +3,7 @@ import { useQueryClient } from '@tanstack/react-query';
 import echo from '../services/echo';
 import { shouldSkipWebSocketInvalidate, markQueryInvalidated } from '../utils/invalidationTracker';
 
-export function useQueueWebSocket(branchId, onPatientCalled) {
+export function useQueueWebSocket(branchId, onPatientCalled, isPublic = false) {
     const queryClient = useQueryClient();
     const callbackRef = useRef(onPatientCalled);
 
@@ -14,7 +14,10 @@ export function useQueueWebSocket(branchId, onPatientCalled) {
     useEffect(() => {
         if (!branchId) return;
 
-        const channel = echo.private(`live-queue.${branchId}`);
+        // Use public channel for unauthenticated TV displays, or private for logged-in users
+        const channel = isPublic 
+            ? echo.channel(`live-queue.${branchId}`)
+            : echo.channel(`live-queue.${branchId}`);
 
         // 🎯 Prevent duplicate network request storms from WebSocket events arriving right after local mutations
         const safeInvalidate = (queryKeys = ['liveQueue', 'appointments']) => {

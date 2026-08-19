@@ -27,6 +27,31 @@ export const useLiveQueueQuery = (branchId) => {
 };
 
 /**
+ * Unauthenticated public queue query for TV Waiting Room displays
+ */
+export const usePublicLiveQueueQuery = (branchId) => {
+    return useQuery({
+        queryKey: queueKeys.list(branchId),
+        queryFn: async () => {
+            // Try public endpoint first, fallback to standard if needed
+            try {
+                const response = await api.get('/public/live-queues', {
+                    params: { branch_id: branchId }
+                });
+                return response.data?.data || [];
+            } catch (err) {
+                const response = await api.get('/live-queues', {
+                    params: { branch_id: branchId }
+                });
+                return response.data?.data || [];
+            }
+        },
+        enabled: !!branchId,
+        staleTime: 1000 * 5,
+    });
+};
+
+/**
  * Update status of a patient in live queue
  */
 export const useUpdateQueueStatus = () => {
