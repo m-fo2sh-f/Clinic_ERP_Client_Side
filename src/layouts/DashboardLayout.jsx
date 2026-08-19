@@ -18,6 +18,7 @@ import {
 import Select from '../components/ui/Select';
 import Badge from '../components/ui/Badge';
 import { useBranchContext } from '../context/BranchContext';
+import { getUserRoles, getRoleDefaultRoute } from '../utils/roleUtils';
 
 export default function DashboardLayout({ children }) {
   const { branches, selectedBranchId, selectBranch, activeBranch, user, logout } = useBranchContext();
@@ -26,19 +27,17 @@ export default function DashboardLayout({ children }) {
   const navigate = useNavigate();
 
   const currentUser = user || {
-    name: 'Sarah Connor',
-    role: 'Clinic Receptionist',
-    email: 'sarah.c@my-saas.com',
-    token: 'sanctum_session_active'
+    name: 'User',
+    roles: [],
+    email: '',
   };
 
   const simulatedSubdomain = activeBranch ? (activeBranch.clinicSubdomain || `${activeBranch.name.toLowerCase().replace(/\s+/g, '')}.my-saas.test`) : 'maadi.my-saas.test';
 
   const location = useLocation();
 
-  const userRoles = currentUser.roles || (currentUser.role ? [currentUser.role] : []);
-  const isDoctorOnly = userRoles.includes('doctor') && !userRoles.includes('receptionist') && !userRoles.includes('clinic_owner') && !userRoles.includes('tenant_admin');
-  const dashboardPath = isDoctorOnly ? '/doctor' : '/dashboard';
+  const dashboardPath = getRoleDefaultRoute(currentUser);
+  const userRolesDisplay = getUserRoles(currentUser).map(r => r.replace('_', ' ')).join(', ') || 'User';
 
   const menuItems = [
     { name: 'Dashboard', icon: LayoutDashboard, href: dashboardPath, active: location.pathname === '/dashboard' || location.pathname === '/doctor' },
@@ -191,7 +190,7 @@ export default function DashboardLayout({ children }) {
                 </div>
                 <div className="hidden lg:block">
                   <p className="text-xs font-bold text-slate-800 leading-none">{currentUser.name}</p>
-                  <p className="text-[10px] text-slate-450 mt-0.5 leading-none">{currentUser.role || (currentUser.roles?.[0] || 'User')}</p>
+                  <p className="text-[10px] text-slate-450 mt-0.5 leading-none capitalize">{userRolesDisplay}</p>
                 </div>
                 <ChevronDown className="h-3.5 w-3.5 text-slate-400 hidden sm:block" />
               </button>
@@ -205,7 +204,7 @@ export default function DashboardLayout({ children }) {
                       <p className="text-sm font-bold text-slate-900">{currentUser.name}</p>
                       <p className="text-xs text-slate-450">{currentUser.email}</p>
                       <p className="text-[10px] text-clinic-700 font-bold bg-clinic-50 w-fit px-2 py-0.5 rounded mt-1.5 uppercase">
-                        {currentUser.role || (currentUser.roles?.[0] || 'User')}
+                        {userRolesDisplay}
                       </p>
                     </div>
                     <div className="space-y-1">

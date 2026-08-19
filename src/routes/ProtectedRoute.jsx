@@ -2,13 +2,9 @@ import React from 'react';
 import { Navigate, useLocation } from 'react-router-dom';
 import { ShieldAlert, Loader2, Home, LogOut } from 'lucide-react';
 import { useBranchContext } from '../context/BranchContext';
+import { getUserRoles, getRoleDefaultRoute } from '../utils/roleUtils';
 
-export const getRoleDefaultRoute = (user) => {
-  if (!user) return '/login';
-  const roles = user.roles || (user.role ? [user.role] : []);
-  if (roles.includes('doctor')) return '/doctor';
-  return '/dashboard';
-};
+export { getRoleDefaultRoute } from '../utils/roleUtils';
 
 export const ProtectedRoute = ({ children, allowedRoles = [] }) => {
   const { user, loading, isLoading, logout } = useBranchContext();
@@ -35,11 +31,16 @@ export const ProtectedRoute = ({ children, allowedRoles = [] }) => {
 
   // 3. Check role-based permissions if allowedRoles is provided
   if (allowedRoles && allowedRoles.length > 0) {
-    const userRoles = user.roles || (user.role ? [user.role] : []);
+    const userRoles = getUserRoles(user);
     const hasRole = allowedRoles.some(role => userRoles.includes(role));
 
     if (!hasRole) {
       const defaultRoute = getRoleDefaultRoute(user);
+
+      // If doctor is attempting to access /dashboard, seamlessly redirect to /doctor
+      if (userRoles.includes('doctor') && location.pathname === '/dashboard') {
+        return <Navigate to={defaultRoute} replace />;
+      }
 
       return (
         <div className="min-h-screen bg-slate-900 flex items-center justify-center p-4">

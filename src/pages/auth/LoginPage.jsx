@@ -6,6 +6,8 @@ import { useBranchContext } from '../../context/BranchContext';
 import BranchSelectionModal from '../../components/modals/BranchSelectionModal';
 import Button from '../../components/ui/Button';
 
+import { getRoleDefaultRoute } from '../../utils/roleUtils';
+
 export default function LoginPage() {
   const [email, setEmail] = useState('doctor@healios.com');
   const [password, setPassword] = useState(12345678);
@@ -13,7 +15,7 @@ export default function LoginPage() {
   const [error, setError] = useState('');
   const [pendingBranches, setPendingBranches] = useState([]);
   const [showModal, setShowModal] = useState(false);
-  const [loggedInUserRoles, setLoggedInUserRoles] = useState([]);
+  const [loggedInUser, setLoggedInUser] = useState(null);
 
   const navigate = useNavigate();
   const { user, loading, processLoginData, selectBranch } = useBranchContext();
@@ -21,18 +23,12 @@ export default function LoginPage() {
   // If user is already authenticated on mount, redirect to their role dashboard
   useEffect(() => {
     if (user && !loading) {
-      const userRoles = user.roles || (user.role ? [user.role] : []);
-      const targetRoute = userRoles.includes('doctor') ? '/doctor' : '/dashboard';
-      navigate(targetRoute, { replace: true });
+      navigate(getRoleDefaultRoute(user), { replace: true });
     }
   }, [user, loading, navigate]);
 
-  const handleRedirectByRoles = (roles = []) => {
-    if (roles.includes('doctor')) {
-      navigate('/doctor', { replace: true });
-    } else {
-      navigate('/dashboard', { replace: true });
-    }
+  const handleRedirectForUser = (userObj) => {
+    navigate(getRoleDefaultRoute(userObj), { replace: true });
   };
 
   const handleSubmit = async (e) => {
@@ -42,8 +38,8 @@ export default function LoginPage() {
 
     try {
       const data = await loginApi(email, password);
-      const userRoles = data?.user?.roles || [];
-      setLoggedInUserRoles(userRoles);
+      const userData = data?.user || null;
+      setLoggedInUser(userData);
 
       const result = processLoginData(data);
 
@@ -51,7 +47,7 @@ export default function LoginPage() {
         setPendingBranches(result.branches);
         setShowModal(true);
       } else {
-        handleRedirectByRoles(userRoles);
+        handleRedirectForUser(userData);
       }
     } catch (err) {
       console.error('Login error:', err);
@@ -64,7 +60,7 @@ export default function LoginPage() {
   const handleBranchSelect = (branchId) => {
     selectBranch(branchId);
     setShowModal(false);
-    handleRedirectByRoles(loggedInUserRoles);
+    handleRedirectForUser(loggedInUser);
   };
 
   return (
