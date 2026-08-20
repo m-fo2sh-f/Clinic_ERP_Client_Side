@@ -1,9 +1,8 @@
 import React, { useState } from 'react';
-import { PlusCircle, Calendar, UserCheck, Clock, UserPlus, Loader2, X } from 'lucide-react';
+import { PlusCircle, Calendar, UserCheck, Clock, UserPlus } from 'lucide-react';
 import Button from '../ui/Button';
 import dayjs from 'dayjs';
 import AppointmentModal from '../ui/AppointmentModal';
-import { Dialog, DialogHeader, DialogTitle, DialogDescription, DialogClose } from '../ui/Dialog';
 import { useBranchContext } from '../../context/BranchContext';
 import { useCreateAppointmentMutation } from '../../hooks/useAppointments';
 import { useWalkInMutation } from '../../hooks/useQueue';
@@ -14,7 +13,6 @@ export default function QuickActions({ stats = { total: 0, checkedIn: 0, remaini
 
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isWalkInOpen, setIsWalkInOpen] = useState(false);
-  const [walkInForm, setWalkInForm] = useState({ name: '', phone: '' });
 
   const createAppointmentMutation = useCreateAppointmentMutation();
   const walkInMutation = useWalkInMutation();
@@ -46,21 +44,23 @@ export default function QuickActions({ stats = { total: 0, checkedIn: 0, remaini
     });
   };
 
-  const handleWalkInSubmit = (e) => {
-    e.preventDefault();
-    if (!walkInForm.name.trim() || !walkInForm.phone.trim()) return;
-
+  const onSubmitWalkIn = (data, selectedPatientIdFromModal) => {
     const payload = {
       branch_id: branchId,
-      patient: {
-        name: walkInForm.name.trim(),
-        phone: walkInForm.phone.trim()
-      }
+      type: data.apptType,
     };
+
+    if (selectedPatientIdFromModal) {
+      payload.patient_id = selectedPatientIdFromModal;
+    } else {
+      payload.patient = {
+        name: data.patientName,
+        phone: data.patientPhone
+      };
+    }
 
     walkInMutation.mutate(payload, {
       onSuccess: () => {
-        setWalkInForm({ name: '', phone: '' });
         setIsWalkInOpen(false);
       },
       onError: (error) => {
@@ -148,68 +148,22 @@ export default function QuickActions({ stats = { total: 0, checkedIn: 0, remaini
           apptTime: dayjs().format('YYYY-MM-DD HH:mm:ss')
         }}
         onSubmit={onSubmitAppointment}
-        patients={patients}
+        isLoading={createAppointmentMutation.isPending}
       />
 
       {/* Direct Walk-In Modal */}
-      <Dialog isOpen={isWalkInOpen} onClose={() => setIsWalkInOpen(false)}>
-        <DialogHeader>
-          <div className="flex items-center gap-3 border-b border-slate-100 pb-3">
-            <div className="h-10 w-10 rounded-full bg-emerald-50 text-emerald-600 border border-emerald-200 flex items-center justify-center font-bold shrink-0">
-              <UserPlus className="h-5 w-5" />
-            </div>
-            <div>
-              <DialogTitle className="text-lg font-bold text-slate-900 m-0">Direct Walk-In Check-In</DialogTitle>
-              <DialogDescription className="text-xs text-slate-500 mt-0.5">
-                Check in a patient directly into the waiting room queue without prior booking.
-              </DialogDescription>
-            </div>
-          </div>
-        </DialogHeader>
-        <DialogClose onClick={() => setIsWalkInOpen(false)} />
-
-        <form onSubmit={handleWalkInSubmit} className="space-y-4 mt-4">
-          <div>
-            <label className="block text-xs font-semibold text-slate-700 mb-1">Patient Full Name *</label>
-            <input
-              type="text"
-              required
-              value={walkInForm.name}
-              onChange={(e) => setWalkInForm(prev => ({ ...prev, name: e.target.value }))}
-              placeholder="e.g. Ahmed Mahmoud"
-              className="w-full px-3 py-2 text-xs bg-slate-50 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:bg-white transition-all"
-            />
-          </div>
-
-          <div>
-            <label className="block text-xs font-semibold text-slate-700 mb-1">Phone Number *</label>
-            <input
-              type="tel"
-              required
-              value={walkInForm.phone}
-              onChange={(e) => setWalkInForm(prev => ({ ...prev, phone: e.target.value }))}
-              placeholder="e.g. 01012345678"
-              className="w-full px-3 py-2 text-xs bg-slate-50 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:bg-white transition-all"
-            />
-          </div>
-
-          <div className="flex items-center justify-end gap-2 pt-3 border-t border-slate-100">
-            <Button type="button" variant="outline" size="sm" onClick={() => setIsWalkInOpen(false)}>
-              Cancel
-            </Button>
-            <Button
-              type="submit"
-              variant="default"
-              size="sm"
-              disabled={walkInMutation.isPending}
-              className="bg-emerald-600 hover:bg-emerald-700 text-white font-bold gap-1.5"
-            >
-              {walkInMutation.isPending && <Loader2 className="h-3.5 w-3.5 animate-spin shrink-0" />}
-              <span>Confirm Walk-In Check-In</span>
-            </Button>
-          </div>
-        </form>
-      </Dialog>
+      <AppointmentModal
+        isOpen={isWalkInOpen}
+        onClose={() => setIsWalkInOpen(false)}
+        mode="walk_in"
+        defaultValues={{
+          patientName: '',
+          patientPhone: '',
+          apptType: 'check_up'
+        }}
+        onSubmit={onSubmitWalkIn}
+        isLoading={walkInMutation.isPending}
+      />
     </div>
   );
 }

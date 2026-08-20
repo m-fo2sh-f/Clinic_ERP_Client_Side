@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useForm } from 'react-hook-form';
-import { Search, PlusCircle, ArrowRight, Edit2, Loader2, UserCheck } from 'lucide-react';
+import { Search, PlusCircle, ArrowRight, Edit2, Loader2, UserPlus } from 'lucide-react';
 import Button from '../ui/Button';
 import { Dialog, DialogHeader, DialogTitle, DialogDescription, DialogFooter, DialogClose } from '../ui/Dialog';
 import Select from '../ui/Select';
@@ -12,6 +12,7 @@ export default function AppointmentModal({
   mode = 'create',
   defaultValues,
   onSubmit,
+  isLoading = false,
 }) {
   const [searchQuery, setSearchQuery] = useState('');
   const [debouncedSearch, setDebouncedSearch] = useState('');
@@ -68,20 +69,30 @@ export default function AppointmentModal({
     onSubmit(data, selectedPatientId);
   };
 
+  const getModalTitle = () => {
+    if (mode === 'walk_in') return 'Direct Walk-In Check-In';
+    if (mode === 'create') return 'Book New Appointment';
+    return 'Update Appointment';
+  };
+
+  const getModalDescription = () => {
+    if (mode === 'walk_in')
+      return 'Search for an existing patient or enter patient details to check in directly into the waiting room.';
+    if (mode === 'create')
+      return 'Search for an existing patient or create a quick temporary profile to assign a booking slot.';
+    return 'Update details for this scheduled appointment.';
+  };
+
   return (
     <Dialog isOpen={isOpen} onClose={onClose}>
       <DialogHeader>
-        <DialogTitle>{mode === 'create' ? 'Book New Appointment' : 'Update Appointment'}</DialogTitle>
-        <DialogDescription>
-          {mode === 'create'
-            ? 'Search for an existing patient or create a quick temporary profile to assign a booking slot.'
-            : 'Update details for this scheduled appointment.'}
-        </DialogDescription>
+        <DialogTitle>{getModalTitle()}</DialogTitle>
+        <DialogDescription>{getModalDescription()}</DialogDescription>
       </DialogHeader>
       <DialogClose onClick={onClose} />
 
       <form onSubmit={handleSubmit(handleFormSubmit)} className="space-y-4 mt-2">
-        {mode === 'create' && (
+        {(mode === 'create' || mode === 'walk_in') && (
           <>
             <div className="relative">
               <label className="block text-xs font-semibold text-slate-600 uppercase tracking-wide mb-1.5">
@@ -136,9 +147,6 @@ export default function AppointmentModal({
               )}
             </div>
 
-
-
-
             <div className="border-t border-slate-100 my-4" />
           </>
         )}
@@ -172,7 +180,7 @@ export default function AppointmentModal({
         </div>
 
         {/* Appointment Specs */}
-        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+        <div className={`grid grid-cols-1 gap-4 ${mode !== 'walk_in' ? 'sm:grid-cols-2' : ''}`}>
           <div>
             <label className="block text-xs font-semibold text-slate-600 uppercase tracking-wide mb-1.5">
               Appointment Type
@@ -182,18 +190,20 @@ export default function AppointmentModal({
               <option value="consultation">Consultation (Istishara)</option>
             </Select>
           </div>
-          <div>
-            <label className="block text-xs font-semibold text-slate-600 uppercase tracking-wide mb-1.5">
-              Scheduled Time Slot
-            </label>
-            <input
-              type="text"
-              placeholder="YYYY-MM-DD HH:MM:SS"
-              className={`w-full px-3 py-2 border ${errors.apptTime ? 'border-red-500 focus:ring-red-500 focus:border-red-500' : 'border-slate-200 focus:ring-clinic-500 focus:border-clinic-500'} rounded-lg text-sm focus:outline-none focus:ring-1 transition-all`}
-              {...register('apptTime', { required: 'Time is required' })}
-            />
-            {errors.apptTime && <span className="text-[10px] text-red-500 mt-1">{errors.apptTime.message}</span>}
-          </div>
+          {mode !== 'walk_in' && (
+            <div>
+              <label className="block text-xs font-semibold text-slate-600 uppercase tracking-wide mb-1.5">
+                Scheduled Time Slot
+              </label>
+              <input
+                type="text"
+                placeholder="YYYY-MM-DD HH:MM:SS"
+                className={`w-full px-3 py-2 border ${errors.apptTime ? 'border-red-500 focus:ring-red-500 focus:border-red-500' : 'border-slate-200 focus:ring-clinic-500 focus:border-clinic-500'} rounded-lg text-sm focus:outline-none focus:ring-1 transition-all`}
+                {...register('apptTime', { required: mode !== 'walk_in' ? 'Time is required' : false })}
+              />
+              {errors.apptTime && <span className="text-[10px] text-red-500 mt-1">{errors.apptTime.message}</span>}
+            </div>
+          )}
         </div>
 
         {/* Dialog Action buttons */}
@@ -203,16 +213,32 @@ export default function AppointmentModal({
             variant="outline"
             onClick={onClose}
             className="w-full sm:w-auto"
+            disabled={isLoading}
           >
             Cancel
           </Button>
           <Button
             type="submit"
-            variant="success"
-            className="w-full sm:w-auto flex items-center gap-1.5"
+            variant={mode === 'walk_in' ? 'default' : 'success'}
+            disabled={isLoading}
+            className={`w-full sm:w-auto flex items-center justify-center gap-1.5 ${mode === 'walk_in' ? 'bg-emerald-600 hover:bg-emerald-700 text-white font-bold' : ''}`}
           >
-            {mode === 'create' ? <PlusCircle className="h-4 w-4" /> : <Edit2 className="h-4 w-4" />}
-            <span>{mode === 'create' ? 'Book Appointment' : 'Update Appointment'}</span>
+            {isLoading ? (
+              <Loader2 className="h-4 w-4 animate-spin" />
+            ) : mode === 'walk_in' ? (
+              <UserPlus className="h-4 w-4" />
+            ) : mode === 'create' ? (
+              <PlusCircle className="h-4 w-4" />
+            ) : (
+              <Edit2 className="h-4 w-4" />
+            )}
+            <span>
+              {mode === 'walk_in'
+                ? 'Confirm Walk-In Check-In'
+                : mode === 'create'
+                ? 'Book Appointment'
+                : 'Update Appointment'}
+            </span>
           </Button>
         </DialogFooter>
       </form>

@@ -1,15 +1,15 @@
 import React, { useState } from 'react';
 import { useNavigate, useLocation, Link } from 'react-router-dom';
-import { 
-  LayoutDashboard, 
-  Users, 
-  CreditCard, 
-  Settings, 
-  Activity, 
-  ChevronDown, 
-  Globe, 
-  User, 
-  LogOut, 
+import {
+  LayoutDashboard,
+  Users,
+  CreditCard,
+  Settings,
+  Activity,
+  ChevronDown,
+  Globe,
+  User,
+  LogOut,
   Bell,
   Menu,
   X,
@@ -42,7 +42,6 @@ export default function DashboardLayout({ children }) {
   const menuItems = [
     { name: 'Dashboard', icon: LayoutDashboard, href: dashboardPath, active: location.pathname === '/dashboard' || location.pathname === '/doctor' },
     { name: 'Patients Directory', icon: Users, href: '/patients', active: location.pathname === '/patients' },
-    { name: 'Waiting Room TV', icon: Activity, href: '/waiting-room', active: location.pathname === '/waiting-room' },
   ];
 
   const handleLogout = async () => {
@@ -71,11 +70,10 @@ export default function DashboardLayout({ children }) {
             <Link
               key={item.name}
               to={item.href}
-              className={`flex items-center gap-3 px-4 py-3 rounded-lg text-sm font-semibold transition-all ${
-                item.active 
-                  ? 'bg-clinic-600 text-white shadow-md shadow-clinic-600/10' 
+              className={`flex items-center gap-3 px-4 py-3 rounded-lg text-sm font-semibold transition-all ${item.active
+                  ? 'bg-clinic-600 text-white shadow-md shadow-clinic-600/10'
                   : 'text-slate-400 hover:bg-slate-800 hover:text-white'
-              }`}
+                }`}
             >
               <item.icon className="h-5 w-5 shrink-0" />
               <span>{item.name}</span>
@@ -114,11 +112,10 @@ export default function DashboardLayout({ children }) {
                 <Link
                   key={item.name}
                   to={item.href}
-                  className={`flex items-center gap-3 px-4 py-3 rounded-lg text-sm font-semibold transition-all ${
-                    item.active 
-                      ? 'bg-clinic-600 text-white' 
+                  className={`flex items-center gap-3 px-4 py-3 rounded-lg text-sm font-semibold transition-all ${item.active
+                      ? 'bg-clinic-600 text-white'
                       : 'text-slate-400 hover:bg-slate-800 hover:text-white'
-                  }`}
+                    }`}
                   onClick={() => setIsMobileMenuOpen(false)}
                 >
                   <item.icon className="h-5 w-5 shrink-0" />
@@ -139,7 +136,7 @@ export default function DashboardLayout({ children }) {
         <header className="h-16 bg-white border-b border-slate-200/80 px-4 sm:px-6 flex items-center justify-between sticky top-0 z-30">
           <div className="flex items-center gap-3">
             {/* Mobile menu trigger */}
-            <button 
+            <button
               onClick={() => setIsMobileMenuOpen(true)}
               className="md:hidden p-1.5 rounded-lg text-slate-500 hover:bg-slate-105 active:bg-slate-200 cursor-pointer"
             >
@@ -160,8 +157,8 @@ export default function DashboardLayout({ children }) {
           <div className="flex items-center gap-4">
             {/* Branch Switcher Select Header */}
             <div className="w-44 sm:w-52">
-              <Select 
-                value={selectedBranchId || ''} 
+              <Select
+                value={selectedBranchId || ''}
                 onChange={(e) => {
                   selectBranch(e.target.value);
                 }}
@@ -181,7 +178,7 @@ export default function DashboardLayout({ children }) {
 
             {/* User Profile dropdown */}
             <div className="relative">
-              <button 
+              <button
                 onClick={() => setIsProfileOpen(!isProfileOpen)}
                 className="flex items-center gap-2 p-1.5 rounded-lg hover:bg-slate-50 text-left transition-colors cursor-pointer"
               >
@@ -212,7 +209,7 @@ export default function DashboardLayout({ children }) {
                         <User className="h-4 w-4" />
                         <span>My Profile Settings</span>
                       </button>
-                      <button 
+                      <button
                         onClick={handleLogout}
                         className="w-full text-left text-xs font-medium text-red-650 hover:bg-red-50 px-2 py-2 rounded-md flex items-center gap-2 cursor-pointer"
                       >
