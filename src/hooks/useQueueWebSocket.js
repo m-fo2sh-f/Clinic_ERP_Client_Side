@@ -15,9 +15,9 @@ export function useQueueWebSocket(branchId, onPatientCalled, isPublic = false) {
         if (!branchId) return;
 
         // Use public channel for unauthenticated TV displays, or private for logged-in users
-        const channel = isPublic 
+        const channel = isPublic
             ? echo.channel(`live-queue.${branchId}`)
-            : echo.channel(`live-queue.${branchId}`);
+            : echo.private(`live-queue.${branchId}`);
 
         // 🎯 Prevent duplicate network request storms from WebSocket events arriving right after local mutations
         const safeInvalidate = (queryKeys = ['liveQueue', 'appointments']) => {

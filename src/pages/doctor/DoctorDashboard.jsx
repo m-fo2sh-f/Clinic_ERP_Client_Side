@@ -17,6 +17,7 @@ import ActivePatientCard from '../../components/doctor/ActivePatientCard';
 import ClinicalFindingsCard from '../../components/doctor/ClinicalFindingsCard';
 import PrescriptionSheet from '../../components/doctor/PrescriptionSheet';
 import EmptyDoctorState from '../../components/doctor/EmptyDoctorState';
+import PatientHistoryModal from '../../components/doctor/PatientHistoryModal';
 
 /**
  * DoctorDashboard — orchestrator / container component.
@@ -35,6 +36,7 @@ export default function DoctorDashboard() {
   const callNextMutation = useCallNextPatientMutation();
 
   const [isQueueOpen, setIsQueueOpen] = useState(false);
+  const [isHistoryOpen, setIsHistoryOpen] = useState(false);
 
   const activeQueueItem = useMemo(
     () => queueItems.find((item) => item.status === 'under_examination'),
@@ -211,6 +213,14 @@ export default function DoctorDashboard() {
         />
       )}
 
+      {/* Patient History Modal */}
+      <PatientHistoryModal
+        isOpen={isHistoryOpen}
+        onClose={() => setIsHistoryOpen(false)}
+        patientHistory={patientHistory}
+        isLoading={historyLoading}
+      />
+
       {/* Main content area */}
       <main className="max-w-7xl mx-auto px-4 sm:px-6 pt-6 no-print">
         {!activeQueueItem ? (
@@ -228,6 +238,7 @@ export default function DoctorDashboard() {
               historyLoading={historyLoading}
               patientHistory={patientHistory}
               chronicDiseases={chronicDiseases}
+              onOpenHistory={() => setIsHistoryOpen(true)}
             />
 
             {/* Section 2: Clinical findings, vitals & diagnosis */}

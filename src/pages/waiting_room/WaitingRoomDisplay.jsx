@@ -88,12 +88,13 @@ function playChime() {
 // 🎯 2. Cinematic Full-Screen Overlay Animation for "Next Patient" Call (Light Theme Glass & Smooth Transitions)
 function CinematicCallOverlay({ isOpen, isFadingOut, data }) {
   if (!isOpen && !isFadingOut) return null;
+  console.log('data from waiting room', data)
 
   return (
     <div
       className={`fixed inset-0 z-50 flex flex-col items-center justify-center bg-white/95 backdrop-blur-3xl text-slate-900 border border-slate-200/80 shadow-2xl transition-all duration-700 ease-in-out ${isFadingOut
-          ? 'opacity-0 scale-95 pointer-events-none'
-          : 'opacity-100 scale-100 animate-in fade-in duration-500'
+        ? 'opacity-0 scale-95 pointer-events-none'
+        : 'opacity-100 scale-100 animate-in fade-in duration-500'
         }`}
     >
       {/* Background Ambient Glow */}
@@ -163,7 +164,6 @@ export default function WaitingRoomDisplay() {
 
   // Unauthenticated Public Queue Data & Public WebSocket Listener
   const { data: queueItems = [] } = usePublicLiveQueueQuery(branchId);
-
   // Active patient under examination
   const activePatient = useMemo(
     () => queueItems.find((item) => item.status === 'under_examination'),
@@ -227,7 +227,7 @@ export default function WaitingRoomDisplay() {
       prevActivePatientIdRef.current = activePatient.id;
       triggerCallAnimation({
         queue_no: activePatient.queue_no,
-        patient_name: activePatient.patient?.name || 'Unknown Patient',
+        patient_name: activePatient.patient_name || 'Unknown Patient',
         doctor_name: 'Dr. Ahmed',
         room_name: 'Room 1'
       });
@@ -244,7 +244,7 @@ export default function WaitingRoomDisplay() {
   // Current display patient fallback
   const displayPatient = calledData || (activePatient ? {
     queue_no: activePatient.queue_no,
-    patient_name: activePatient.patient?.name || 'Unknown Patient',
+    patient_name: activePatient.patient_name || 'Unknown Patient',
     doctor_name: 'Dr. Ahmed',
     room_name: 'Room 1'
   } : null);
@@ -276,8 +276,8 @@ export default function WaitingRoomDisplay() {
       {/* ── MAIN CONTENT WRAPPER (With smooth dim, blur, & scale transitions) ── */}
       <div
         className={`h-full w-full flex flex-col transition-all duration-700 ease-in-out ${isOverlayOpen && !isFadingOut
-            ? 'opacity-30 filter blur-xs scale-98 pointer-events-none'
-            : 'opacity-100 filter blur-none scale-100'
+          ? 'opacity-30 filter blur-xs scale-98 pointer-events-none'
+          : 'opacity-100 filter blur-none scale-100'
           }`}
       >
         {/* ── TOP DISPLAY HEADER BAR (Light Theme Fixed Height) ── */}
@@ -400,15 +400,15 @@ export default function WaitingRoomDisplay() {
                       <div
                         key={item.id}
                         className={`p-4 rounded-xl border transition-all duration-200 flex items-center justify-between gap-3 ${isUnderExam
-                            ? 'bg-clinic-50/90 border-clinic-500/60 ring-2 ring-clinic-500/40 shadow-md shadow-clinic-600/10'
-                            : 'bg-white border-slate-200/90 hover:border-slate-300 shadow-xs'
+                          ? 'bg-clinic-50/90 border-clinic-500/60 ring-2 ring-clinic-500/40 shadow-md shadow-clinic-600/10'
+                          : 'bg-white border-slate-200/90 hover:border-slate-300 shadow-xs'
                           }`}
                       >
                         {/* Ticket Badge */}
                         <div
                           className={`flex items-center justify-center h-11 w-11 rounded-xl font-black text-base shrink-0 ${isUnderExam
-                              ? 'bg-clinic-600 text-white shadow-sm border border-clinic-500'
-                              : 'bg-slate-100 text-slate-700 border border-slate-200 font-bold'
+                            ? 'bg-clinic-600 text-white shadow-sm border border-clinic-500'
+                            : 'bg-slate-100 text-slate-700 border border-slate-200 font-bold'
                             }`}
                         >
                           #{item.queue_no ?? index + 1}
@@ -417,7 +417,7 @@ export default function WaitingRoomDisplay() {
                         {/* Patient Details */}
                         <div className="flex-1 min-w-0">
                           <h4 className={`font-bold text-sm truncate m-0 ${isUnderExam ? 'text-slate-900 font-extrabold' : 'text-slate-800'}`}>
-                            {item.patient?.name || 'Unknown Patient'}
+                            {item.patient_name || 'Unknown Patient'}
                           </h4>
                           <p className="text-[11px] text-slate-400 mt-1 m-0 truncate font-medium">
                             Arrival: {item.checked_in_at || '—'}
@@ -428,8 +428,8 @@ export default function WaitingRoomDisplay() {
                         <Badge
                           variant={isUnderExam ? 'success' : 'secondary'}
                           className={`text-[10px] font-extrabold shrink-0 capitalize px-2.5 py-1 ${isUnderExam
-                              ? 'bg-emerald-500 text-white border-0 shadow-xs'
-                              : 'bg-slate-100 text-slate-600 border border-slate-200'
+                            ? 'bg-emerald-500 text-white border-0 shadow-xs'
+                            : 'bg-slate-100 text-slate-600 border border-slate-200'
                             }`}
                         >
                           {isUnderExam ? 'In Exam' : 'Waiting'}

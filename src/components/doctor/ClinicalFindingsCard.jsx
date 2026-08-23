@@ -14,8 +14,8 @@ import {
 import { Card, CardHeader, CardTitle, CardContent } from '../ui/Card';
 
 /**
- * ClinicalFindingsCard — vital signs inputs, chief complaint, examination findings,
- * and autocomplete multi-tag diagnosis selector.
+ * ClinicalFindingsCard — vital signs inputs with auto-formatting, chief complaint,
+ * examination findings, and autocomplete multi-tag diagnosis selector.
  *
  * @param {Object}   props
  * @param {Object}   props.vitals                   – { bloodPressure, heartRate, temperature, weight, height, spo2, randomBloodSugar }
@@ -49,6 +49,31 @@ export default function ClinicalFindingsCard({
   onRemoveDiagnosis,
   onDiagnosisKeyDown,
 }) {
+  /**
+   * Automatic slash insertion for Blood Pressure input e.g. "120" -> "120/"
+   */
+  const handleBloodPressureChange = (e) => {
+    const rawVal = e.target.value;
+    const prevVal = vitals.bloodPressure || '';
+    const isDeleting = rawVal.length < prevVal.length;
+
+    let formatted = rawVal;
+    if (!isDeleting) {
+      const clean = rawVal.replace(/[^\d\/]/g, '');
+      const digitsOnly = clean.replace(/\D/g, '');
+
+      if (digitsOnly.length === 3 && !clean.includes('/')) {
+        formatted = `${digitsOnly}/`;
+      } else if (digitsOnly.length > 3 && !clean.includes('/')) {
+        formatted = `${digitsOnly.slice(0, 3)}/${digitsOnly.slice(3, 6)}`;
+      } else {
+        formatted = clean;
+      }
+    }
+
+    onUpdateVital('bloodPressure', formatted);
+  };
+
   return (
     <Card className="border-slate-200 shadow-sm bg-white rounded-2xl !overflow-visible">
       <CardHeader className="p-5 border-b border-slate-100 bg-slate-50/50">
@@ -77,7 +102,7 @@ export default function ClinicalFindingsCard({
                 type="text"
                 placeholder="120/80"
                 value={vitals.bloodPressure || ''}
-                onChange={(e) => onUpdateVital('bloodPressure', e.target.value)}
+                onChange={handleBloodPressureChange}
                 className="w-full px-3 py-1.5 text-xs bg-white border border-slate-200 rounded-lg focus:ring-2 focus:ring-clinic-500 font-semibold"
               />
             </div>

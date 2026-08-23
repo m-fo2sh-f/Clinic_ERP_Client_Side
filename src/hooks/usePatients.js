@@ -1,5 +1,6 @@
-import { useQuery } from '@tanstack/react-query';
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import api from '../services/api';
+import { markQueryInvalidated } from '../utils/invalidationTracker';
 
 // 🎯 Standardized Patient Query Keys
 export const patientKeys = {
@@ -59,6 +60,23 @@ export const usePatientDetailQuery = (patientId) => {
       return response.data?.data || null;
     },
     enabled: !!patientId,
+  });
+};
+
+/**
+ * Update patient profile demographics and medical background
+ */
+export const useUpdatePatientMutation = () => {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: ({ id, ...patientData }) => api.put(`/patients/${id}`, patientData),
+    onSuccess: (_data, variables) => {
+      markQueryInvalidated();
+      queryClient.invalidateQueries({ queryKey: patientKeys.all });
+      queryClient.invalidateQueries({ queryKey: ['patientHistory', variables.id] });
+      queryClient.invalidateQueries({ queryKey: ['liveQueue'] });
+    },
   });
 };
 
