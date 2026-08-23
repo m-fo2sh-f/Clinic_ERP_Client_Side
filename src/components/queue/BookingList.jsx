@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { CalendarDays, Clock, UserCheck, Trash2, Edit2 } from 'lucide-react';
+import { formatDateTime } from '../../utils/dateFormat';
 import Badge from '../ui/Badge';
 import Button from '../ui/Button';
 import AppointmentModal from '../ui/AppointmentModal';
@@ -32,7 +33,7 @@ export default function BookingList({ bookings = [], branchName }) {
       patientName: booking.patient?.name || '',
       patientPhone: booking.patient?.phone || '',
       apptType: booking.type || 'check_up',
-      apptTime: booking.appointment_time || '' // استخدام appointment_time المظبوطة
+      apptTime: formatDateTime(booking.appointment_time)
     });
     setIsModalOpen(true);
   };
@@ -123,7 +124,7 @@ export default function BookingList({ bookings = [], branchName }) {
                     <div className="flex items-center gap-1.5 text-xs text-slate-500 font-semibold bg-slate-100/80 px-2 py-1 rounded-md">
                       <Clock className="h-3.5 w-3.5 text-slate-400" />
                       {/* 🎯 قراءة وقت الحجز من appointment_time المظبوطة */}
-                      <span>{booking.appointment_time}</span>
+                      <span>{formatDateTime(booking.appointment_time)}</span>
                     </div>
 
                     <div className="flex items-center gap-2">
