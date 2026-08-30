@@ -92,64 +92,60 @@ export default function AppointmentModal({
       <DialogClose onClick={onClose} />
 
       <form onSubmit={handleSubmit(handleFormSubmit)} className="space-y-4 mt-2">
-        {(mode === 'create' || mode === 'walk_in') && (
-          <>
-            <div className="relative">
-              <label className="block text-xs font-semibold text-slate-600 uppercase tracking-wide mb-1.5">
-                Search Existing Patient
-              </label>
-              <div className="relative">
-                <Search className="absolute left-3 top-2.5 h-4.5 w-4.5 text-slate-400" />
-                <input
-                  type="text"
-                  placeholder="Search by name or phone number..."
-                  className="w-full pl-9 pr-9 py-2 border border-slate-200 rounded-lg text-sm bg-slate-50/50 focus:bg-white focus:outline-none focus:ring-1 focus:ring-clinic-500 focus:border-clinic-500 transition-all"
-                  value={searchQuery}
-                  onChange={(e) => {
-                    setShowDropdown(true);
-                    setSearchQuery(e.target.value);
-                    if (selectedPatientId) setSelectedPatientId(null);
-                  }}
-                  onFocus={() => {
-                    if (searchQuery.trim().length >= 2) setShowDropdown(true);
-                  }}
-                />
-                {/* 🎯 مؤشر التحميل أثناء البحث من السيرفر */}
-                {isSearching && (
-                  <Loader2 className="absolute right-3 top-2.5 h-4.5 w-4.5 text-clinic-600 animate-spin" />
-                )}
-              </div>
+        <div className="relative">
+          <label className="block text-xs font-semibold text-slate-600 uppercase tracking-wide mb-1.5">
+            {mode === 'update' ? 'Reassign Patient (Optional Search)' : 'Search Existing Patient'}
+          </label>
+          <div className="relative">
+            <Search className="absolute left-3 top-2.5 h-4.5 w-4.5 text-slate-400" />
+            <input
+              type="text"
+              placeholder={mode === 'update' ? 'Search by name or phone to reassign...' : 'Search by name or phone number...'}
+              className="w-full pl-9 pr-9 py-2 border border-slate-200 rounded-lg text-sm bg-slate-50/50 focus:bg-white focus:outline-none focus:ring-1 focus:ring-clinic-500 focus:border-clinic-500 transition-all"
+              value={searchQuery}
+              onChange={(e) => {
+                setShowDropdown(true);
+                setSearchQuery(e.target.value);
+                if (selectedPatientId) setSelectedPatientId(null);
+              }}
+              onFocus={() => {
+                if (searchQuery.trim().length >= 2) setShowDropdown(true);
+              }}
+            />
+            {/* 🎯 مؤشر التحميل أثناء البحث من السيرفر */}
+            {isSearching && (
+              <Loader2 className="absolute right-3 top-2.5 h-4.5 w-4.5 text-clinic-600 animate-spin" />
+            )}
+          </div>
 
-              {/* 🎯 قائمة نتائج البحث المباشرة من السيرفر */}
-              {showDropdown && debouncedSearch.trim().length >= 2 && (
-                <div className="absolute z-50 w-full mt-1 bg-white border border-slate-200 rounded-lg shadow-lg max-h-52 overflow-y-auto">
-                  {searchedPatients.length === 0 && !isSearching ? (
-                    <div className="p-3 text-xs text-slate-500 text-center">
-                      No matching patients found. Fill in details below to create a new profile.
-                    </div>
-                  ) : (
-                    searchedPatients.map((p) => (
-                      <button
-                        key={p.id}
-                        type="button"
-                        onClick={() => handleSelectPatient(p)}
-                        className="w-full text-left px-4 py-2.5 hover:bg-clinic-50 text-sm flex items-center justify-between border-b border-slate-100 last:border-0 cursor-pointer transition-colors"
-                      >
-                        <div>
-                          <p className="font-semibold text-slate-800">{p.name}</p>
-                          <p className="text-xs text-slate-500">{p.phone}</p>
-                        </div>
-                        <ArrowRight className="h-4 w-4 text-slate-400" />
-                      </button>
-                    ))
-                  )}
+          {/* 🎯 قائمة نتائج البحث المباشرة من السيرفر */}
+          {showDropdown && debouncedSearch.trim().length >= 2 && (
+            <div className="absolute z-50 w-full mt-1 bg-white border border-slate-200 rounded-lg shadow-lg max-h-52 overflow-y-auto">
+              {searchedPatients.length === 0 && !isSearching ? (
+                <div className="p-3 text-xs text-slate-500 text-center">
+                  No matching patients found. Fill in details below to create or update profile.
                 </div>
+              ) : (
+                searchedPatients.map((p) => (
+                  <button
+                    key={p.id}
+                    type="button"
+                    onClick={() => handleSelectPatient(p)}
+                    className="w-full text-left px-4 py-2.5 hover:bg-clinic-50 text-sm flex items-center justify-between border-b border-slate-100 last:border-0 cursor-pointer transition-colors"
+                  >
+                    <div>
+                      <p className="font-semibold text-slate-800">{p.name}</p>
+                      <p className="text-xs text-slate-500">{p.phone}</p>
+                    </div>
+                    <ArrowRight className="h-4 w-4 text-slate-400" />
+                  </button>
+                ))
               )}
             </div>
+          )}
+        </div>
 
-            <div className="border-t border-slate-100 my-4" />
-          </>
-        )}
+        <div className="border-t border-slate-100 my-4" />
 
         {/* Quick Profile fields */}
         <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
