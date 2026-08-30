@@ -64,6 +64,21 @@ export const usePatientDetailQuery = (patientId) => {
 };
 
 /**
+ * Fetch summary context for UI preview
+ */
+export const usePatientSummaryQuery = (patientId) => {
+  return useQuery({
+    queryKey: ['patients', 'summary', patientId],
+    queryFn: async () => {
+      if (!patientId) return null;
+      const response = await api.get(`/patients/${patientId}/summary`);
+      return response.data?.data || null;
+    },
+    enabled: !!patientId,
+  });
+};
+
+/**
  * Update patient profile demographics and medical background
  */
 export const useUpdatePatientMutation = () => {
