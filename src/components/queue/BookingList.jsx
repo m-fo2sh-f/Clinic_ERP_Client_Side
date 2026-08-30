@@ -24,33 +24,54 @@ export default function BookingList({ bookings = [], branchName }) {
     apptTime: ''
   });
 
-  // 🎯 تصحيح قراءة الداتا عند الضغط على زرار التعديل
+  // 🎯 Correctly read patient data and MRN upon clicking edit
   const handleEditClick = (booking) => {
     setSelectedAppointmentId(booking.id);
-    setSelectedPatientId(booking.patient?.id || null); // حفظ الـ ID الخاص بالمريض
+    setSelectedPatientId(booking.patient?.id || null);
 
     setModalDefaultValues({
+      patientId: booking.patient?.id || null,
       patientName: booking.patient?.name || '',
       patientPhone: booking.patient?.phone || '',
+      patientAge: booking.patient?.age || '',
+      patientGender: booking.patient?.gender || 'male',
+      patientMedicalNumber: booking.patient?.medical_number || '',
+      totalCompletedCount: booking.patient?.total_completed_count || booking.patient?.completed_appointments_count || 0,
       apptType: booking.type || 'check_up',
       apptTime: formatDateTime(booking.appointment_time)
     });
     setIsModalOpen(true);
   };
 
-  const onSubmitUpdate = (data) => {
+  const onSubmitUpdate = (data, selectedPatientIdFromModal, strategy) => {
     const payload = {
       branch_id: selectedBranchId,
       type: data.apptType,
       status: "booking",
       appointment_time: data.apptTime,
-      patient_id: selectedPatientId, // 🎯 إرسال الـ patient_id عشان الباكيند يعرف إنه نفس المريض
-      patient: {
-        name: data.patientName,
-        phone: data.patientPhone
-      }
+      strategy: strategy || "UPDATE_CURRENT",
     };
 
+    if (strategy === "REASSIGN_EXISTING" && selectedPatientIdFromModal) {
+      payload.patient_id = selectedPatientIdFromModal;
+    } else if (strategy === "CREATE_AND_ASSIGN") {
+      payload.patient = {
+        name: data.patientName,
+        phone: data.patientPhone,
+        age: data.patientAge ? parseInt(data.patientAge, 10) : undefined,
+        gender: data.patientGender || undefined,
+        medical_number: data.patientMedicalNumber || undefined,
+      };
+    } else {
+      // UPDATE_CURRENT or default fallback
+      payload.patient = {
+        name: data.patientName,
+        phone: data.patientPhone,
+        age: data.patientAge ? parseInt(data.patientAge, 10) : undefined,
+        gender: data.patientGender || undefined,
+        medical_number: data.patientMedicalNumber || undefined,
+      };
+    }
 
     updateAppointmentMutation.mutate({ id: selectedAppointmentId, ...payload }, {
       onSuccess: () => {
@@ -65,7 +86,7 @@ export default function BookingList({ bookings = [], branchName }) {
   };
 
   const handleCheckIn = (id) => {
-    checkInMutation.mutate(id); // Send primitive string ID instead of an object
+    checkInMutation.mutate(id);
   };
 
   const handleDelete = (id) => {
@@ -109,10 +130,16 @@ export default function BookingList({ bookings = [], branchName }) {
                 <div className="flex flex-col space-y-3">
                   <div className="flex items-start justify-between">
                     <div>
-                      {/* 🎯 قراءة الاسم والتليفون من booking.patient المظبوطة */}
-                      <h4 className="font-bold text-slate-800 text-sm leading-tight group-hover:text-clinic-700 transition-colors">
-                        {booking.patient?.name || 'No Name'}
-                      </h4>
+                      <div className="flex items-center gap-2">
+                        <h4 className="font-bold text-slate-800 text-sm leading-tight group-hover:text-clinic-700 transition-colors">
+                          {booking.patient?.name || 'No Name'}
+                        </h4>
+                        {booking.patient?.medical_number && (
+                          <span className="text-[10px] font-mono bg-blue-50 text-blue-700 border border-blue-200/60 px-1.5 py-0.5 rounded font-bold">
+                            {booking.patient.medical_number}
+                          </span>
+                        )}
+                      </div>
                       <p className="text-xs text-slate-500 mt-1 font-medium">{booking.patient?.phone || 'No Phone'}</p>
                     </div>
                     <Badge variant={badgeVariant} className="text-[10px] uppercase font-bold py-0.5 px-2">

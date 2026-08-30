@@ -29,8 +29,10 @@ export default function QuickActions({ stats = { total: 0, checkedIn: 0, remaini
       payload.patient_id = selectedPatientIdFromModal;
     } else {
       payload.patient = {
-        name: data.patientName,
-        phone: data.patientPhone
+        name: data.patientName || data.patient?.name || '',
+        phone: data.patientPhone || data.patient?.phone || '',
+        age: data.patientAge || data.patient?.age,
+        gender: data.patientGender || data.patient?.gender,
       };
     }
 
@@ -54,8 +56,10 @@ export default function QuickActions({ stats = { total: 0, checkedIn: 0, remaini
       payload.patient_id = selectedPatientIdFromModal;
     } else {
       payload.patient = {
-        name: data.patientName,
-        phone: data.patientPhone
+        name: data.patientName || data.patient?.name || '',
+        phone: data.patientPhone || data.patient?.phone || '',
+        age: data.patientAge || data.patient?.age,
+        gender: data.patientGender || data.patient?.gender,
       };
     }
 
