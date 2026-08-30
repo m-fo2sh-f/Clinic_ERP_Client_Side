@@ -98,9 +98,11 @@ export default function useDoctorConsultation() {
     const newMed = {
       id: Date.now(),
       name: '',
+      dose: '',
       dosage: '',
       frequency: '',
       duration: '',
+      instruction: '',
       instructions: '',
     };
     setMedications((prev) => [...prev, newMed]);
