@@ -6,18 +6,32 @@ import { markQueryInvalidated } from '../utils/invalidationTracker';
 export const appointmentKeys = {
   all: ['appointments'],
   lists: () => [...appointmentKeys.all, 'list'],
-  list: (branchId, targetDate) => [...appointmentKeys.lists(), { branchId, targetDate }]
+  list: (branchId, targetDate, doctorId) => [...appointmentKeys.lists(), { branchId, targetDate, doctorId }]
 };
 
 /**
- * Fetch appointments for a specific branch
+ * Fetch active doctors assigned to a specific branch
  */
-export const useAppointmentsQuery = (branchId, targetDate) => {
+export const useBranchDoctorsQuery = (branchId) => {
   return useQuery({
-    queryKey: appointmentKeys.list(branchId, targetDate),
+    queryKey: ['branchDoctors', branchId],
+    queryFn: async () => {
+      const response = await api.get(`/branches/${branchId}/doctors`);
+      return response.data?.data || [];
+    },
+    enabled: !!branchId,
+  });
+};
+
+/**
+ * Fetch appointments for a specific branch (optional doctor_id filter)
+ */
+export const useAppointmentsQuery = (branchId, targetDate, doctorId) => {
+  return useQuery({
+    queryKey: appointmentKeys.list(branchId, targetDate, doctorId),
     queryFn: async () => {
       const response = await api.get('/appointments', {
-        params: { branch_id: branchId, date: targetDate }
+        params: { branch_id: branchId, date: targetDate, doctor_id: doctorId || undefined }
       });
       return response.data?.data || [];
     },

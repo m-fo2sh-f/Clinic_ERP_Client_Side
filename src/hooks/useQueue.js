@@ -6,18 +6,21 @@ import { markQueryInvalidated } from '../utils/invalidationTracker';
 export const queueKeys = {
     all: ['liveQueue'],
     lists: () => [...queueKeys.all, 'list'],
-    list: (branchId) => [...queueKeys.lists(), { branchId }]
+    list: (branchId, doctorId) => [...queueKeys.lists(), { branchId, doctorId }]
 };
 
 /**
- * Fetch live queue for a specific branch
+ * Fetch live queue for a specific branch (optional doctor_id filter)
  */
-export const useLiveQueueQuery = (branchId) => {
+export const useLiveQueueQuery = (branchId, doctorId) => {
     return useQuery({
-        queryKey: queueKeys.list(branchId),
+        queryKey: queueKeys.list(branchId, doctorId),
         queryFn: async () => {
             const response = await api.get('/live-queues', {
-                params: { branch_id: branchId }
+                params: {
+                    branch_id: branchId,
+                    doctor_id: doctorId || undefined
+                }
             });
             return response.data?.data || [];
         },
@@ -29,19 +32,18 @@ export const useLiveQueueQuery = (branchId) => {
 /**
  * Unauthenticated public queue query for TV Waiting Room displays
  */
-export const usePublicLiveQueueQuery = (branchId) => {
+export const usePublicLiveQueueQuery = (branchId, doctorId) => {
     return useQuery({
-        queryKey: queueKeys.list(branchId),
+        queryKey: queueKeys.list(branchId, doctorId),
         queryFn: async () => {
-            // Try public endpoint first, fallback to standard if needed
             try {
                 const response = await api.get('/public/live-queues', {
-                    params: { branch_id: branchId }
+                    params: { branch_id: branchId, doctor_id: doctorId || undefined }
                 });
                 return response.data?.data || [];
             } catch (err) {
                 const response = await api.get('/live-queues', {
-                    params: { branch_id: branchId }
+                    params: { branch_id: branchId, doctor_id: doctorId || undefined }
                 });
                 return response.data?.data || [];
             }
@@ -94,7 +96,6 @@ export const useReorderQueueMutation = () => {
             }),
         onSuccess: () => {
             markQueryInvalidated();
-            // Reordering only affects liveQueue order, not scheduled appointments
             queryClient.invalidateQueries({ queryKey: queueKeys.all });
         },
     });
@@ -107,8 +108,10 @@ export const useCallNextPatientMutation = () => {
     const queryClient = useQueryClient();
 
     return useMutation({
-        mutationFn: (branchId) =>
-            api.post('/live-queues/next', { branch_id: branchId }),
+        mutationFn: (payload) => {
+            const body = typeof payload === 'object' ? payload : { branch_id: payload };
+            return api.post('/live-queues/next', body);
+        },
         onSuccess: () => {
             markQueryInvalidated();
             queryClient.invalidateQueries({ queryKey: queueKeys.all });

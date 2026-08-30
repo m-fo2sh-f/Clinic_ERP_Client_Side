@@ -1,10 +1,12 @@
 import React, { useState, useEffect } from 'react';
 import { useForm } from 'react-hook-form';
-import { Search, PlusCircle, ArrowRight, Edit2, Loader2, UserPlus, RefreshCw, UserCheck, ShieldCheck, Info, Users } from 'lucide-react';
+import { Search, PlusCircle, ArrowRight, Edit2, Loader2, UserPlus, RefreshCw, UserCheck, ShieldCheck, Info, Users, User } from 'lucide-react';
 import Button from './Button';
 import { Dialog, DialogHeader, DialogTitle, DialogDescription, DialogFooter, DialogClose } from './Dialog';
 import Select from './Select';
 import { useSearchPatientsQuery } from '../../hooks/usePatients';
+import { useBranchDoctorsQuery } from '../../hooks/useAppointments';
+import { useBranchContext } from '../../context/BranchContext';
 
 export default function AppointmentModal({
   isOpen,
@@ -14,6 +16,10 @@ export default function AppointmentModal({
   onSubmit,
   isLoading = false,
 }) {
+  const { selectedBranchId, activeBranch } = useBranchContext();
+  const branchId = selectedBranchId || activeBranch?.id;
+  const { data: branchDoctors = [] } = useBranchDoctorsQuery(branchId);
+
   const [strategy, setStrategy] = useState('UPDATE_CURRENT'); // 'UPDATE_CURRENT' | 'REASSIGN_EXISTING'
   const [isInlineAddingNew, setIsInlineAddingNew] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
@@ -28,6 +34,7 @@ export default function AppointmentModal({
       patientAge: '',
       patientGender: 'male',
       patientMedicalNumber: '',
+      doctorId: '',
       apptType: 'check_up',
       apptTime: ''
     }
@@ -64,6 +71,7 @@ export default function AppointmentModal({
         patientAge: '',
         patientGender: 'male',
         patientMedicalNumber: '',
+        doctorId: '',
         apptType: 'check_up',
         apptTime: ''
       });
@@ -115,7 +123,7 @@ export default function AppointmentModal({
 
   const getModalDescription = () => {
     if (mode === 'walk_in')
-      return 'Search for an existing patient by Name, Phone, or MRN or enter details to check in directly.';
+      return 'Search for an existing patient or enter details for a direct walk-in check-in.';
     if (mode === 'create')
       return 'Search by Name, Phone, or MRN to book an existing patient or create a new profile.';
     return 'Select whether to correct current patient info or reassign this appointment to another patient.';
@@ -368,9 +376,7 @@ export default function AppointmentModal({
               </div>
             </div>
 
-            {/* ========================================================= */}
-            {/* PHONE AUTO-SUGGEST FAMILY CHIPS                           */}
-            {/* ========================================================= */}
+            {/* PHONE AUTO-SUGGEST FAMILY CHIPS */}
             {familyMembers.length > 0 && (
               <div className="p-3 bg-blue-50/80 border border-blue-200/80 rounded-xl space-y-2 transition-all animate-fadeIn">
                 <div className="flex items-center justify-between text-[11px] font-bold text-blue-900">
@@ -431,10 +437,25 @@ export default function AppointmentModal({
         )}
 
         {/* ========================================================= */}
-        {/* APPOINTMENT SPECS                                        */}
+        {/* APPOINTMENT & DOCTOR SPECS                                */}
         {/* ========================================================= */}
         <div className="border-t border-slate-100 pt-3">
-          <div className={`grid grid-cols-1 gap-4 ${mode !== 'walk_in' ? 'sm:grid-cols-2' : ''}`}>
+          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+            <div>
+              <label className="block text-xs font-semibold text-slate-600 uppercase tracking-wide mb-1.5 flex items-center gap-1">
+                <User className="h-3.5 w-3.5 text-clinic-600" />
+                Attending Doctor
+              </label>
+              <Select {...register('doctorId')}>
+                <option value="">-- All Doctors / Unassigned --</option>
+                {branchDoctors.map((doc) => (
+                  <option key={doc.id} value={doc.id}>
+                    {doc.name} ({doc.email})
+                  </option>
+                ))}
+              </Select>
+            </div>
+
             <div>
               <label className="block text-xs font-semibold text-slate-600 uppercase tracking-wide mb-1.5">
                 Appointment Type
@@ -444,22 +465,22 @@ export default function AppointmentModal({
                 <option value="consultation">Consultation (Istishara)</option>
               </Select>
             </div>
-
-            {mode !== 'walk_in' && (
-              <div>
-                <label className="block text-xs font-semibold text-slate-600 uppercase tracking-wide mb-1.5">
-                  Scheduled Time Slot
-                </label>
-                <input
-                  type="text"
-                  placeholder="YYYY-MM-DD HH:MM:SS"
-                  className={`w-full px-3 py-2 border ${errors.apptTime ? 'border-red-500 focus:ring-red-500' : 'border-slate-200 focus:ring-clinic-500'} rounded-lg text-sm focus:outline-none focus:ring-1 transition-all`}
-                  {...register('apptTime', { required: mode !== 'walk_in' ? 'Time is required' : false })}
-                />
-                {errors.apptTime && <span className="text-[10px] text-red-500 mt-1">{errors.apptTime.message}</span>}
-              </div>
-            )}
           </div>
+
+          {mode !== 'walk_in' && (
+            <div className="mt-3">
+              <label className="block text-xs font-semibold text-slate-600 uppercase tracking-wide mb-1.5">
+                Scheduled Time Slot
+              </label>
+              <input
+                type="text"
+                placeholder="YYYY-MM-DD HH:MM:SS"
+                className={`w-full px-3 py-2 border ${errors.apptTime ? 'border-red-500 focus:ring-red-500' : 'border-slate-200 focus:ring-clinic-500'} rounded-lg text-sm focus:outline-none focus:ring-1 transition-all`}
+                {...register('apptTime', { required: mode !== 'walk_in' ? 'Time is required' : false })}
+              />
+              {errors.apptTime && <span className="text-[10px] text-red-500 mt-1">{errors.apptTime.message}</span>}
+            </div>
+          )}
         </div>
 
         {/* Dialog Action buttons */}

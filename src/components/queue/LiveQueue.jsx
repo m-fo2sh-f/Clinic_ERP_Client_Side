@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { Users, GripVertical, Play, CheckCircle2, UserMinus, ArrowUp, ArrowDown } from 'lucide-react';
 import Badge from '../ui/Badge';
 import Button from '../ui/Button';
@@ -8,14 +8,18 @@ import {
   useDeleteQueueMutation,
   useReorderQueueMutation
 } from '../../hooks/useQueue';
+import { useBranchDoctorsQuery } from '../../hooks/useAppointments';
 import { useBranchContext } from '../../context/BranchContext';
 
 export default function LiveQueue() {
-
   const { activeBranch } = useBranchContext();
   const branchId = activeBranch?.id;
   const branchName = activeBranch?.name || 'Unknown Branch';
-  const { data: queueData, isLoading: isLoadingQueue, error } = useLiveQueueQuery(branchId);
+
+  const [selectedDoctorId, setSelectedDoctorId] = useState('');
+  const { data: branchDoctors = [] } = useBranchDoctorsQuery(branchId);
+
+  const { data: queueData, isLoading: isLoadingQueue, error } = useLiveQueueQuery(branchId, selectedDoctorId);
   const deleteQueueMutation = useDeleteQueueMutation();
   const updateQueueMutation = useUpdateQueueStatus();
   const reorderQueueMutation = useReorderQueueMutation();
@@ -56,15 +60,29 @@ export default function LiveQueue() {
 
   return (
     <div className="bg-white rounded-xl border border-slate-200/80 shadow-sm flex flex-col h-full min-h-[500px]">
-      {/* Header */}
-      <div className="p-5 border-b border-slate-100 flex items-center justify-between">
+      {/* Header with Doctor Toggle */}
+      <div className="p-5 border-b border-slate-100 flex items-center justify-between gap-2 flex-wrap">
         <div>
           <h3 className="font-bold text-slate-850 text-base">Live Waiting Queue</h3>
           <p className="text-xs text-slate-500 mt-0.5">Physical patients inside {branchName || 'Selected Branch'}</p>
         </div>
-        <Badge variant="success" className="px-2 py-0.5 text-xs font-bold text-emerald-800 bg-emerald-100 animate-pulse">
-          {queue.length} Active
-        </Badge>
+        <div className="flex items-center gap-2">
+          <select
+            value={selectedDoctorId}
+            onChange={(e) => setSelectedDoctorId(e.target.value)}
+            className="text-xs bg-slate-50 border border-slate-200 rounded-lg px-2.5 py-1.5 text-slate-700 font-semibold focus:outline-none focus:ring-1 focus:ring-clinic-500 cursor-pointer"
+          >
+            <option value="">All Doctors</option>
+            {branchDoctors.map((doc) => (
+              <option key={doc.id} value={doc.id}>
+                {doc.name}
+              </option>
+            ))}
+          </select>
+          <Badge variant="success" className="px-2 py-0.5 text-xs font-bold text-emerald-800 bg-emerald-100 animate-pulse">
+            {queue.length} Active
+          </Badge>
+        </div>
       </div>
 
       {/* Waiting Queue List */}
@@ -76,7 +94,7 @@ export default function LiveQueue() {
             </div>
             <p className="font-semibold text-slate-700 text-sm">Waiting Room is Empty</p>
             <p className="text-xs text-slate-400 mt-1 max-w-[240px]">
-              No patients are currently checked-in. Scheduled arrivals will appear here once checked-in.
+              No patients are currently checked-in for the selected doctor view.
             </p>
           </div>
         ) : (
@@ -119,6 +137,11 @@ export default function LiveQueue() {
                     >
                       {item.status}
                     </Badge>
+                    {item.doctor?.name && (
+                      <span className="text-[10px] bg-blue-50 text-blue-700 font-semibold px-1.5 py-0.5 rounded border border-blue-200/60">
+                        👨‍⚕️ {item.doctor.name}
+                      </span>
+                    )}
                   </div>
                   <p className="text-[11px] text-slate-400 mt-0.5">
                     Checked-in at {item.checked_in_at}

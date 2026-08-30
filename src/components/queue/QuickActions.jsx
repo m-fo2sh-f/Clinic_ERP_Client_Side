@@ -20,6 +20,7 @@ export default function QuickActions({ stats = { total: 0, checkedIn: 0, remaini
   const onSubmitAppointment = (data, selectedPatientIdFromModal) => {
     const payload = {
       branch_id: branchId,
+      doctor_id: data.doctorId || undefined,
       appointment_time: data.apptTime,
       type: data.apptType,
       status: "booking",
@@ -49,6 +50,7 @@ export default function QuickActions({ stats = { total: 0, checkedIn: 0, remaini
   const onSubmitWalkIn = (data, selectedPatientIdFromModal) => {
     const payload = {
       branch_id: branchId,
+      doctor_id: data.doctorId || undefined,
       type: data.apptType,
     };
 

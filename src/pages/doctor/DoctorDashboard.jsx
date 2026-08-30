@@ -26,13 +26,14 @@ import PatientHistoryModal from '../../components/doctor/PatientHistoryModal';
  * and delegates all consultation state to the `useDoctorConsultation` hook.
  */
 export default function DoctorDashboard() {
-  const { activeBranch } = useBranchContext();
+  const { activeBranch, user } = useBranchContext();
   const branchId = activeBranch?.id;
   const branchName = activeBranch?.name || 'Main Branch';
+  const doctorId = user?.id;
 
   // ── Queue data ───────────────────────────────────────────────
   const { data: queueItems = [], isLoading: queueLoading } =
-    useLiveQueueQuery(branchId);
+    useLiveQueueQuery(branchId, doctorId);
   const callNextMutation = useCallNextPatientMutation();
 
   const [isQueueOpen, setIsQueueOpen] = useState(false);
@@ -84,10 +85,10 @@ export default function DoctorDashboard() {
   // ── Call next patient ────────────────────────────────────────
   const handleNextPatient = useCallback(() => {
     if (!branchId || callNextMutation.isPending) return;
-    callNextMutation.mutate(branchId, {
+    callNextMutation.mutate({ branch_id: branchId, doctor_id: doctorId }, {
       onSuccess: () => consultation.resetConsultation(),
     });
-  }, [branchId, callNextMutation, consultation.resetConsultation]);
+  }, [branchId, doctorId, callNextMutation, consultation.resetConsultation]);
 
   // ── Complete Examination ─────────────────────────────────────
   const handleCompleteExamination = useCallback(() => {
