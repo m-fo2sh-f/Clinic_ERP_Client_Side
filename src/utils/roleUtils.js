@@ -25,6 +25,9 @@ export const hasRole = (user, roleName) => {
  */
 export const getRoleDefaultRoute = (user) => {
   if (!user) return '/login';
+  if (user.is_super_admin) {
+    return '/platform';
+  }
   const roles = getUserRoles(user);
   
   if (roles.includes('doctor')) {
