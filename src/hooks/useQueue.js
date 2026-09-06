@@ -1,12 +1,22 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import api from '../services/api';
-import { markQueryInvalidated } from '../utils/invalidationTracker';
+import { markQueryInvalidated, debouncedInvalidate } from '../utils/invalidationTracker';
 
 // 🎯 تسمية خاصة وفريدة بمفاتيح الصالة لمنع أي تضارب مع الحجوزات
 export const queueKeys = {
     all: ['liveQueue'],
     lists: () => [...queueKeys.all, 'list'],
     list: (branchId, doctorId) => [...queueKeys.lists(), { branchId, doctorId }]
+};
+
+/**
+ * Centralized invalidation helper for queue mutations.
+ * Marks the mutation timestamp (so WebSocket events are suppressed)
+ * then debounces actual refetch calls.
+ */
+const invalidateAfterMutation = (queryClient, keys = [queueKeys.all, ['appointments']]) => {
+    markQueryInvalidated();
+    debouncedInvalidate(queryClient, keys, 100);
 };
 
 /**
@@ -61,10 +71,9 @@ export const useUpdateQueueStatus = () => {
 
     return useMutation({
         mutationFn: ({ id, status }) => api.patch(`/live-queues/${id}`, { status }),
+        onMutate: () => markQueryInvalidated(),
         onSuccess: () => {
-            markQueryInvalidated();
-            queryClient.invalidateQueries({ queryKey: queueKeys.all });
-            queryClient.invalidateQueries({ queryKey: ['appointments'] });
+            invalidateAfterMutation(queryClient);
         },
     });
 };
@@ -77,10 +86,9 @@ export const useDeleteQueueMutation = () => {
 
     return useMutation({
         mutationFn: (id) => api.delete(`/live-queues/${id}`),
+        onMutate: () => markQueryInvalidated(),
         onSuccess: () => {
-            markQueryInvalidated();
-            queryClient.invalidateQueries({ queryKey: queueKeys.all });
-            queryClient.invalidateQueries({ queryKey: ['appointments'] });
+            invalidateAfterMutation(queryClient);
         },
     });
 };
@@ -94,9 +102,9 @@ export const useReorderQueueMutation = () => {
                 ordered_ids: orderedIds, 
                 branch_id: branchId 
             }),
+        onMutate: () => markQueryInvalidated(),
         onSuccess: () => {
-            markQueryInvalidated();
-            queryClient.invalidateQueries({ queryKey: queueKeys.all });
+            invalidateAfterMutation(queryClient, [queueKeys.all]);
         },
     });
 };
@@ -112,10 +120,9 @@ export const useCallNextPatientMutation = () => {
             const body = typeof payload === 'object' ? payload : { branch_id: payload };
             return api.post('/live-queues/next', body);
         },
+        onMutate: () => markQueryInvalidated(),
         onSuccess: () => {
-            markQueryInvalidated();
-            queryClient.invalidateQueries({ queryKey: queueKeys.all });
-            queryClient.invalidateQueries({ queryKey: ['appointments'] });
+            invalidateAfterMutation(queryClient);
         },
     });
 };
@@ -143,10 +150,9 @@ export const useWalkInMutation = () => {
 
     return useMutation({
         mutationFn: (walkInData) => api.post('/live-queues/check-in-walkin', walkInData),
+        onMutate: () => markQueryInvalidated(),
         onSuccess: () => {
-            markQueryInvalidated();
-            queryClient.invalidateQueries({ queryKey: queueKeys.all });
-            queryClient.invalidateQueries({ queryKey: ['appointments'] });
+            invalidateAfterMutation(queryClient);
         },
     });
 };

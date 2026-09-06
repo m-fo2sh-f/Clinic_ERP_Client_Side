@@ -1,6 +1,6 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import api from '../services/api';
-import { markQueryInvalidated } from '../utils/invalidationTracker';
+import { markQueryInvalidated, debouncedInvalidate } from '../utils/invalidationTracker';
 
 // Query Keys
 export const appointmentKeys = {
@@ -40,6 +40,16 @@ export const useAppointmentsQuery = (branchId, targetDate, doctorId) => {
 };
 
 /**
+ * Centralized invalidation helper for appointment + queue mutations.
+ * Marks the mutation timestamp (so WebSocket events are suppressed)
+ * then debounces actual refetch calls.
+ */
+const invalidateAfterMutation = (queryClient, keys = [appointmentKeys.all, ['liveQueue']]) => {
+  markQueryInvalidated();
+  debouncedInvalidate(queryClient, keys, 100);
+};
+
+/**
  * Create a new appointment
  */
 export const useCreateAppointmentMutation = () => {
@@ -50,9 +60,9 @@ export const useCreateAppointmentMutation = () => {
       const response = await api.post('/appointments', appointmentData);
       return response.data;
     },
+    onMutate: () => markQueryInvalidated(),
     onSuccess: () => {
-      markQueryInvalidated();
-      queryClient.invalidateQueries({ queryKey: appointmentKeys.all });
+      invalidateAfterMutation(queryClient, [appointmentKeys.all]);
     },
   });
 };
@@ -68,10 +78,9 @@ export const useUpdateAppointmentMutation = () => {
       const response = await api.put(`/appointments/${id}`, appointmentData);
       return response.data;
     },
+    onMutate: () => markQueryInvalidated(),
     onSuccess: () => {
-      markQueryInvalidated();
-      queryClient.invalidateQueries({ queryKey: appointmentKeys.all });
-      queryClient.invalidateQueries({ queryKey: ['liveQueue'] });
+      invalidateAfterMutation(queryClient);
     },
   });
 };
@@ -87,10 +96,9 @@ export const useDeleteAppointmentMutation = () => {
       const response = await api.delete(`/appointments/${id}`);
       return response.data;
     },
+    onMutate: () => markQueryInvalidated(),
     onSuccess: () => {
-      markQueryInvalidated();
-      queryClient.invalidateQueries({ queryKey: appointmentKeys.all });
-      queryClient.invalidateQueries({ queryKey: ['liveQueue'] });
+      invalidateAfterMutation(queryClient);
     },
   });
 };
@@ -103,10 +111,11 @@ export const useCheckInMutation = () => {
 
   return useMutation({
     mutationFn: (id) => api.post(`/appointments/${id}/check-in`),
+    // 🎯 Mark BEFORE the request is sent so that WebSocket events arriving
+    // before the HTTP response (server broadcasts via afterCommit) are suppressed.
+    onMutate: () => markQueryInvalidated(),
     onSuccess: () => {
-      markQueryInvalidated();
-      queryClient.invalidateQueries({ queryKey: appointmentKeys.all });
-      queryClient.invalidateQueries({ queryKey: ['liveQueue'] });
+      invalidateAfterMutation(queryClient);
     },
   });
 };

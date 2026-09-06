@@ -46,16 +46,13 @@ export default function EmptyDoctorState({
             variant="default"
             size="md"
             onClick={onNextPatient}
-            disabled={isCallingNext}
-            className="bg-clinic-600 hover:bg-clinic-700 text-white font-bold gap-2 px-6 py-2.5 shadow-md cursor-pointer"
+            isLoading={isCallingNext}
+            loadingText="Calling Next Patient..."
+            leftIcon={<Siren className="h-4 w-4" />}
+            rightIcon={<ChevronRight className="h-4 w-4" />}
+            className="bg-clinic-600 hover:bg-clinic-700 text-white font-bold px-6 py-2.5 shadow-md cursor-pointer"
           >
-            {isCallingNext ? (
-              <Loader2 className="h-4 w-4 animate-spin" />
-            ) : (
-              <Siren className="h-4 w-4" />
-            )}
             <span>Call Next Patient</span>
-            <ChevronRight className="h-4 w-4" />
           </Button>
           <Button
             variant="outline"

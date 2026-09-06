@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { PlusCircle, Calendar, UserCheck, Clock, UserPlus } from 'lucide-react';
 import Button from '../ui/Button';
 import dayjs from 'dayjs';
-import AppointmentModal from '../ui/AppointmentModal';
+import AppointmentModal from '../modals/AppointmentModal';
 import { useBranchContext } from '../../context/BranchContext';
 import { useCreateAppointmentMutation } from '../../hooks/useAppointments';
 import { useWalkInMutation } from '../../hooks/useQueue';

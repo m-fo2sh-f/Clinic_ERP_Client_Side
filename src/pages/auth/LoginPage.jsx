@@ -117,17 +117,12 @@ export default function LoginPage() {
           <Button
             type="submit"
             variant="primary"
-            disabled={isLoading}
+            isLoading={isLoading}
+            loadingText="Authenticating..."
+            leftIcon={<LogIn className="h-4 w-4" />}
             className="w-full justify-center py-3 font-bold text-sm shadow-lg shadow-clinic-600/20"
           >
-            {isLoading ? (
-              <span>Authenticating...</span>
-            ) : (
-              <div className="flex items-center gap-2">
-                <LogIn className="h-4 w-4" />
-                <span>Sign In</span>
-              </div>
-            )}
+            <span>Sign In</span>
           </Button>
         </form>
       </div>

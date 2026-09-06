@@ -251,26 +251,17 @@ export default function PrescriptionSheet({
             variant="default"
             size="md"
             onClick={onCompleteExamination}
-            disabled={isSubmitting || isPrescriptionSaved}
-            className={`gap-2 px-6 ${
+            isLoading={isSubmitting}
+            loadingText="جاري حفظ الكشف..."
+            disabled={isPrescriptionSaved}
+            leftIcon={<FileCheck className="h-4 w-4" />}
+            className={`px-6 ${
               isPrescriptionSaved
                 ? 'bg-emerald-500 cursor-default'
                 : 'bg-emerald-600 hover:bg-emerald-700'
             }`}
           >
-            {isSubmitting ? (
-              <>
-                <Loader2 className="h-4 w-4 animate-spin" /> جاري حفظ الكشف...
-              </>
-            ) : isPrescriptionSaved ? (
-              <>
-                <FileCheck className="h-4 w-4" /> تم إتمام الكشف بنجاح ✓
-              </>
-            ) : (
-              <>
-                <FileCheck className="h-4 w-4" /> إتمام وحفظ الكشف والروشتة
-              </>
-            )}
+            <span>{isPrescriptionSaved ? 'تم إتمام الكشف بنجاح ✓' : 'إتمام وحفظ الكشف والروشتة'}</span>
           </Button>
         </div>
       </CardContent>

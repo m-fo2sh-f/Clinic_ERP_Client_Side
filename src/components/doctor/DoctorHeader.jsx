@@ -109,17 +109,14 @@ export default function DoctorHeader({
             variant="default"
             size="sm"
             onClick={onNextPatient}
-            disabled={isCallingNext}
-            className="bg-clinic-600 hover:bg-clinic-700 text-white font-bold gap-1.5 shadow-sm px-4 cursor-pointer"
+            isLoading={isCallingNext}
+            loadingText="Calling..."
+            leftIcon={<Siren className="h-4 w-4 shrink-0" />}
+            rightIcon={<ChevronRight className="h-4 w-4 shrink-0" />}
+            className="bg-clinic-600 hover:bg-clinic-700 text-white font-bold shadow-sm px-4 cursor-pointer"
           >
-            {isCallingNext ? (
-              <Loader2 className="h-4 w-4 animate-spin shrink-0" />
-            ) : (
-              <Siren className="h-4 w-4 shrink-0" />
-            )}
             <span className="hidden sm:inline">Call Next Patient</span>
             <span className="sm:hidden">Next</span>
-            <ChevronRight className="h-4 w-4 shrink-0" />
           </Button>
         </div>
       </div>

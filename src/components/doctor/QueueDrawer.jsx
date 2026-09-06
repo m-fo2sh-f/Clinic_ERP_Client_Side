@@ -63,14 +63,11 @@ export default function QueueDrawer({
             variant="default"
             size="sm"
             onClick={onNextPatient}
-            disabled={isCallingNext}
-            className="w-full bg-clinic-600 hover:bg-clinic-700 text-white font-bold gap-2 py-2.5 shadow-sm"
+            isLoading={isCallingNext}
+            loadingText="Calling Next Patient..."
+            leftIcon={<Siren className="h-4 w-4 shrink-0 animate-pulse" />}
+            className="w-full bg-clinic-600 hover:bg-clinic-700 text-white font-bold py-2.5 shadow-sm"
           >
-            {isCallingNext ? (
-              <Loader2 className="h-4 w-4 animate-spin shrink-0" />
-            ) : (
-              <Siren className="h-4 w-4 shrink-0 animate-pulse" />
-            )}
             <span>Call Next Patient Now</span>
           </Button>
         </div>

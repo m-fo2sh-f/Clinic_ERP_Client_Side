@@ -2,7 +2,7 @@ import { useState, useMemo, useRef, useEffect, useCallback } from 'react';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { DIAGNOSIS_DICTIONARY } from '../constants/medicalDiagnoses';
 import { consultationService } from '../services/consultationService';
-import { markQueryInvalidated } from '../utils/invalidationTracker';
+import { markQueryInvalidated, debouncedInvalidate } from '../utils/invalidationTracker';
 
 /**
  * Custom hook that encapsulates all doctor consultation state and handlers.
@@ -209,13 +209,14 @@ export function useCompleteConsultationMutation() {
 
   return useMutation({
     mutationFn: (payload) => consultationService.completeConsultation(payload),
+    onMutate: () => markQueryInvalidated(),
     onSuccess: (_data, variables) => {
       markQueryInvalidated();
-      queryClient.invalidateQueries({ queryKey: ['liveQueue'] });
-      queryClient.invalidateQueries({ queryKey: ['appointments'] });
-      queryClient.invalidateQueries({
-        queryKey: ['patientHistory', variables.patient_id],
-      });
+      debouncedInvalidate(queryClient, [
+        ['liveQueue'],
+        ['appointments'],
+        ['patientHistory', variables.patient_id],
+      ], 100);
     },
   });
 }

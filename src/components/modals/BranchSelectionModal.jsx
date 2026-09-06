@@ -3,7 +3,7 @@ import { Building2, CheckCircle2, ArrowRight } from 'lucide-react';
 import { Dialog, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from '../ui/Dialog';
 import Button from '../ui/Button';
 
-export default function BranchSelectionModal({ isOpen, branches = [], onSelectBranch }) {
+export default function BranchSelectionModal({ isOpen, branches = [], onSelectBranch, isLoading = false }) {
   const [selectedId, setSelectedId] = useState(branches[0]?.id || '');
 
   const handleConfirm = () => {
@@ -37,12 +37,12 @@ export default function BranchSelectionModal({ isOpen, branches = [], onSelectBr
           return (
             <div
               key={branch.id}
-              onClick={() => setSelectedId(branch.id)}
+              onClick={() => !isLoading && setSelectedId(branch.id)}
               className={`flex items-center justify-between p-4 rounded-xl border-2 transition-all cursor-pointer ${
                 isSelected
                   ? 'border-clinic-500 bg-clinic-50/40 shadow-sm'
                   : 'border-slate-200 hover:border-slate-300 bg-white hover:bg-slate-50/60'
-              }`}
+              } ${isLoading ? 'opacity-60 pointer-events-none' : ''}`}
             >
               <div className="flex items-center gap-3">
                 <div className={`p-2 rounded-lg ${isSelected ? 'bg-clinic-500 text-white' : 'bg-slate-100 text-slate-500'}`}>
@@ -68,10 +68,12 @@ export default function BranchSelectionModal({ isOpen, branches = [], onSelectBr
           variant="primary"
           className="w-full justify-center gap-2 py-2.5 font-bold shadow-lg shadow-clinic-500/20"
           onClick={handleConfirm}
+          isLoading={isLoading}
+          loadingText="Setting Active Branch..."
+          rightIcon={<ArrowRight className="h-4 w-4" />}
           disabled={!selectedId && branches.length > 0}
         >
           <span>Continue to Dashboard</span>
-          <ArrowRight className="h-4 w-4" />
         </Button>
       </DialogFooter>
     </Dialog>

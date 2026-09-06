@@ -175,6 +175,8 @@ export default function LiveQueue() {
                     <Button
                       variant="success"
                       size="sm"
+                      isLoading={updateQueueMutation.isPending && updateQueueMutation.variables?.id === item.id}
+                      disabled={updateQueueMutation.isPending || deleteQueueMutation.isPending}
                       onClick={() => handleStatusChange(item.id, 'completed')}
                       className="h-8 w-8 p-0 rounded-lg flex items-center justify-center shadow-xs bg-emerald-600 hover:bg-emerald-700 focus:ring-emerald-500"
                       title="Mark Examination as Completed & discharge"
@@ -186,6 +188,8 @@ export default function LiveQueue() {
                       <Button
                         variant="default"
                         size="sm"
+                        isLoading={updateQueueMutation.isPending && updateQueueMutation.variables?.id === item.id && updateQueueMutation.variables?.status === 'under_examination'}
+                        disabled={updateQueueMutation.isPending || deleteQueueMutation.isPending}
                         onClick={() => handleStatusChange(item.id, 'under_examination')}
                         className="h-8 w-8 p-0 rounded-lg flex items-center justify-center shadow-xs bg-clinic-600 hover:bg-clinic-700 focus:ring-clinic-500"
                         title="Send patient into Examination Room"
@@ -195,6 +199,8 @@ export default function LiveQueue() {
                       <Button
                         variant="ghost"
                         size="sm"
+                        isLoading={deleteQueueMutation.isPending && deleteQueueMutation.variables === item.id}
+                        disabled={deleteQueueMutation.isPending || updateQueueMutation.isPending}
                         onClick={() => handleRemove(item.id)}
                         className="h-8 w-8 p-0 rounded-lg flex items-center justify-center hover:bg-red-50 hover:text-red-600 text-slate-400"
                         title="Mark as No-Show / Remove"

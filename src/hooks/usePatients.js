@@ -1,6 +1,6 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import api from '../services/api';
-import { markQueryInvalidated } from '../utils/invalidationTracker';
+import { markQueryInvalidated, debouncedInvalidate } from '../utils/invalidationTracker';
 
 // 🎯 Standardized Patient Query Keys
 export const patientKeys = {
@@ -86,11 +86,14 @@ export const useUpdatePatientMutation = () => {
 
   return useMutation({
     mutationFn: ({ id, ...patientData }) => api.put(`/patients/${id}`, patientData),
+    onMutate: () => markQueryInvalidated(),
     onSuccess: (_data, variables) => {
       markQueryInvalidated();
-      queryClient.invalidateQueries({ queryKey: patientKeys.all });
-      queryClient.invalidateQueries({ queryKey: ['patientHistory', variables.id] });
-      queryClient.invalidateQueries({ queryKey: ['liveQueue'] });
+      debouncedInvalidate(queryClient, [
+        patientKeys.all,
+        ['patientHistory', variables.id],
+        ['liveQueue'],
+      ], 100);
     },
   });
 };

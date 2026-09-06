@@ -3,7 +3,7 @@ import { CalendarDays, Clock, UserCheck, Trash2, Edit2 } from 'lucide-react';
 import { formatDateTime } from '../../utils/dateFormat';
 import Badge from '../ui/Badge';
 import Button from '../ui/Button';
-import AppointmentModal from '../ui/AppointmentModal';
+import AppointmentModal from '../modals/AppointmentModal';
 import { useBranchContext } from '../../context/BranchContext';
 import { useUpdateAppointmentMutation, useDeleteAppointmentMutation, useCheckInMutation } from '../../hooks/useAppointments';
 
@@ -37,6 +37,7 @@ export default function BookingList({ bookings = [], branchName }) {
       patientGender: booking.patient?.gender || 'male',
       patientMedicalNumber: booking.patient?.medical_number || '',
       totalCompletedCount: booking.patient?.total_completed_count || booking.patient?.completed_appointments_count || 0,
+      doctorId: booking.doctor_id || booking.doctor?.id || '',
       apptType: booking.type || 'check_up',
       apptTime: formatDateTime(booking.appointment_time)
     });
@@ -46,6 +47,7 @@ export default function BookingList({ bookings = [], branchName }) {
   const onSubmitUpdate = (data, selectedPatientIdFromModal, strategy) => {
     const payload = {
       branch_id: selectedBranchId,
+      doctor_id: data.doctorId || undefined,
       type: data.apptType,
       status: "booking",
       appointment_time: data.apptTime,
@@ -158,26 +160,33 @@ export default function BookingList({ bookings = [], branchName }) {
                       <Button
                         variant="ghost"
                         size="sm"
+                        disabled={deleteAppointmentMutation.isPending || checkInMutation.isPending}
                         onClick={() => handleEditClick(booking)}
                         className="flex items-center gap-1 text-xs px-2 h-8 font-semibold text-slate-400 hover:text-blue-500 hover:bg-blue-50 transition-all"
+                        title="Edit / Reassign Appointment"
                       >
                         <Edit2 className="h-3.5 w-3.5" />
                       </Button>
                       <Button
                         variant="ghost"
                         size="sm"
+                        isLoading={deleteAppointmentMutation.isPending && deleteAppointmentMutation.variables === booking.id}
+                        disabled={deleteAppointmentMutation.isPending || checkInMutation.isPending}
                         onClick={() => handleDelete(booking.id)}
                         className="flex items-center gap-1 text-xs px-2 h-8 font-semibold text-slate-400 hover:text-red-500 hover:bg-red-50 transition-all"
+                        title="Cancel / Delete Appointment"
                       >
                         <Trash2 className="h-3.5 w-3.5" />
                       </Button>
                       <Button
                         variant="success"
                         size="sm"
+                        isLoading={checkInMutation.isPending && checkInMutation.variables === booking.id}
+                        disabled={checkInMutation.isPending || deleteAppointmentMutation.isPending}
                         onClick={() => handleCheckIn(booking.id)}
-                        className="flex items-center gap-1 text-xs px-2.5 h-8 font-semibold shadow-xs transition-all hover:translate-x-[2px]"
+                        leftIcon={<UserCheck className="h-3.5 w-3.5" />}
+                        className="text-xs px-2.5 h-8 font-semibold shadow-xs transition-all hover:translate-x-[2px]"
                       >
-                        <UserCheck className="h-3.5 w-3.5" />
                         <span>Check-In</span>
                       </Button>
                     </div>
@@ -195,6 +204,7 @@ export default function BookingList({ bookings = [], branchName }) {
         mode="update"
         defaultValues={modalDefaultValues}
         onSubmit={onSubmitUpdate}
+        isLoading={updateAppointmentMutation.isPending}
       />
     </div>
   );
