@@ -1,158 +1,187 @@
 import React from 'react';
-import { Users, Shield, MapPin, Loader2, ChevronRight, ChevronLeft } from 'lucide-react';
+import { Users, Shield, MapPin, Loader2, ChevronRight, ChevronLeft, Mail } from 'lucide-react';
+import { Card, CardHeader, CardTitle, CardContent, CardFooter } from '../../../components/ui/Card';
+import Badge from '../../../components/ui/Badge';
+import Button from '../../../components/ui/Button';
 
 export default function TenantUsersTable({ users, meta, page, setPage, isLoading }) {
   if (isLoading) {
     return (
-      <div className="h-64 flex flex-col items-center justify-center gap-3 bg-slate-900/40 rounded-2xl border border-slate-800">
-        <Loader2 className="h-6 w-6 text-clinic-500 animate-spin" />
-        <span className="text-xs text-slate-400">جاري تحميل الطاقم الطبي والإداري...</span>
-      </div>
+      <Card className="shadow-sm">
+        <CardContent className="flex flex-col items-center justify-center py-16 text-slate-400">
+          <Loader2 className="h-8 w-8 text-clinic-600 animate-spin mb-3" />
+          <span className="text-xs font-semibold">Loading clinic staff directory...</span>
+        </CardContent>
+      </Card>
     );
   }
 
   if (!users || users.length === 0) {
     return (
-      <div className="text-center py-12 bg-slate-900/40 rounded-2xl border border-slate-800">
-        <Users className="h-10 w-10 text-slate-600 mx-auto mb-3" />
-        <p className="text-sm font-semibold text-slate-300">لا يوجد موظفون مسجلون</p>
-        <p className="text-xs text-slate-500 mt-1">لم يتم ربط أطباء أو موظفي استقبال بهذه العيادة بعد.</p>
-      </div>
+      <Card className="shadow-sm">
+        <CardContent className="py-16 text-center text-slate-400">
+          <Users className="h-10 w-10 text-slate-300 mx-auto mb-3" />
+          <p className="text-sm font-bold text-slate-700 m-0">No Staff Members Found</p>
+          <p className="text-xs text-slate-400 mt-1 m-0">
+            No doctors or receptionists have been assigned to this clinic yet.
+          </p>
+        </CardContent>
+      </Card>
     );
   }
 
-  const getRoleBadge = (role) => {
+  const getRoleBadgeVariant = (role) => {
     switch (role) {
       case 'clinic_owner':
-        return 'bg-amber-500/10 text-amber-400 border-amber-500/20';
+        return 'warning';
       case 'doctor':
-        return 'bg-cyan-500/10 text-cyan-400 border-cyan-500/20';
+        return 'default';
       case 'receptionist':
-        return 'bg-purple-500/10 text-purple-400 border-purple-500/20';
+        return 'secondary';
       default:
-        return 'bg-slate-700/40 text-slate-300 border-slate-700/60';
+        return 'secondary';
     }
   };
 
   const formatRoleName = (role) => {
     switch (role) {
       case 'clinic_owner':
-        return 'مالك العيادة';
+        return 'Clinic Owner';
       case 'doctor':
-        return 'طبيب كشف';
+        return 'Doctor';
       case 'receptionist':
-        return 'استقبال';
+        return 'Receptionist';
       default:
-        return role;
+        return role.replace(/_/g, ' ');
     }
   };
 
   return (
-    <div className="space-y-4">
-      <div className="overflow-hidden rounded-2xl border border-slate-800 bg-slate-900/60 backdrop-blur-md shadow-xl">
-        <table className="w-full text-right text-sm">
-          <thead>
-            <tr className="border-b border-slate-800 bg-slate-950/60 text-slate-400 text-xs font-semibold uppercase tracking-wider">
-              <th className="py-3.5 px-4">الموظف</th>
-              <th className="py-3.5 px-4">البريد الإلكتروني</th>
-              <th className="py-3.5 px-4">الأدوار بالعيادة (معزولة)</th>
-              <th className="py-3.5 px-4">الفروع المعين بها</th>
-              <th className="py-3.5 px-4">تاريخ الانضمام</th>
-            </tr>
-          </thead>
-          <tbody className="divide-y divide-slate-800/60">
-            {users.map((user) => (
-              <tr key={user.id} className="hover:bg-slate-800/40 transition-colors group">
-                <td className="py-3.5 px-4">
-                  <div className="flex items-center gap-3">
-                    <div className="w-9 h-9 rounded-xl bg-slate-800 border border-slate-700 flex items-center justify-center text-clinic-400 font-bold text-xs uppercase">
-                      {user.name ? user.name.slice(0, 2) : 'U'}
-                    </div>
-                    <div>
-                      <div className="font-semibold text-white group-hover:text-clinic-400 transition-colors">
-                        {user.name}
-                      </div>
-                      <div className="text-[11px] text-slate-500">ID: {user.id}</div>
-                    </div>
-                  </div>
-                </td>
+    <Card className="shadow-sm">
+      <CardHeader className="p-5 bg-slate-50/50 border-b border-slate-200/80 flex items-center justify-between">
+        <CardTitle className="text-base font-bold text-slate-800 flex items-center gap-2">
+          <Users className="h-5 w-5 text-clinic-600 shrink-0" />
+          Clinic Staff Directory
+        </CardTitle>
+        <span className="text-xs font-semibold text-slate-500">
+          Total Staff: <strong className="text-slate-800">{meta?.total ?? users.length}</strong>
+        </span>
+      </CardHeader>
 
-                <td className="py-3.5 px-4 text-slate-300 font-mono text-xs">
-                  {user.email}
-                </td>
-
-                <td className="py-3.5 px-4">
-                  <div className="flex flex-wrap gap-1.5">
-                    {user.roles && user.roles.length > 0 ? (
-                      user.roles.map((r, i) => (
-                        <span
-                          key={i}
-                          className={`inline-flex items-center gap-1 px-2.5 py-0.5 rounded-lg text-xs font-semibold border ${getRoleBadge(r)}`}
-                        >
-                          <Shield className="h-3 w-3" />
-                          {formatRoleName(r)}
-                        </span>
-                      ))
-                    ) : (
-                      <span className="text-xs text-slate-500 italic">بدون أدوار معينة</span>
-                    )}
-                  </div>
-                </td>
-
-                <td className="py-3.5 px-4">
-                  <div className="flex flex-wrap gap-1.5">
-                    {user.branches && user.branches.length > 0 ? (
-                      user.branches.map((b, i) => (
-                        <span
-                          key={i}
-                          className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-lg text-xs font-medium bg-slate-800 border border-slate-700 text-slate-300"
-                        >
-                          <MapPin className="h-3 w-3 text-slate-400" />
-                          {b}
-                        </span>
-                      ))
-                    ) : (
-                      <span className="text-xs text-slate-500 italic">كافة الفروع / غير مقيد</span>
-                    )}
-                  </div>
-                </td>
-
-                <td className="py-3.5 px-4 text-xs text-slate-400">
-                  {user.created_at ? new Date(user.created_at).toLocaleDateString('ar-EG') : '—'}
-                </td>
+      <CardContent className="p-0">
+        <div className="overflow-x-auto">
+          <table className="w-full text-left border-collapse">
+            <thead>
+              <tr className="border-b border-slate-200/80 bg-slate-50/80 text-[11px] font-extrabold uppercase tracking-wider text-slate-500">
+                <th className="py-3.5 px-6">Staff Member</th>
+                <th className="py-3.5 px-6">Email Address</th>
+                <th className="py-3.5 px-6">Assigned Roles</th>
+                <th className="py-3.5 px-6">Assigned Branches</th>
+                <th className="py-3.5 px-6">Joined Date</th>
               </tr>
-            ))}
-          </tbody>
-        </table>
-      </div>
+            </thead>
+            <tbody className="divide-y divide-slate-100 text-xs font-medium text-slate-700">
+              {users.map((user) => (
+                <tr key={user.id} className="hover:bg-slate-50/80 transition-colors">
+                  <td className="py-4 px-6">
+                    <div className="flex items-center gap-3">
+                      <div className="h-9 w-9 rounded-full bg-clinic-50 border border-clinic-200 text-clinic-700 font-bold flex items-center justify-center text-xs shrink-0 uppercase">
+                        {user.name ? user.name.slice(0, 2) : 'US'}
+                      </div>
+                      <div>
+                        <span className="font-bold text-slate-900 block text-sm">
+                          {user.name}
+                        </span>
+                        <span className="text-[10px] text-slate-400 font-mono">
+                          ID: {String(user.id).slice(0, 8)}...
+                        </span>
+                      </div>
+                    </div>
+                  </td>
+
+                  <td className="py-4 px-6 font-mono text-slate-600">
+                    <div className="flex items-center gap-1.5">
+                      <Mail className="h-3.5 w-3.5 text-slate-400" />
+                      <span>{user.email}</span>
+                    </div>
+                  </td>
+
+                  <td className="py-4 px-6">
+                    <div className="flex flex-wrap gap-1.5">
+                      {user.roles && user.roles.length > 0 ? (
+                        user.roles.map((r, i) => (
+                          <Badge
+                            key={i}
+                            variant={getRoleBadgeVariant(r)}
+                            className="font-semibold text-[11px] gap-1 capitalize"
+                          >
+                            <Shield className="h-3 w-3" />
+                            {formatRoleName(r)}
+                          </Badge>
+                        ))
+                      ) : (
+                        <span className="text-xs text-slate-400 italic">No roles assigned</span>
+                      )}
+                    </div>
+                  </td>
+
+                  <td className="py-4 px-6">
+                    <div className="flex flex-wrap gap-1.5">
+                      {user.branches && user.branches.length > 0 ? (
+                        user.branches.map((b, i) => (
+                          <span
+                            key={i}
+                            className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-md text-xs font-medium bg-slate-100 border border-slate-200 text-slate-700"
+                          >
+                            <MapPin className="h-3 w-3 text-slate-400" />
+                            {b}
+                          </span>
+                        ))
+                      ) : (
+                        <span className="text-xs text-slate-400 italic">All Branches / Unrestricted</span>
+                      )}
+                    </div>
+                  </td>
+
+                  <td className="py-4 px-6 text-xs text-slate-500 font-medium">
+                    {user.created_at ? new Date(user.created_at).toLocaleDateString('en-US', { dateStyle: 'medium' }) : '—'}
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      </CardContent>
 
       {/* Pagination Controls */}
       {meta && meta.last_page > 1 && (
-        <div className="flex items-center justify-between px-2 pt-2 text-xs text-slate-400">
+        <CardFooter className="flex items-center justify-between px-6 py-4 border-t border-slate-100 bg-slate-50/50 text-xs text-slate-500">
           <div>
-            صفحة <span className="font-bold text-white">{meta.current_page}</span> من{' '}
-            <span className="font-bold text-white">{meta.last_page}</span> (إجمالي {meta.total} مستخدم)
+            Page <strong className="text-slate-800">{meta.current_page}</strong> of{' '}
+            <strong className="text-slate-800">{meta.last_page}</strong> ({meta.total} staff members)
           </div>
           <div className="flex items-center gap-2">
-            <button
+            <Button
+              variant="outline"
+              size="sm"
               onClick={() => setPage((p) => Math.max(1, p - 1))}
               disabled={page <= 1}
-              className="px-3 py-1.5 rounded-xl border border-slate-800 bg-slate-900/80 hover:bg-slate-800 disabled:opacity-40 disabled:cursor-not-allowed flex items-center gap-1 font-medium transition-all"
+              leftIcon={<ChevronLeft className="h-4 w-4" />}
             >
-              <ChevronRight className="h-4 w-4" />
-              السابق
-            </button>
-            <button
+              Previous
+            </Button>
+            <Button
+              variant="outline"
+              size="sm"
               onClick={() => setPage((p) => Math.min(meta.last_page, p + 1))}
               disabled={page >= meta.last_page}
-              className="px-3 py-1.5 rounded-xl border border-slate-800 bg-slate-900/80 hover:bg-slate-800 disabled:opacity-40 disabled:cursor-not-allowed flex items-center gap-1 font-medium transition-all"
+              rightIcon={<ChevronRight className="h-4 w-4" />}
             >
-              التالي
-              <ChevronLeft className="h-4 w-4" />
-            </button>
+              Next
+            </Button>
           </div>
-        </div>
+        </CardFooter>
       )}
-    </div>
+    </Card>
   );
 }

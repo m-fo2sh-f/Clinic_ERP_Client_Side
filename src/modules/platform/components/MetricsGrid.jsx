@@ -8,55 +8,69 @@ export default function MetricsGrid({ metrics, isLoading }) {
         {[...Array(5)].map((_, i) => (
           <div
             key={i}
-            className="h-28 bg-slate-900/60 border border-slate-800 rounded-2xl flex items-center justify-center animate-pulse"
+            className="h-32 bg-white border border-slate-200/80 rounded-xl p-5 flex flex-col justify-between animate-pulse shadow-xs"
           >
-            <Loader2 className="h-6 w-6 text-slate-600 animate-spin" />
+            <div className="flex justify-between items-center">
+              <div className="h-3 w-20 bg-slate-200 rounded" />
+              <div className="h-8 w-8 bg-slate-100 rounded-bl-xl" />
+            </div>
+            <div className="h-7 w-16 bg-slate-200 rounded" />
+            <div className="h-3 w-24 bg-slate-100 rounded" />
           </div>
         ))}
       </div>
     );
   }
 
+  const totalTenants = metrics?.total_tenants ?? 0;
+  const activeTenants = metrics?.active_tenants ?? 0;
+  const activePercent = totalTenants > 0 ? Math.round((activeTenants / totalTenants) * 100) : 100;
+
   const items = [
     {
-      title: 'إجمالي العيادات',
-      value: metrics?.total_tenants ?? 0,
+      title: 'Total Clinics',
+      value: totalTenants,
       icon: Building2,
-      color: 'text-indigo-400',
-      bg: 'bg-indigo-500/10 border-indigo-500/20',
-      badge: 'المنصة كاملة',
+      iconColor: 'text-clinic-600',
+      iconBg: 'bg-clinic-50',
+      badge: 'Platform Wide',
+      badgeClass: 'text-slate-500 bg-slate-100',
     },
     {
-      title: 'العيادات النشطة',
-      value: metrics?.active_tenants ?? 0,
+      title: 'Active Clinics',
+      value: activeTenants,
       icon: CheckCircle2,
-      color: 'text-emerald-400',
-      bg: 'bg-emerald-500/10 border-emerald-500/20',
-      badge: `${metrics?.total_tenants ? Math.round(((metrics?.active_tenants || 0) / metrics.total_tenants) * 100) : 100}% نشط`,
+      iconColor: 'text-emerald-600',
+      iconBg: 'bg-emerald-50',
+      badge: `${activePercent}% Active`,
+      badgeClass: 'text-emerald-700 bg-emerald-50 border border-emerald-200',
     },
     {
-      title: 'إجمالي الأطباء',
+      title: 'Verified Doctors',
       value: metrics?.total_doctors ?? 0,
       icon: UserCheck,
-      color: 'text-cyan-400',
-      bg: 'bg-cyan-500/10 border-cyan-500/20',
-      badge: 'طاقم طبي معتمد',
+      iconColor: 'text-clinic-600',
+      iconBg: 'bg-clinic-50',
+      badge: 'Medical Staff',
+      badgeClass: 'text-slate-500 bg-slate-100',
     },
     {
-      title: 'إجمالي الحجوزات',
+      title: 'Total Bookings',
       value: metrics?.total_appointments ?? 0,
       icon: CalendarDays,
-      color: 'text-violet-400',
-      bg: 'bg-violet-500/10 border-violet-500/20',
-      badge: 'كافة الفروع',
+      iconColor: 'text-indigo-600',
+      iconBg: 'bg-indigo-50',
+      badge: 'All Branches',
+      badgeClass: 'text-slate-500 bg-slate-100',
     },
     {
-      title: 'حجوزات اليوم',
+      title: "Today's Bookings",
       value: metrics?.today_appointments ?? 0,
       icon: Clock,
-      color: 'text-amber-400',
-      bg: 'bg-amber-500/10 border-amber-500/20',
-      badge: 'اليوم',
+      iconColor: 'text-amber-600',
+      iconBg: 'bg-amber-50',
+      badge: 'Today',
+      badgeClass: 'text-amber-700 bg-amber-50 border border-amber-200',
     },
   ];
 
@@ -67,28 +81,26 @@ export default function MetricsGrid({ metrics, isLoading }) {
         return (
           <div
             key={idx}
-            className="relative overflow-hidden bg-slate-900/80 border border-slate-800 hover:border-slate-700/80 transition-all rounded-2xl p-5 shadow-xl backdrop-blur-md group"
+            className="bg-white p-5 rounded-xl border border-slate-200/80 shadow-xs relative overflow-hidden group hover:border-clinic-300 transition-all"
           >
-            <div className="flex items-center justify-between mb-3">
-              <span className="text-xs font-semibold text-slate-400 tracking-wide">
-                {item.title}
-              </span>
-              <div className={`p-2 rounded-xl border ${item.bg} ${item.color}`}>
-                <Icon className="h-4 w-4" />
-              </div>
+            {/* Top-right corner icon container */}
+            <div className={`absolute top-0 right-0 p-3.5 ${item.iconBg} ${item.iconColor} rounded-bl-xl transition-colors`}>
+              <Icon className="h-5 w-5" />
             </div>
 
-            <div className="flex items-baseline justify-between">
-              <span className="text-2xl font-extrabold text-white tracking-tight">
-                {Number(item.value).toLocaleString('ar-EG')}
-              </span>
-              <span className="text-[11px] font-medium text-slate-400 bg-slate-800/80 px-2 py-0.5 rounded-md">
+            <p className="text-xs font-bold text-slate-400 uppercase tracking-wider">
+              {item.title}
+            </p>
+
+            <p className="text-3xl font-extrabold text-slate-900 mt-2">
+              {Number(item.value).toLocaleString()}
+            </p>
+
+            <div className="flex items-center gap-1.5 mt-3 text-xs">
+              <span className={`px-2 py-0.5 rounded text-[11px] font-semibold ${item.badgeClass}`}>
                 {item.badge}
               </span>
             </div>
-
-            {/* Subtle glow accent on hover */}
-            <div className="absolute -bottom-6 -right-6 w-20 h-20 bg-white/5 rounded-full blur-2xl group-hover:bg-white/10 transition-all" />
           </div>
         );
       })}

@@ -1,8 +1,9 @@
 import React from 'react';
-import { Navigate, useLocation } from 'react-router-dom';
+import { Navigate, useLocation, Link } from 'react-router-dom';
 import { ShieldAlert, Loader2, Home, LogOut } from 'lucide-react';
 import { useBranchContext } from '../../../context/BranchContext';
 import { getRoleDefaultRoute } from '../../../utils/roleUtils';
+import Button from '../../../components/ui/Button';
 
 export default function PlatformRoute({ children }) {
   const { user, loading, isLoading, logout } = useBranchContext();
@@ -12,10 +13,10 @@ export default function PlatformRoute({ children }) {
 
   if (isAuthLoading) {
     return (
-      <div className="min-h-screen bg-slate-950 flex flex-col items-center justify-center p-4">
-        <div className="flex items-center gap-3 bg-slate-900 border border-slate-800 rounded-2xl px-6 py-4 shadow-xl">
-          <Loader2 className="h-6 w-6 text-indigo-500 animate-spin" />
-          <span className="text-sm font-medium text-slate-200">جاري التحقق من صلاحيات مدير المنصة...</span>
+      <div className="min-h-screen bg-slate-50 flex flex-col items-center justify-center p-4">
+        <div className="flex items-center gap-3 bg-white border border-slate-200/80 rounded-2xl px-6 py-4 shadow-xl">
+          <Loader2 className="h-6 w-6 text-clinic-600 animate-spin" />
+          <span className="text-sm font-semibold text-slate-700">Verifying Super Admin Authorization...</span>
         </div>
       </div>
     );
@@ -30,34 +31,39 @@ export default function PlatformRoute({ children }) {
     const defaultRoute = getRoleDefaultRoute(user);
 
     return (
-      <div className="min-h-screen bg-slate-950 flex items-center justify-center p-4" dir="rtl">
-        <div className="max-w-md w-full bg-slate-900 border border-slate-800 rounded-3xl p-8 text-center text-white shadow-2xl">
-          <div className="w-16 h-16 bg-rose-500/10 border border-rose-500/20 rounded-2xl flex items-center justify-center mx-auto mb-5 text-rose-400">
+      <div className="min-h-screen bg-slate-50 flex items-center justify-center p-4">
+        <div className="max-w-md w-full bg-white border border-slate-200/80 rounded-2xl p-8 text-center shadow-xl">
+          <div className="w-16 h-16 bg-rose-50 border border-rose-200 rounded-2xl flex items-center justify-center mx-auto mb-5 text-rose-600">
             <ShieldAlert className="h-8 w-8" />
           </div>
 
-          <h2 className="text-2xl font-bold text-slate-100 mb-2">غير مصرح بالوصول (403)</h2>
-          <p className="text-xs text-slate-400 mb-6 leading-relaxed">
-            هذه المنطقة مخصصة حصرياً لمديري المنصة المركزية (<span className="text-indigo-400 font-semibold">Super Admins</span>).
-            حسابك الحالي (<span className="text-clinic-400 font-semibold">{user.name}</span>) لا يمتلك صلاحيات إدارة المنصة.
+          <h2 className="text-xl font-bold text-slate-900 mb-2">Access Denied (403)</h2>
+          <p className="text-xs text-slate-500 mb-6 leading-relaxed">
+            This console is strictly restricted to Central Platform Super Administrators.
+            Your account (<span className="text-clinic-700 font-semibold">{user.name}</span>) does not possess platform management privileges.
           </p>
 
           <div className="flex flex-col sm:flex-row items-center justify-center gap-3">
-            <a
-              href={defaultRoute}
-              className="w-full sm:w-auto inline-flex items-center justify-center gap-2 bg-clinic-600 hover:bg-clinic-500 text-white font-semibold text-xs px-5 py-2.5 rounded-xl transition-all shadow-lg shadow-clinic-600/25"
-            >
-              <Home className="h-4 w-4" />
-              الذهاب للوحتك الخاصة
-            </a>
+            <Link to={defaultRoute} className="w-full sm:w-auto">
+              <Button
+                variant="default"
+                size="sm"
+                className="w-full text-xs font-semibold"
+                leftIcon={<Home className="h-4 w-4" />}
+              >
+                Go to My Dashboard
+              </Button>
+            </Link>
 
-            <button
+            <Button
+              variant="outline"
+              size="sm"
               onClick={logout}
-              className="w-full sm:w-auto inline-flex items-center justify-center gap-2 bg-slate-800 hover:bg-slate-700 text-slate-200 font-semibold text-xs px-5 py-2.5 rounded-xl transition-all"
+              className="w-full sm:w-auto text-xs font-semibold"
+              leftIcon={<LogOut className="h-4 w-4" />}
             >
-              <LogOut className="h-4 w-4" />
-              تسجيل الخروج
-            </button>
+              Logout Session
+            </Button>
           </div>
         </div>
       </div>

@@ -1,23 +1,26 @@
 import React from 'react';
+import Badge from '../../../components/ui/Badge';
 
 export default function TenantStatusBadge({ isActive, className = '' }) {
   if (isActive) {
     return (
-      <span
-        className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-semibold bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 ${className}`}
+      <Badge
+        variant="success"
+        className={`font-semibold text-xs gap-1.5 ${className}`}
       >
-        <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />
-        نشط
-      </span>
+        <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
+        Active
+      </Badge>
     );
   }
 
   return (
-    <span
-      className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-semibold bg-rose-500/10 text-rose-400 border border-rose-500/20 ${className}`}
+    <Badge
+      variant="destructive"
+      className={`font-semibold text-xs gap-1.5 ${className}`}
     >
-      <span className="w-1.5 h-1.5 rounded-full bg-rose-400" />
-      معلق
-    </span>
+      <span className="w-1.5 h-1.5 rounded-full bg-red-500" />
+      Suspended
+    </Badge>
   );
 }

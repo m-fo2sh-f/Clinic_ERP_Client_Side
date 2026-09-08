@@ -1,8 +1,8 @@
 import React, { useState } from 'react';
-import { useParams, Link, useNavigate } from 'react-router-dom';
+import { useParams, Link } from 'react-router-dom';
 import {
   Building2,
-  ArrowRight,
+  ArrowLeft,
   Users,
   MapPin,
   CalendarDays,
@@ -12,7 +12,6 @@ import {
   Loader2,
   ExternalLink,
   Globe,
-  Clock,
 } from 'lucide-react';
 import { useTenantDetails, useTenantUsers } from '../hooks/useTenantDetails';
 import { useTenantImpersonate, useToggleTenantStatus } from '../hooks/useTenantImpersonate';
@@ -20,10 +19,11 @@ import TenantStatusBadge from '../components/TenantStatusBadge';
 import TenantUsersTable from '../components/TenantUsersTable';
 import TenantBranchesList from '../components/TenantBranchesList';
 import ImpersonateConfirmModal from '../components/ImpersonateConfirmModal';
+import { Card, CardHeader, CardTitle, CardContent } from '../../../components/ui/Card';
+import Button from '../../../components/ui/Button';
 
 export default function PlatformTenantDetailsPage() {
   const { id } = useParams();
-  const navigate = useNavigate();
 
   const [activeTab, setActiveTab] = useState('overview'); // 'overview' | 'users' | 'branches'
   const [usersPage, setUsersPage] = useState(1);
@@ -41,34 +41,40 @@ export default function PlatformTenantDetailsPage() {
   if (tenantLoading) {
     return (
       <div className="min-h-[400px] flex flex-col items-center justify-center gap-3">
-        <Loader2 className="h-8 w-8 text-clinic-500 animate-spin" />
-        <span className="text-sm font-medium text-slate-400">جاري تحميل بيانات العيادة...</span>
+        <Loader2 className="h-8 w-8 text-clinic-600 animate-spin" />
+        <span className="text-sm font-medium text-slate-500">Loading clinic profile details...</span>
       </div>
     );
   }
 
   if (!tenant) {
     return (
-      <div className="text-center py-16 bg-slate-900/40 rounded-3xl border border-slate-800">
-        <Building2 className="h-12 w-12 text-slate-600 mx-auto mb-3" />
-        <h2 className="text-lg font-bold text-white mb-1">العيادة غير موجودة</h2>
-        <p className="text-xs text-slate-400 mb-5">تعذر العثور على العيادة المطلوبة بالمعرف المحدد.</p>
-        <Link
-          to="/platform/tenants"
-          className="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-slate-800 text-slate-200 text-xs font-semibold hover:bg-slate-700 transition-colors"
-        >
-          <ArrowRight className="h-4 w-4" />
-          العودة لقائمة العيادات
-        </Link>
-      </div>
+      <Card className="text-center py-16 shadow-sm">
+        <CardContent>
+          <Building2 className="h-12 w-12 text-slate-300 mx-auto mb-3" />
+          <h2 className="text-lg font-bold text-slate-800 mb-1">Clinic Not Found</h2>
+          <p className="text-xs text-slate-500 mb-5">
+            Unable to locate the specified clinic tenant ID in the platform registry.
+          </p>
+          <Link to="/platform/tenants">
+            <Button
+              variant="default"
+              size="sm"
+              leftIcon={<ArrowLeft className="h-4 w-4" />}
+            >
+              Back to Clinics Directory
+            </Button>
+          </Link>
+        </CardContent>
+      </Card>
     );
   }
 
   const handleToggleStatus = () => {
     const nextState = !tenant.is_active;
     const confirmMsg = nextState
-      ? `هل أنت متأكد من تفعيل العيادة (${tenant.clinic_name || tenant.id})؟`
-      : `هل أنت متأكد من إيقاف وتعليق العيادة (${tenant.clinic_name || tenant.id})؟`;
+      ? `Are you sure you want to activate clinic "${tenant.clinic_name || tenant.id}"?`
+      : `Are you sure you want to suspend and disable clinic "${tenant.clinic_name || tenant.id}"?`;
 
     if (window.confirm(confirmMsg)) {
       toggleStatus({ tenantId: tenant.id, isActive: nextState });
@@ -78,26 +84,26 @@ export default function PlatformTenantDetailsPage() {
   return (
     <div className="space-y-6">
       {/* Back Link & Header */}
-      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 pb-4 border-b border-slate-800">
+      <div className="bg-white px-6 py-5 rounded-xl border border-slate-200/80 shadow-sm flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div className="space-y-1">
           <Link
             to="/platform/tenants"
-            className="inline-flex items-center gap-1.5 text-xs text-slate-400 hover:text-white transition-colors mb-2"
+            className="inline-flex items-center gap-1.5 text-xs text-slate-500 hover:text-slate-800 transition-colors mb-1 font-semibold"
           >
-            <ArrowRight className="h-3.5 w-3.5" />
-            العودة لدليل العيادات
+            <ArrowLeft className="h-3.5 w-3.5" />
+            Back to Clinics Directory
           </Link>
           <div className="flex items-center gap-3">
-            <h1 className="text-2xl font-black text-white tracking-tight">
+            <h1 className="text-xl font-bold text-slate-900 tracking-tight m-0">
               {tenant.clinic_name || tenant.id}
             </h1>
             <TenantStatusBadge isActive={tenant.is_active} />
           </div>
           <div className="flex items-center gap-3 text-xs text-slate-400 font-mono">
-            <span>ID: {tenant.id}</span>
+            <span>Tenant ID: {tenant.id}</span>
             <span>•</span>
-            <span className="flex items-center gap-1 text-clinic-400">
-              <Globe className="h-3.5 w-3.5" />
+            <span className="flex items-center gap-1 text-clinic-700 font-semibold">
+              <Globe className="h-3.5 w-3.5 text-clinic-600" />
               {tenant.domain}
             </span>
           </div>
@@ -105,67 +111,65 @@ export default function PlatformTenantDetailsPage() {
 
         {/* Action Buttons */}
         <div className="flex items-center gap-2.5">
-          <button
-            type="button"
+          <Button
+            variant={tenant.is_active ? 'destructive' : 'default'}
+            size="sm"
             onClick={handleToggleStatus}
             disabled={isToggling}
-            className={`inline-flex items-center gap-2 px-3.5 py-2 rounded-xl text-xs font-bold border transition-all ${
-              tenant.is_active
-                ? 'bg-rose-500/10 text-rose-400 border-rose-500/20 hover:bg-rose-500/20'
-                : 'bg-emerald-500/10 text-emerald-400 border-emerald-500/20 hover:bg-emerald-500/20'
-            }`}
+            leftIcon={<Power className="h-4 w-4" />}
+            className="text-xs font-semibold"
           >
-            <Power className="h-3.5 w-3.5" />
-            {tenant.is_active ? 'تعليق العيادة' : 'تفعيل العيادة'}
-          </button>
+            {tenant.is_active ? 'Suspend Clinic' : 'Activate Clinic'}
+          </Button>
 
-          <button
-            type="button"
+          <Button
+            variant="default"
+            size="sm"
             onClick={() => setShowImpersonateModal(true)}
-            className="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-amber-500/10 text-amber-400 hover:bg-amber-500/20 border border-amber-500/20 text-xs font-bold shadow-lg shadow-amber-500/10 transition-all"
+            className="bg-amber-600 hover:bg-amber-700 text-white text-xs font-bold shadow-sm"
+            leftIcon={<ShieldAlert className="h-4 w-4" />}
           >
-            <ShieldAlert className="h-3.5 w-3.5" />
-            تقمص دور المالك (15 دقيقة)
-          </button>
+            Impersonate Owner (15m)
+          </Button>
         </div>
       </div>
 
       {/* Navigation Tabs */}
-      <div className="flex items-center gap-2 border-b border-slate-800 pb-1">
+      <div className="flex items-center gap-2 border-b border-slate-200 pb-1">
         <button
           onClick={() => setActiveTab('overview')}
-          className={`px-4 py-2 rounded-xl text-xs font-bold transition-all flex items-center gap-2 ${
+          className={`px-4 py-2 rounded-lg text-xs font-bold transition-all flex items-center gap-2 cursor-pointer ${
             activeTab === 'overview'
-              ? 'bg-clinic-600/20 text-clinic-400 border border-clinic-500/30'
-              : 'text-slate-400 hover:text-slate-200'
+              ? 'bg-clinic-50 text-clinic-700 border border-clinic-200'
+              : 'text-slate-500 hover:text-slate-800 hover:bg-slate-100'
           }`}
         >
           <Building2 className="h-4 w-4" />
-          نظرة عامة وإحصائيات
+          Overview & Metrics
         </button>
 
         <button
           onClick={() => setActiveTab('users')}
-          className={`px-4 py-2 rounded-xl text-xs font-bold transition-all flex items-center gap-2 ${
+          className={`px-4 py-2 rounded-lg text-xs font-bold transition-all flex items-center gap-2 cursor-pointer ${
             activeTab === 'users'
-              ? 'bg-clinic-600/20 text-clinic-400 border border-clinic-500/30'
-              : 'text-slate-400 hover:text-slate-200'
+              ? 'bg-clinic-50 text-clinic-700 border border-clinic-200'
+              : 'text-slate-500 hover:text-slate-800 hover:bg-slate-100'
           }`}
         >
           <Users className="h-4 w-4" />
-          الطاقم الطبي والإداري ({usersData?.meta?.total ?? '...'})
+          Staff Directory ({usersData?.meta?.total ?? '...'})
         </button>
 
         <button
           onClick={() => setActiveTab('branches')}
-          className={`px-4 py-2 rounded-xl text-xs font-bold transition-all flex items-center gap-2 ${
+          className={`px-4 py-2 rounded-lg text-xs font-bold transition-all flex items-center gap-2 cursor-pointer ${
             activeTab === 'branches'
-              ? 'bg-clinic-600/20 text-clinic-400 border border-clinic-500/30'
-              : 'text-slate-400 hover:text-slate-200'
+              ? 'bg-clinic-50 text-clinic-700 border border-clinic-200'
+              : 'text-slate-500 hover:text-slate-800 hover:bg-slate-100'
           }`}
         >
           <MapPin className="h-4 w-4" />
-          الفروع التابعة ({tenant.branches_count ?? 0})
+          Branches ({tenant.branches_count ?? 0})
         </button>
       </div>
 
@@ -174,76 +178,102 @@ export default function PlatformTenantDetailsPage() {
         <div className="space-y-6">
           {/* Key Stat Cards */}
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-            <div className="bg-slate-900/80 border border-slate-800 rounded-2xl p-5 shadow-xl">
-              <div className="flex items-center justify-between text-slate-400 mb-2">
-                <span className="text-xs font-semibold">إجمالي الفروع</span>
-                <MapPin className="h-4 w-4 text-clinic-400" />
+            <div className="bg-white p-5 rounded-xl border border-slate-200/80 shadow-xs relative overflow-hidden group hover:border-clinic-300 transition-all">
+              <div className="absolute top-0 right-0 p-3.5 bg-clinic-50 text-clinic-600 rounded-bl-xl">
+                <MapPin className="h-5 w-5" />
               </div>
-              <div className="text-2xl font-black text-white">{tenant.branches_count}</div>
-              <div className="text-[11px] text-emerald-400 mt-1 font-medium">
-                {tenant.active_branches_count} فروع نشطة
+              <p className="text-xs font-bold text-slate-400 uppercase tracking-wider">
+                Total Branches
+              </p>
+              <p className="text-3xl font-extrabold text-slate-900 mt-2">
+                {tenant.branches_count ?? 0}
+              </p>
+              <div className="flex items-center gap-1.5 mt-3 text-xs text-emerald-600 font-semibold">
+                <span>{tenant.active_branches_count ?? 0} active branches</span>
               </div>
             </div>
 
-            <div className="bg-slate-900/80 border border-slate-800 rounded-2xl p-5 shadow-xl">
-              <div className="flex items-center justify-between text-slate-400 mb-2">
-                <span className="text-xs font-semibold">الأطباء المعتمدون</span>
-                <UserCheck className="h-4 w-4 text-cyan-400" />
+            <div className="bg-white p-5 rounded-xl border border-slate-200/80 shadow-xs relative overflow-hidden group hover:border-clinic-300 transition-all">
+              <div className="absolute top-0 right-0 p-3.5 bg-clinic-50 text-clinic-600 rounded-bl-xl">
+                <UserCheck className="h-5 w-5" />
               </div>
-              <div className="text-2xl font-black text-white">{tenant.total_doctors_count}</div>
-              <div className="text-[11px] text-slate-500 mt-1">يحملون دور doctor</div>
+              <p className="text-xs font-bold text-slate-400 uppercase tracking-wider">
+                Verified Doctors
+              </p>
+              <p className="text-3xl font-extrabold text-slate-900 mt-2">
+                {tenant.total_doctors_count ?? 0}
+              </p>
+              <div className="flex items-center gap-1.5 mt-3 text-xs text-slate-500 font-medium">
+                <span>Assigned doctor role</span>
+              </div>
             </div>
 
-            <div className="bg-slate-900/80 border border-slate-800 rounded-2xl p-5 shadow-xl">
-              <div className="flex items-center justify-between text-slate-400 mb-2">
-                <span className="text-xs font-semibold">إجمالي المرضى</span>
-                <Users className="h-4 w-4 text-indigo-400" />
+            <div className="bg-white p-5 rounded-xl border border-slate-200/80 shadow-xs relative overflow-hidden group hover:border-clinic-300 transition-all">
+              <div className="absolute top-0 right-0 p-3.5 bg-indigo-50 text-indigo-600 rounded-bl-xl">
+                <Users className="h-5 w-5" />
               </div>
-              <div className="text-2xl font-black text-white">{tenant.total_patients_count}</div>
-              <div className="text-[11px] text-slate-500 mt-1">ملفات مسجلة بالعيادة</div>
+              <p className="text-xs font-bold text-slate-400 uppercase tracking-wider">
+                Total Patients
+              </p>
+              <p className="text-3xl font-extrabold text-slate-900 mt-2">
+                {tenant.total_patients_count ?? 0}
+              </p>
+              <div className="flex items-center gap-1.5 mt-3 text-xs text-slate-500 font-medium">
+                <span>Medical records on file</span>
+              </div>
             </div>
 
-            <div className="bg-slate-900/80 border border-slate-800 rounded-2xl p-5 shadow-xl">
-              <div className="flex items-center justify-between text-slate-400 mb-2">
-                <span className="text-xs font-semibold">إجمالي الحجوزات</span>
-                <CalendarDays className="h-4 w-4 text-amber-400" />
+            <div className="bg-white p-5 rounded-xl border border-slate-200/80 shadow-xs relative overflow-hidden group hover:border-clinic-300 transition-all">
+              <div className="absolute top-0 right-0 p-3.5 bg-amber-50 text-amber-600 rounded-bl-xl">
+                <CalendarDays className="h-5 w-5" />
               </div>
-              <div className="text-2xl font-black text-white">{tenant.total_appointments_count}</div>
-              <div className="text-[11px] text-slate-500 mt-1">كشوفات واستشارات</div>
+              <p className="text-xs font-bold text-slate-400 uppercase tracking-wider">
+                Total Bookings
+              </p>
+              <p className="text-3xl font-extrabold text-slate-900 mt-2">
+                {tenant.total_appointments_count ?? 0}
+              </p>
+              <div className="flex items-center gap-1.5 mt-3 text-xs text-slate-500 font-medium">
+                <span>Examinations & check-ups</span>
+              </div>
             </div>
           </div>
 
           {/* Detailed Info Card */}
-          <div className="bg-slate-900/60 border border-slate-800 rounded-3xl p-6 shadow-xl space-y-4">
-            <h3 className="text-sm font-bold text-white uppercase tracking-wider">
-              بيانات المستأجر والاتصال
-            </h3>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-xs">
-              <div className="p-4 rounded-2xl bg-slate-950/60 border border-slate-800/80 space-y-1">
-                <span className="text-slate-400 font-semibold">رابط بوابة العيادة المباشر:</span>
-                <div className="font-mono text-clinic-400 text-sm flex items-center gap-1 mt-1">
-                  <a
-                    href={`http://${tenant.domain}:5173`}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="hover:underline flex items-center gap-1"
-                  >
-                    http://{tenant.domain}:5173
-                    <ExternalLink className="h-3.5 w-3.5" />
-                  </a>
+          <Card className="shadow-sm">
+            <CardHeader className="p-5 bg-slate-50/50 border-b border-slate-200/80">
+              <CardTitle className="text-sm font-bold text-slate-800 uppercase tracking-wider">
+                Tenant Connection & Domain Details
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="p-5">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-xs">
+                <div className="p-4 rounded-xl bg-slate-50 border border-slate-200 space-y-1">
+                  <span className="text-slate-500 font-semibold">Direct Clinic Portal URL:</span>
+                  <div className="font-mono text-clinic-700 text-sm font-bold flex items-center gap-1 mt-1">
+                    <a
+                      href={`http://${tenant.domain}:5173`}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="hover:underline flex items-center gap-1.5"
+                    >
+                      http://{tenant.domain}:5173
+                      <ExternalLink className="h-3.5 w-3.5 text-clinic-500" />
+                    </a>
+                  </div>
                 </div>
-              </div>
 
-              <div className="p-4 rounded-2xl bg-slate-950/60 border border-slate-800/80 space-y-1">
-                <span className="text-slate-400 font-semibold">تاريخ إنشاء الاشتراك:</span>
-                <div className="text-slate-200 text-sm font-semibold mt-1">
-                  {tenant.created_at
-                    ? new Date(tenant.created_at).toLocaleString('ar-EG')
-                    : 'غير مسجل'}
+                <div className="p-4 rounded-xl bg-slate-50 border border-slate-200 space-y-1">
+                  <span className="text-slate-500 font-semibold">Registration Date:</span>
+                  <div className="text-slate-800 text-sm font-bold mt-1">
+                    {tenant.created_at
+                      ? new Date(tenant.created_at).toLocaleString('en-US', { dateStyle: 'medium', timeStyle: 'short' })
+                      : 'Not recorded'}
+                  </div>
                 </div>
               </div>
-            </div>
-          </div>
+            </CardContent>
+          </Card>
         </div>
       )}
 
