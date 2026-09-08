@@ -17,8 +17,8 @@ import {
   ChevronDown,
   ChevronUp,
 } from 'lucide-react';
-import Badge from '../ui/Badge';
-import Button from '../ui/Button';
+import Badge from '../../../components/ui/Badge';
+import Button from '../../../components/ui/Button';
 
 /**
  * PatientHistoryModal — comprehensive view of patient's past medical visits,

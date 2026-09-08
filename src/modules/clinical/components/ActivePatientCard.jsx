@@ -19,10 +19,10 @@ import {
   Activity,
   Lock,
 } from 'lucide-react';
-import Badge from '../ui/Badge';
-import Button from '../ui/Button';
-import { Card, CardContent } from '../ui/Card';
-import { useUpdatePatientMutation } from '../../hooks/usePatients';
+import Badge from '../../../components/ui/Badge';
+import Button from '../../../components/ui/Button';
+import { Card, CardContent } from '../../../components/ui/Card';
+import { useUpdatePatientMutation } from '../../patients/hooks/usePatients';
 
 /**
  * Helper to calculate or format patient age

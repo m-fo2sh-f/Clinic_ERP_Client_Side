@@ -1,7 +1,7 @@
 import React from 'react';
 import { Pill, Printer, Plus, Trash2, FileCheck, Loader2, Calendar } from 'lucide-react';
-import Button from '../ui/Button';
-import { Card, CardHeader, CardTitle, CardContent } from '../ui/Card';
+import Button from '../../../components/ui/Button';
+import { Card, CardHeader, CardTitle, CardContent } from '../../../components/ui/Card';
 
 /**
  * PrescriptionSheet — digital Rx table with add/remove medication rows,

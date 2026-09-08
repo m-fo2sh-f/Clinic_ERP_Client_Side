@@ -2,10 +2,10 @@ import React, { useEffect } from 'react';
 import { Route, Routes, Navigate } from 'react-router-dom';
 
 import LoginPage from '../pages/auth/LoginPage';
-import ReceptionistDashboard from '../pages/receptionist/ReceptionistDashboard';
-import DoctorDashboard from '../pages/doctor/DoctorDashboard';
-import PatientsPage from '../pages/patients/PatientsPage';
-import WaitingRoomDisplay from '../pages/waiting_room/WaitingRoomDisplay';
+import ReceptionistDashboard from '../modules/queue/pages/ReceptionistDashboard';
+import DoctorDashboard from '../modules/clinical/pages/DoctorDashboard';
+import PatientsPage from '../modules/patients/pages/PatientsPage';
+import WaitingRoomDisplay from '../modules/queue/pages/WaitingRoomDisplay';
 import DashboardLayout from '../layouts/DashboardLayout';
 import { ProtectedRoute, getRoleDefaultRoute } from './ProtectedRoute';
 import { useBranchContext } from '../context/BranchContext';

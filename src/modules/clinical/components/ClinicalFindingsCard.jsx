@@ -11,7 +11,7 @@ import {
   Wind,
   Droplet,
 } from 'lucide-react';
-import { Card, CardHeader, CardTitle, CardContent } from '../ui/Card';
+import { Card, CardHeader, CardTitle, CardContent } from '../../../components/ui/Card';
 
 /**
  * ClinicalFindingsCard — vital signs inputs with auto-formatting, chief complaint,

@@ -1,15 +1,15 @@
 import React, { useState } from 'react';
 import { Users, GripVertical, Play, CheckCircle2, UserMinus, ArrowUp, ArrowDown } from 'lucide-react';
-import Badge from '../ui/Badge';
-import Button from '../ui/Button';
+import Badge from '../../../components/ui/Badge';
+import Button from '../../../components/ui/Button';
 import {
   useLiveQueueQuery,
   useUpdateQueueStatus,
   useDeleteQueueMutation,
   useReorderQueueMutation
-} from '../../hooks/useQueue';
-import { useBranchDoctorsQuery } from '../../hooks/useAppointments';
-import { useBranchContext } from '../../context/BranchContext';
+} from '../hooks/useQueue';
+import { useBranchDoctorsQuery } from '../../appointments/hooks/useAppointments';
+import { useBranchContext } from '../../../context/BranchContext';
 
 export default function LiveQueue() {
   const { activeBranch } = useBranchContext();

@@ -9,8 +9,8 @@ import {
   PanelRightClose,
   PanelRightOpen,
 } from 'lucide-react';
-import Button from '../ui/Button';
-import Badge from '../ui/Badge';
+import Button from '../../../components/ui/Button';
+import Badge from '../../../components/ui/Badge';
 
 /**
  * DoctorHeader — sticky top navigation bar for the Doctor Examination Console.

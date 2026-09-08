@@ -16,12 +16,12 @@ import {
   Sparkles,
   ShieldCheck
 } from 'lucide-react';
-import { useBranchContext } from '../../context/BranchContext';
-import { usePatientsQuery, usePatientDetailQuery } from '../../hooks/usePatients';
-import Button from '../../components/ui/Button';
-import Badge from '../../components/ui/Badge';
-import { Card, CardHeader, CardTitle, CardContent } from '../../components/ui/Card';
-import { Dialog, DialogHeader, DialogTitle, DialogDescription, DialogClose } from '../../components/ui/Dialog';
+import { useBranchContext } from '../../../context/BranchContext';
+import { usePatientsQuery, usePatientDetailQuery } from '../hooks/usePatients';
+import Button from '../../../components/ui/Button';
+import Badge from '../../../components/ui/Badge';
+import { Card, CardHeader, CardTitle, CardContent } from '../../../components/ui/Card';
+import { Dialog, DialogHeader, DialogTitle, DialogDescription, DialogClose } from '../../../components/ui/Dialog';
 
 export default function PatientsPage() {
   const { activeBranch } = useBranchContext();

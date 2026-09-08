@@ -16,10 +16,10 @@ import {
   Copy,
   Check
 } from 'lucide-react';
-import { useBranchContext } from '../../context/BranchContext';
-import { usePublicLiveQueueQuery } from '../../hooks/useQueue';
-import { useQueueWebSocket } from '../../hooks/useQueueWebSocket';
-import Badge from '../../components/ui/Badge';
+import { useBranchContext } from '../../../context/BranchContext';
+import { usePublicLiveQueueQuery } from '../hooks/useQueue';
+import { useQueueWebSocket } from '../hooks/useQueueWebSocket';
+import Badge from '../../../components/ui/Badge';
 
 // 🎯 1. Independent Live Clock component preventing main-page re-renders
 function LiveClock() {

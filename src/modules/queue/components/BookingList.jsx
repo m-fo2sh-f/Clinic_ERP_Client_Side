@@ -1,11 +1,11 @@
 import React, { useState } from 'react';
 import { CalendarDays, Clock, UserCheck, Trash2, Edit2 } from 'lucide-react';
-import { formatDateTime } from '../../utils/dateFormat';
-import Badge from '../ui/Badge';
-import Button from '../ui/Button';
-import AppointmentModal from '../modals/AppointmentModal';
-import { useBranchContext } from '../../context/BranchContext';
-import { useUpdateAppointmentMutation, useDeleteAppointmentMutation, useCheckInMutation } from '../../hooks/useAppointments';
+import { formatDateTime } from '../../../utils/dateFormat';
+import Badge from '../../../components/ui/Badge';
+import Button from '../../../components/ui/Button';
+import AppointmentModal from '../../appointments/components/AppointmentModal';
+import { useBranchContext } from '../../../context/BranchContext';
+import { useUpdateAppointmentMutation, useDeleteAppointmentMutation, useCheckInMutation } from '../../appointments/hooks/useAppointments';
 
 export default function BookingList({ bookings = [], branchName }) {
   const updateAppointmentMutation = useUpdateAppointmentMutation();

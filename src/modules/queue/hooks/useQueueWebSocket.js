@@ -1,7 +1,7 @@
 import { useEffect, useRef, useCallback } from 'react';
 import { useQueryClient } from '@tanstack/react-query';
-import echo from '../services/echo';
-import { shouldSkipWebSocketInvalidate, debouncedInvalidate } from '../utils/invalidationTracker';
+import echo from '../../../services/echo';
+import { shouldSkipWebSocketInvalidate, debouncedInvalidate } from '../../../utils/invalidationTracker';
 
 /**
  * WebSocket hook for real-time live queue updates via Laravel Reverb.

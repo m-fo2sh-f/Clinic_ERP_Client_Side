@@ -1,23 +1,23 @@
 import React, { useState, useMemo, useCallback } from 'react';
-import { useBranchContext } from '../../context/BranchContext';
+import { useBranchContext } from '../../../context/BranchContext';
 import {
   useLiveQueueQuery,
   useCallNextPatientMutation,
   usePatientHistoryQuery,
-} from '../../hooks/useQueue';
-import { useQueueWebSocket } from '../../hooks/useQueueWebSocket';
+} from '../../queue/hooks/useQueue';
+import { useQueueWebSocket } from '../../queue/hooks/useQueueWebSocket';
 import useDoctorConsultation, {
   useCompleteConsultationMutation,
-} from '../../hooks/useDoctorConsultation';
+} from '../hooks/useDoctorConsultation';
 
 // Sub-components
-import DoctorHeader from '../../components/doctor/DoctorHeader';
-import QueueDrawer from '../../components/doctor/QueueDrawer';
-import ActivePatientCard from '../../components/doctor/ActivePatientCard';
-import ClinicalFindingsCard from '../../components/doctor/ClinicalFindingsCard';
-import PrescriptionSheet from '../../components/doctor/PrescriptionSheet';
-import EmptyDoctorState from '../../components/doctor/EmptyDoctorState';
-import PatientHistoryModal from '../../components/doctor/PatientHistoryModal';
+import DoctorHeader from '../components/DoctorHeader';
+import QueueDrawer from '../components/QueueDrawer';
+import ActivePatientCard from '../components/ActivePatientCard';
+import ClinicalFindingsCard from '../components/ClinicalFindingsCard';
+import PrescriptionSheet from '../components/PrescriptionSheet';
+import EmptyDoctorState from '../components/EmptyDoctorState';
+import PatientHistoryModal from '../components/PatientHistoryModal';
 
 /**
  * DoctorDashboard — orchestrator / container component.

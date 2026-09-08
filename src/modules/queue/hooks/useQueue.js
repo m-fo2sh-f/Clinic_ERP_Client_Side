@@ -1,6 +1,6 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import api from '../services/api';
-import { markQueryInvalidated, debouncedInvalidate } from '../utils/invalidationTracker';
+import api from '../../../services/api';
+import { markQueryInvalidated, debouncedInvalidate } from '../../../utils/invalidationTracker';
 
 // 🎯 تسمية خاصة وفريدة بمفاتيح الصالة لمنع أي تضارب مع الحجوزات
 export const queueKeys = {

@@ -1,14 +1,14 @@
 import React, { useMemo, useState } from 'react';
-import QuickActions from '../../components/queue/QuickActions';
-import BookingList from '../../components/queue/BookingList';
-import LiveQueue from '../../components/queue/LiveQueue';
+import QuickActions from '../components/QuickActions';
+import BookingList from '../components/BookingList';
+import LiveQueue from '../components/LiveQueue';
 import { Wifi, ShieldCheck, Loader2 } from 'lucide-react';
-import { useBranchContext } from '../../context/BranchContext';
+import { useBranchContext } from '../../../context/BranchContext';
 
-import { formatDateToYMD } from '../../utils/dateFormat';
-import { useAppointmentsQuery } from '../../hooks/useAppointments';
+import { formatDateToYMD } from '../../../utils/dateFormat';
+import { useAppointmentsQuery } from '../../appointments/hooks/useAppointments';
 
-import { useQueueWebSocket } from '../../hooks/useQueueWebSocket';
+import { useQueueWebSocket } from '../hooks/useQueueWebSocket';
 
 export default function ReceptionistDashboard() {
   const { activeBranch } = useBranchContext();

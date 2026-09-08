@@ -1,11 +1,11 @@
 import React, { useState } from 'react';
 import { PlusCircle, Calendar, UserCheck, Clock, UserPlus } from 'lucide-react';
-import Button from '../ui/Button';
+import Button from '../../../components/ui/Button';
 import dayjs from 'dayjs';
-import AppointmentModal from '../modals/AppointmentModal';
-import { useBranchContext } from '../../context/BranchContext';
-import { useCreateAppointmentMutation } from '../../hooks/useAppointments';
-import { useWalkInMutation } from '../../hooks/useQueue';
+import AppointmentModal from '../../appointments/components/AppointmentModal';
+import { useBranchContext } from '../../../context/BranchContext';
+import { useCreateAppointmentMutation } from '../../appointments/hooks/useAppointments';
+import { useWalkInMutation } from '../hooks/useQueue';
 
 export default function QuickActions({ stats = { total: 0, checkedIn: 0, remaining: 0 }, patients = [] }) {
   const { selectedBranchId, activeBranch } = useBranchContext();

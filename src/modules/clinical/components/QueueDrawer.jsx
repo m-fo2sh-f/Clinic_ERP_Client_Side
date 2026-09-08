@@ -6,8 +6,8 @@ import {
   Siren,
   X,
 } from 'lucide-react';
-import Button from '../ui/Button';
-import Badge from '../ui/Badge';
+import Button from '../../../components/ui/Button';
+import Badge from '../../../components/ui/Badge';
 
 /**
  * QueueDrawer — slide-in drawer displaying the live waiting queue.

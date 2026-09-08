@@ -1,12 +1,12 @@
 import React, { useState, useEffect } from 'react';
 import { useForm } from 'react-hook-form';
 import { Search, PlusCircle, ArrowRight, Edit2, Loader2, UserPlus, RefreshCw, UserCheck, ShieldCheck, Info, Users, User } from 'lucide-react';
-import Button from '../ui/Button';
-import { Dialog, DialogHeader, DialogTitle, DialogDescription, DialogFooter, DialogClose } from '../ui/Dialog';
-import Select from '../ui/Select';
-import { useSearchPatientsQuery } from '../../hooks/usePatients';
-import { useBranchDoctorsQuery } from '../../hooks/useAppointments';
-import { useBranchContext } from '../../context/BranchContext';
+import Button from '../../../components/ui/Button';
+import { Dialog, DialogHeader, DialogTitle, DialogDescription, DialogFooter, DialogClose } from '../../../components/ui/Dialog';
+import Select from '../../../components/ui/Select';
+import { useSearchPatientsQuery } from '../../patients/hooks/usePatients';
+import { useBranchDoctorsQuery } from '../hooks/useAppointments';
+import { useBranchContext } from '../../../context/BranchContext';
 
 export default function AppointmentModal({
   isOpen,

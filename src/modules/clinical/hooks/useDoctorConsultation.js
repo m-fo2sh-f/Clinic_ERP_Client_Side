@@ -1,8 +1,8 @@
 import { useState, useMemo, useRef, useEffect, useCallback } from 'react';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
-import { DIAGNOSIS_DICTIONARY } from '../constants/medicalDiagnoses';
-import { consultationService } from '../services/consultationService';
-import { markQueryInvalidated, debouncedInvalidate } from '../utils/invalidationTracker';
+import { DIAGNOSIS_DICTIONARY } from '../../../constants/medicalDiagnoses';
+import { consultationService } from '../../../services/consultationService';
+import { markQueryInvalidated, debouncedInvalidate } from '../../../utils/invalidationTracker';
 
 /**
  * Custom hook that encapsulates all doctor consultation state and handlers.
