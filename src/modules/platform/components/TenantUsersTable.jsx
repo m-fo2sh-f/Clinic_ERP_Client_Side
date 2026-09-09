@@ -1,10 +1,15 @@
-import React from 'react';
-import { Users, Shield, MapPin, Loader2, ChevronRight, ChevronLeft, Mail } from 'lucide-react';
+import React, { useState } from 'react';
+import { Users, Shield, MapPin, Loader2, ChevronRight, ChevronLeft, Mail, Edit3, KeyRound } from 'lucide-react';
 import { Card, CardHeader, CardTitle, CardContent, CardFooter } from '../../../components/ui/Card';
 import Badge from '../../../components/ui/Badge';
 import Button from '../../../components/ui/Button';
+import EditTenantUserModal from './EditTenantUserModal';
+import ResetUserPasswordModal from './ResetUserPasswordModal';
 
-export default function TenantUsersTable({ users, meta, page, setPage, isLoading }) {
+export default function TenantUsersTable({ users, meta, page, setPage, isLoading, tenantId, branches = [] }) {
+  const [selectedUserForEdit, setSelectedUserForEdit] = useState(null);
+  const [selectedUserForReset, setSelectedUserForReset] = useState(null);
+
   if (isLoading) {
     return (
       <Card className="shadow-sm">
@@ -57,131 +62,177 @@ export default function TenantUsersTable({ users, meta, page, setPage, isLoading
   };
 
   return (
-    <Card className="shadow-sm">
-      <CardHeader className="p-5 bg-slate-50/50 border-b border-slate-200/80 flex items-center justify-between">
-        <CardTitle className="text-base font-bold text-slate-800 flex items-center gap-2">
-          <Users className="h-5 w-5 text-clinic-600 shrink-0" />
-          Clinic Staff Directory
-        </CardTitle>
-        <span className="text-xs font-semibold text-slate-500">
-          Total Staff: <strong className="text-slate-800">{meta?.total ?? users.length}</strong>
-        </span>
-      </CardHeader>
+    <>
+      <Card className="shadow-sm">
+        <CardHeader className="p-5 bg-slate-50/50 border-b border-slate-200/80 flex items-center justify-between">
+          <CardTitle className="text-base font-bold text-slate-800 flex items-center gap-2">
+            <Users className="h-5 w-5 text-clinic-600 shrink-0" />
+            Clinic Staff Directory
+          </CardTitle>
+          <span className="text-xs font-semibold text-slate-500">
+            Total Staff: <strong className="text-slate-800">{meta?.total ?? users.length}</strong>
+          </span>
+        </CardHeader>
 
-      <CardContent className="p-0">
-        <div className="overflow-x-auto">
-          <table className="w-full text-left border-collapse">
-            <thead>
-              <tr className="border-b border-slate-200/80 bg-slate-50/80 text-[11px] font-extrabold uppercase tracking-wider text-slate-500">
-                <th className="py-3.5 px-6">Staff Member</th>
-                <th className="py-3.5 px-6">Email Address</th>
-                <th className="py-3.5 px-6">Assigned Roles</th>
-                <th className="py-3.5 px-6">Assigned Branches</th>
-                <th className="py-3.5 px-6">Joined Date</th>
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-slate-100 text-xs font-medium text-slate-700">
-              {users.map((user) => (
-                <tr key={user.id} className="hover:bg-slate-50/80 transition-colors">
-                  <td className="py-4 px-6">
-                    <div className="flex items-center gap-3">
-                      <div className="h-9 w-9 rounded-full bg-clinic-50 border border-clinic-200 text-clinic-700 font-bold flex items-center justify-center text-xs shrink-0 uppercase">
-                        {user.name ? user.name.slice(0, 2) : 'US'}
-                      </div>
-                      <div>
-                        <span className="font-bold text-slate-900 block text-sm">
-                          {user.name}
-                        </span>
-                        <span className="text-[10px] text-slate-400 font-mono">
-                          ID: {String(user.id).slice(0, 8)}...
-                        </span>
-                      </div>
-                    </div>
-                  </td>
-
-                  <td className="py-4 px-6 font-mono text-slate-600">
-                    <div className="flex items-center gap-1.5">
-                      <Mail className="h-3.5 w-3.5 text-slate-400" />
-                      <span>{user.email}</span>
-                    </div>
-                  </td>
-
-                  <td className="py-4 px-6">
-                    <div className="flex flex-wrap gap-1.5">
-                      {user.roles && user.roles.length > 0 ? (
-                        user.roles.map((r, i) => (
-                          <Badge
-                            key={i}
-                            variant={getRoleBadgeVariant(r)}
-                            className="font-semibold text-[11px] gap-1 capitalize"
-                          >
-                            <Shield className="h-3 w-3" />
-                            {formatRoleName(r)}
-                          </Badge>
-                        ))
-                      ) : (
-                        <span className="text-xs text-slate-400 italic">No roles assigned</span>
-                      )}
-                    </div>
-                  </td>
-
-                  <td className="py-4 px-6">
-                    <div className="flex flex-wrap gap-1.5">
-                      {user.branches && user.branches.length > 0 ? (
-                        user.branches.map((b, i) => (
-                          <span
-                            key={i}
-                            className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-md text-xs font-medium bg-slate-100 border border-slate-200 text-slate-700"
-                          >
-                            <MapPin className="h-3 w-3 text-slate-400" />
-                            {b}
-                          </span>
-                        ))
-                      ) : (
-                        <span className="text-xs text-slate-400 italic">All Branches / Unrestricted</span>
-                      )}
-                    </div>
-                  </td>
-
-                  <td className="py-4 px-6 text-xs text-slate-500 font-medium">
-                    {user.created_at ? new Date(user.created_at).toLocaleDateString('en-US', { dateStyle: 'medium' }) : '—'}
-                  </td>
+        <CardContent className="p-0">
+          <div className="overflow-x-auto">
+            <table className="w-full text-left border-collapse">
+              <thead>
+                <tr className="border-b border-slate-200/80 bg-slate-50/80 text-[11px] font-extrabold uppercase tracking-wider text-slate-500">
+                  <th className="py-3.5 px-6">Staff Member</th>
+                  <th className="py-3.5 px-6">Email Address</th>
+                  <th className="py-3.5 px-6">Assigned Roles</th>
+                  <th className="py-3.5 px-6">Assigned Branches</th>
+                  <th className="py-3.5 px-6">Joined Date</th>
+                  <th className="py-3.5 px-6 text-center">Actions</th>
                 </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
-      </CardContent>
+              </thead>
+              <tbody className="divide-y divide-slate-100 text-xs font-medium text-slate-700">
+                {users.map((user) => (
+                  <tr key={user.id} className="hover:bg-slate-50/80 transition-colors">
+                    <td className="py-4 px-6">
+                      <div className="flex items-center gap-3">
+                        <div className="h-9 w-9 rounded-full bg-clinic-50 border border-clinic-200 text-clinic-700 font-bold flex items-center justify-center text-xs shrink-0 uppercase">
+                          {user.name ? user.name.slice(0, 2) : 'US'}
+                        </div>
+                        <div>
+                          <span className="font-bold text-slate-900 block text-sm">
+                            {user.name}
+                          </span>
+                          <span className="text-[10px] text-slate-400 font-mono">
+                            ID: {String(user.id).slice(0, 8)}...
+                          </span>
+                        </div>
+                      </div>
+                    </td>
 
-      {/* Pagination Controls */}
-      {meta && meta.last_page > 1 && (
-        <CardFooter className="flex items-center justify-between px-6 py-4 border-t border-slate-100 bg-slate-50/50 text-xs text-slate-500">
-          <div>
-            Page <strong className="text-slate-800">{meta.current_page}</strong> of{' '}
-            <strong className="text-slate-800">{meta.last_page}</strong> ({meta.total} staff members)
+                    <td className="py-4 px-6 font-mono text-slate-600">
+                      <div className="flex items-center gap-1.5">
+                        <Mail className="h-3.5 w-3.5 text-slate-400" />
+                        <span>{user.email}</span>
+                      </div>
+                    </td>
+
+                    <td className="py-4 px-6">
+                      <div className="flex flex-wrap gap-1.5">
+                        {user.roles && user.roles.length > 0 ? (
+                          user.roles.map((r, i) => (
+                            <Badge
+                              key={i}
+                              variant={getRoleBadgeVariant(r)}
+                              className="font-semibold text-[11px] gap-1 capitalize"
+                            >
+                              <Shield className="h-3 w-3" />
+                              {formatRoleName(r)}
+                            </Badge>
+                          ))
+                        ) : (
+                          <span className="text-xs text-slate-400 italic">No roles assigned</span>
+                        )}
+                      </div>
+                    </td>
+
+                    <td className="py-4 px-6">
+                      <div className="flex flex-wrap gap-1.5">
+                        {user.branches && user.branches.length > 0 ? (
+                          user.branches.map((b, i) => (
+                            <span
+                              key={i}
+                              className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-md text-xs font-medium bg-slate-100 border border-slate-200 text-slate-700"
+                            >
+                              <MapPin className="h-3 w-3 text-slate-400" />
+                              {b}
+                            </span>
+                          ))
+                        ) : (
+                          <span className="text-xs text-slate-400 italic">All Branches / Unrestricted</span>
+                        )}
+                      </div>
+                    </td>
+
+                    <td className="py-4 px-6 text-xs text-slate-500 font-medium">
+                      {user.created_at ? new Date(user.created_at).toLocaleDateString('en-US', { dateStyle: 'medium' }) : '—'}
+                    </td>
+
+                    <td className="py-4 px-6 text-center">
+                      <div className="flex items-center justify-center gap-1.5">
+                        <Button
+                          type="button"
+                          variant="outline"
+                          size="sm"
+                          onClick={() => setSelectedUserForEdit(user)}
+                          leftIcon={<Edit3 className="h-3.5 w-3.5 text-clinic-600" />}
+                          className="text-xs font-semibold px-2.5 py-1.5 h-auto hover:bg-clinic-50 hover:text-clinic-700 hover:border-clinic-300 transition-all cursor-pointer"
+                        >
+                          Edit
+                        </Button>
+                        <Button
+                          type="button"
+                          variant="outline"
+                          size="sm"
+                          onClick={() => setSelectedUserForReset(user)}
+                          leftIcon={<KeyRound className="h-3.5 w-3.5 text-amber-600" />}
+                          className="text-xs font-semibold px-2.5 py-1.5 h-auto hover:bg-amber-50 hover:text-amber-700 hover:border-amber-300 transition-all cursor-pointer"
+                        >
+                          Reset Password
+                        </Button>
+                      </div>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
           </div>
-          <div className="flex items-center gap-2">
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={() => setPage((p) => Math.max(1, p - 1))}
-              disabled={page <= 1}
-              leftIcon={<ChevronLeft className="h-4 w-4" />}
-            >
-              Previous
-            </Button>
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={() => setPage((p) => Math.min(meta.last_page, p + 1))}
-              disabled={page >= meta.last_page}
-              rightIcon={<ChevronRight className="h-4 w-4" />}
-            >
-              Next
-            </Button>
-          </div>
-        </CardFooter>
+        </CardContent>
+
+        {meta && meta.last_page > 1 && (
+          <CardFooter className="flex items-center justify-between px-6 py-4 border-t border-slate-100 bg-slate-50/50 text-xs text-slate-500">
+            <div>
+              Page <strong className="text-slate-800">{meta.current_page}</strong> of{' '}
+              <strong className="text-slate-800">{meta.last_page}</strong> ({meta.total} staff members)
+            </div>
+            <div className="flex items-center gap-2">
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => setPage((p) => Math.max(1, p - 1))}
+                disabled={page <= 1}
+                leftIcon={<ChevronLeft className="h-4 w-4" />}
+              >
+                Previous
+              </Button>
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => setPage((p) => Math.min(meta.last_page, p + 1))}
+                disabled={page >= meta.last_page}
+                rightIcon={<ChevronRight className="h-4 w-4" />}
+              >
+                Next
+              </Button>
+            </div>
+          </CardFooter>
+        )}
+      </Card>
+
+      {selectedUserForEdit && (
+        <EditTenantUserModal
+          isOpen={Boolean(selectedUserForEdit)}
+          onClose={() => setSelectedUserForEdit(null)}
+          user={selectedUserForEdit}
+          tenantId={tenantId}
+          branches={branches}
+        />
       )}
-    </Card>
+
+      {selectedUserForReset && (
+        <ResetUserPasswordModal
+          isOpen={Boolean(selectedUserForReset)}
+          onClose={() => setSelectedUserForReset(null)}
+          user={selectedUserForReset}
+          tenantId={tenantId}
+        />
+      )}
+    </>
   );
 }

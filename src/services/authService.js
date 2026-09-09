@@ -17,14 +17,34 @@ export const loginApi = async (email, password) => {
 
 export const logoutApi = async () => {
   try {
-    const response = await api.post('/logout');
-    return response.data;
+    const isPlatform = window.location.pathname.startsWith('/platform');
+    const endpoint = isPlatform ? '/platform/logout' : '/logout';
+    try {
+      const response = await api.post(endpoint);
+      return response.data;
+    } catch (err) {
+      if (isPlatform) {
+        const fallback = await api.post('/logout');
+        return fallback.data;
+      }
+      throw err;
+    }
   } finally {
     localStorage.removeItem('active_branch_id');
   }
 };
 
 export const getMeApi = async () => {
-  const response = await api.get('/me');
-  return response.data;
+  const isPlatform = window.location.pathname.startsWith('/platform');
+  const endpoint = isPlatform ? '/platform/me' : '/me';
+  try {
+    const response = await api.get(endpoint);
+    return response.data;
+  } catch (err) {
+    if (isPlatform && err.response?.status === 404) {
+      const fallback = await api.get('/me');
+      return fallback.data;
+    }
+    throw err;
+  }
 };

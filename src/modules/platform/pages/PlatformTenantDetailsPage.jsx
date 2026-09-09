@@ -285,12 +285,17 @@ export default function PlatformTenantDetailsPage() {
           page={usersPage}
           setPage={setUsersPage}
           isLoading={usersLoading}
+          tenantId={tenant.id}
+          branches={tenant.branches || []}
         />
       )}
 
       {/* Tab 3: Branches */}
       {activeTab === 'branches' && (
-        <TenantBranchesList branches={tenant.branches || []} />
+        <TenantBranchesList
+          branches={tenant.branches || []}
+          tenantId={tenant.id}
+        />
       )}
 
       {/* Impersonation Modal */}

@@ -64,3 +64,27 @@ export const impersonateTenantApi = async (tenantId) => {
   const response = await api.post(`/platform/tenants/${tenantId}/impersonate`);
   return response.data?.data;
 };
+
+/**
+ * Update tenant staff member demographic data, branch assignments, and roles
+ */
+export const updateTenantUserApi = async (tenantId, userId, data) => {
+  const response = await api.put(`/platform/tenants/${tenantId}/users/${userId}`, data);
+  return response.data?.data;
+};
+
+/**
+ * Reset tenant staff member password and invalidate all active Sanctum sessions
+ */
+export const resetTenantUserPasswordApi = async (tenantId, userId, data) => {
+  const response = await api.post(`/platform/tenants/${tenantId}/users/${userId}/reset-password`, data);
+  return response.data;
+};
+
+/**
+ * Update tenant branch details (name, address, phone, is_active)
+ */
+export const updateTenantBranchApi = async (tenantId, branchId, data) => {
+  const response = await api.put(`/platform/tenants/${tenantId}/branches/${branchId}`, data);
+  return response.data?.data;
+};
