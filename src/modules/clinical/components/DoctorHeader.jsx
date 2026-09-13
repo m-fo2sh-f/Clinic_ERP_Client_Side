@@ -14,25 +14,23 @@ import Badge from '../../../components/ui/Badge';
 
 /**
  * DoctorHeader — sticky top navigation bar for the Doctor Examination Console.
- *
- * @param {Object}  props
- * @param {string}  props.branchName          – Active branch display name
- * @param {Object}  props.activeQueueItem     – Currently examined queue item (or null)
- * @param {Array}   props.waitingItems        – Queue items with status "waiting"
- * @param {boolean} props.isQueueOpen         – Whether the queue drawer is visible
- * @param {Function} props.onToggleQueue      – Toggle queue drawer
- * @param {Function} props.onNextPatient      – Call next patient action
- * @param {boolean} props.isCallingNext       – Mutation pending state
  */
 export default function DoctorHeader({
   branchName,
+  activeBranchName,
   activeQueueItem,
-  waitingItems,
+  activePatient,
+  waitingItems = [],
+  waitingCount,
   isQueueOpen,
   onToggleQueue,
   onNextPatient,
   isCallingNext,
 }) {
+  const displayBranch = branchName || activeBranchName || 'Main Branch';
+  const displayActivePatient = activeQueueItem || activePatient;
+  const count = waitingCount !== undefined ? waitingCount : (Array.isArray(waitingItems) ? waitingItems.length : 0);
+
   return (
     <header className="sticky top-0 z-30 bg-white/95 backdrop-blur-md border-b border-slate-200/80 shadow-xs px-4 sm:px-6 py-3.5 no-print">
       <div className="max-w-7xl mx-auto flex items-center justify-between gap-4">
@@ -51,7 +49,7 @@ export default function DoctorHeader({
                 variant="default"
                 className="font-semibold text-[11px] bg-slate-100 text-slate-700"
               >
-                {branchName}
+                {displayBranch}
               </Badge>
               <div className="flex items-center gap-1 text-[11px] text-emerald-600 font-semibold bg-emerald-50 px-2 py-0.5 rounded-full border border-emerald-200">
                 <Wifi className="h-3 w-3 text-emerald-500 animate-pulse" />
@@ -64,16 +62,18 @@ export default function DoctorHeader({
         {/* Action controls */}
         <div className="flex items-center gap-3">
           {/* Active patient badge (desktop only) */}
-          {activeQueueItem && (
+          {displayActivePatient && (
             <div className="hidden md:flex items-center gap-2 bg-clinic-50 border border-clinic-200 text-clinic-800 px-3 py-1.5 rounded-lg text-xs font-semibold">
               <HeartPulse className="h-4 w-4 text-clinic-600 animate-pulse shrink-0" />
               <span>Examining:</span>
               <strong className="text-clinic-900 truncate max-w-[150px]">
-                {activeQueueItem.patient?.name || 'Patient'}
+                {displayActivePatient.patient?.name || displayActivePatient.name || 'Patient'}
               </strong>
-              <Badge variant="success" className="text-[10px] ml-1">
-                Ticket #{String(activeQueueItem.queue_no).padStart(2, '0')}
-              </Badge>
+              {displayActivePatient.queue_no && (
+                <Badge variant="success" className="text-[10px] ml-1">
+                  Ticket #{String(displayActivePatient.queue_no).padStart(2, '0')}
+                </Badge>
+              )}
             </div>
           )}
 
@@ -96,10 +96,10 @@ export default function DoctorHeader({
             )}
             <span>Waiting Queue</span>
             <Badge
-              variant={waitingItems.length > 0 ? 'success' : 'secondary'}
+              variant={count > 0 ? 'success' : 'secondary'}
               className="text-[10px] font-extrabold px-1.5 py-0.2"
             >
-              {waitingItems.length}
+              {count}
             </Badge>
           </Button>
 

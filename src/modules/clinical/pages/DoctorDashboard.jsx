@@ -18,13 +18,8 @@ import ClinicalFindingsCard from '../components/ClinicalFindingsCard';
 import PrescriptionSheet from '../components/PrescriptionSheet';
 import EmptyDoctorState from '../components/EmptyDoctorState';
 import PatientHistoryModal from '../components/PatientHistoryModal';
+import DoctorBillableServices from '../components/DoctorBillableServices';
 
-/**
- * DoctorDashboard — orchestrator / container component.
- *
- * Composes the doctor examination console from dedicated sub-components
- * and delegates all consultation state to the `useDoctorConsultation` hook.
- */
 export default function DoctorDashboard() {
   const { activeBranch, user } = useBranchContext();
   const branchId = activeBranch?.id;
@@ -54,13 +49,10 @@ export default function DoctorDashboard() {
   const { data: patientHistory, isLoading: historyLoading } =
     usePatientHistoryQuery(activePatientId);
 
-  // ── Consultation state (custom hook) ─────────────────────────
+  // ── Consultation state ───────────────────────────────────────
   const consultation = useDoctorConsultation();
-
-  // ── Complete Consultation mutation ───────────────────────────
   const completeConsultationMutation = useCompleteConsultationMutation();
 
-  // ── Chronic diseases derived from real patient data ──────────
   const chronicDiseases = useMemo(() => {
     if (!patientHistory) return [];
     const diseases = [];
@@ -75,14 +67,12 @@ export default function DoctorDashboard() {
     return diseases;
   }, [patientHistory]);
 
-  // ── WebSocket real-time sync ─────────────────────────────────
   const onPatientCalled = useCallback(() => {
     consultation.resetConsultation();
   }, [consultation.resetConsultation]);
 
   useQueueWebSocket(branchId, onPatientCalled);
 
-  // ── Call next patient ────────────────────────────────────────
   const handleNextPatient = useCallback(() => {
     if (!branchId || callNextMutation.isPending) return;
     callNextMutation.mutate({ branch_id: branchId, doctor_id: doctorId }, {
@@ -90,11 +80,9 @@ export default function DoctorDashboard() {
     });
   }, [branchId, doctorId, callNextMutation, consultation.resetConsultation]);
 
-  // ── Complete Examination ─────────────────────────────────────
   const handleCompleteExamination = useCallback(() => {
     if (!activeQueueItem || completeConsultationMutation.isPending) return;
 
-    // Validate minimum required fields on the client
     if (!consultation.clinicalNotes.chiefComplaint.trim()) {
       alert('Please enter the Chief Complaint before completing.');
       return;
@@ -144,69 +132,38 @@ export default function DoctorDashboard() {
     completeConsultationMutation.mutate(payload, {
       onSuccess: () => {
         consultation.setIsPrescriptionSaved(true);
-        // Auto-reset after a brief visual confirmation
         setTimeout(() => {
           consultation.resetConsultation();
         }, 2000);
-      },
-      onError: (error) => {
-        const message =
-          error?.response?.data?.message || 'Failed to complete consultation.';
-        alert(message);
       },
     });
   }, [
     activeQueueItem,
     branchId,
-    chronicDiseases,
     consultation,
+    chronicDiseases,
     completeConsultationMutation,
   ]);
 
-  // ── Render ───────────────────────────────────────────────────
   return (
-    <div className="relative min-h-screen bg-slate-50/50 pb-16">
-      {/* Print-only styles for Rx prescription sheet */}
-      <style>{`
-        @media print {
-          body * {
-            visibility: hidden;
-          }
-          #printable-rx-sheet, #printable-rx-sheet * {
-            visibility: visible;
-          }
-          #printable-rx-sheet {
-            position: absolute;
-            left: 0;
-            top: 0;
-            width: 100%;
-            margin: 0;
-            padding: 20px;
-            box-shadow: none !important;
-            border: none !important;
-          }
-          .no-print {
-            display: none !important;
-          }
-        }
-      `}</style>
-
-      {/* Header */}
+    <div className="min-h-screen bg-slate-50/50 pb-16">
       <DoctorHeader
         branchName={branchName}
+        activeBranchName={branchName}
         activeQueueItem={activeQueueItem}
-        waitingItems={waitingItems}
+        activePatient={activeQueueItem?.patient}
+        waitingItems={waitingItems || []}
+        waitingCount={waitingItems?.length || 0}
         isQueueOpen={isQueueOpen}
         onToggleQueue={() => setIsQueueOpen((prev) => !prev)}
         onNextPatient={handleNextPatient}
         isCallingNext={callNextMutation.isPending}
       />
 
-      {/* Queue Drawer */}
       {isQueueOpen && (
         <QueueDrawer
           queueItems={queueItems}
-          waitingItems={waitingItems}
+          activeQueueItem={activeQueueItem}
           queueLoading={queueLoading}
           onClose={() => setIsQueueOpen(false)}
           onNextPatient={handleNextPatient}
@@ -214,7 +171,6 @@ export default function DoctorDashboard() {
         />
       )}
 
-      {/* Patient History Modal */}
       <PatientHistoryModal
         isOpen={isHistoryOpen}
         onClose={() => setIsHistoryOpen(false)}
@@ -222,7 +178,6 @@ export default function DoctorDashboard() {
         isLoading={historyLoading}
       />
 
-      {/* Main content area */}
       <main className="max-w-7xl mx-auto px-4 sm:px-6 pt-6 no-print">
         {!activeQueueItem ? (
           <EmptyDoctorState
@@ -233,13 +188,19 @@ export default function DoctorDashboard() {
           />
         ) : (
           <div className="space-y-6">
-            {/* Section 1: Patient demographics & chronic diseases */}
+            {/* Section 1: Patient Demographics */}
             <ActivePatientCard
               activeQueueItem={activeQueueItem}
               historyLoading={historyLoading}
               patientHistory={patientHistory}
               chronicDiseases={chronicDiseases}
               onOpenHistory={() => setIsHistoryOpen(true)}
+            />
+
+            {/* Section 1.5: Extra Billable Clinical Procedures (ECG, Ultrasound, etc.) */}
+            <DoctorBillableServices
+              appointmentId={activeQueueItem?.appointment_id}
+              branchId={branchId}
             />
 
             {/* Section 2: Clinical findings, vitals & diagnosis */}
@@ -262,18 +223,20 @@ export default function DoctorDashboard() {
 
             {/* Section 3: Prescription sheet */}
             <PrescriptionSheet
-              branchName={branchName}
               medications={consultation.medications}
               onAddMedication={consultation.addMedication}
-              onUpdateMedication={consultation.updateMedication}
               onRemoveMedication={consultation.removeMedication}
+              onUpdateMedication={consultation.updateMedication}
               generalAdvice={consultation.generalAdvice}
-              onGeneralAdviceChange={consultation.setGeneralAdvice}
+              onUpdateAdvice={consultation.setGeneralAdvice}
               followUpDate={consultation.followUpDate}
-              onFollowUpDateChange={consultation.setFollowUpDate}
+              onUpdateFollowUpDate={consultation.setFollowUpDate}
               isPrescriptionSaved={consultation.isPrescriptionSaved}
-              isSubmitting={completeConsultationMutation.isPending}
-              onCompleteExamination={handleCompleteExamination}
+              onSavePrescription={handleCompleteExamination}
+              isSaving={completeConsultationMutation.isPending}
+              activePatient={activeQueueItem?.patient}
+              doctorName={user?.name || 'Dr.'}
+              clinicName={branchName}
             />
           </div>
         )}

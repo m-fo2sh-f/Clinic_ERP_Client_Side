@@ -1,17 +1,31 @@
 import React, { useState } from 'react';
-import { Users, GripVertical, Play, CheckCircle2, UserMinus, ArrowUp, ArrowDown } from 'lucide-react';
+import {
+  Users,
+  Plus,
+  Play,
+  CheckCircle2,
+  UserMinus,
+  ArrowUp,
+  ArrowDown,
+  Receipt,
+  Clock,
+  Loader2,
+} from 'lucide-react';
 import Badge from '../../../components/ui/Badge';
 import Button from '../../../components/ui/Button';
 import {
   useLiveQueueQuery,
   useUpdateQueueStatus,
   useDeleteQueueMutation,
-  useReorderQueueMutation
+  useReorderQueueMutation,
 } from '../hooks/useQueue';
 import { useBranchDoctorsQuery } from '../../appointments/hooks/useAppointments';
 import { useBranchContext } from '../../../context/BranchContext';
+import financialApi from '../../../services/financialApi';
+import { useQueryClient } from '@tanstack/react-query';
+import ManageInvoiceServicesModal from '../../billing/components/ManageInvoiceServicesModal';
 
-export default function LiveQueue() {
+export default function LiveQueue({ onPaymentSuccess }) {
   const { activeBranch } = useBranchContext();
   const branchId = activeBranch?.id;
   const branchName = activeBranch?.name || 'Unknown Branch';
@@ -23,6 +37,9 @@ export default function LiveQueue() {
   const deleteQueueMutation = useDeleteQueueMutation();
   const updateQueueMutation = useUpdateQueueStatus();
   const reorderQueueMutation = useReorderQueueMutation();
+
+  const queryClient = useQueryClient();
+  const [servicesModalAppointmentId, setServicesModalAppointmentId] = useState(null);
 
   const queue = queueData || [];
 
@@ -36,27 +53,21 @@ export default function LiveQueue() {
     }
   };
 
-  // 🎯 دالة تبديل الأماكن وإرسال الترتيب الجديد للسيرفر
   const handleMove = (currentIndex, direction) => {
     if (!branchId || queue.length <= 1) return;
 
     const targetIndex = direction === 'up' ? currentIndex - 1 : currentIndex + 1;
-
-    // منع الخروج عن حدود المصفوفة
     if (targetIndex < 0 || targetIndex >= queue.length) return;
 
-    // 1. عمل نسخة من الطابور وتبديل أماكن المريضين (Swap)
     const updatedQueue = [...queue];
     const temp = updatedQueue[currentIndex];
     updatedQueue[currentIndex] = updatedQueue[targetIndex];
     updatedQueue[targetIndex] = temp;
 
-    // 2. استخراج مصفوفة الـ IDs بالترتيب الجديد
     const orderedIds = updatedQueue.map((item) => item.id);
-
-    // 3. إرسال الترتيب الجديد للباكيند
     reorderQueueMutation.mutate({ orderedIds, branchId });
   };
+
 
   return (
     <div className="bg-white rounded-xl border border-slate-200/80 shadow-sm flex flex-col h-full min-h-[500px]">
@@ -100,121 +111,166 @@ export default function LiveQueue() {
         ) : (
           queue.map((item, index) => {
             const isUnderExam = item.status === 'under_examination';
+            const isPendingPayment = item.status === 'pending_payment';
 
             return (
               <div
                 key={item.id}
-                className={`relative flex items-center gap-3 p-4 rounded-xl border transition-all duration-200 ${isUnderExam
-                  ? 'border-clinic-500 bg-clinic-50/45 shadow-sm ring-1 ring-clinic-100'
-                  : 'border-slate-150 bg-white hover:border-slate-300'
+                className={`p-4 rounded-xl border transition-all duration-200 flex flex-col sm:flex-row sm:items-center justify-between gap-4 ${isUnderExam
+                  ? 'border-clinic-500 bg-clinic-50/40 shadow-sm ring-1 ring-clinic-200/60'
+                  : isPendingPayment
+                    ? 'border-amber-400 bg-amber-50/40 shadow-sm ring-1 ring-amber-200/60'
+                    : 'border-slate-200 bg-white hover:border-slate-300 hover:shadow-xs'
                   }`}
               >
-                {/* Drag handle */}
-                <div
-                  className="text-slate-350 cursor-grab active:cursor-grabbing p-1 rounded hover:bg-slate-100"
-                  title="Drag handles - Order can be dynamically adjusted"
-                >
-                  <GripVertical className="h-4.5 w-4.5" />
-                </div>
-
-                {/* Queue Number Badge */}
-                <div className={`flex items-center justify-center h-8 w-8 rounded-lg font-bold text-sm ${isUnderExam
-                  ? 'bg-clinic-600 text-white shadow-sm shadow-clinic-200'
-                  : 'bg-slate-100 text-slate-750'
-                  }`}>
-                  #{item.queue_no}
-                </div>
-
-                {/* Patient Information */}
-                <div className="flex-1 min-w-0">
-                  <div className="flex items-center gap-2 flex-wrap">
-                    <h4 className="font-bold text-slate-800 text-sm truncate">
-                      {item.patient?.name || 'Unknown Patient'}
-                    </h4>
-                    <Badge
-                      variant={isUnderExam ? 'success' : 'default'}
-                      className={`text-[9px] font-bold px-1.5 py-0.2 ${isUnderExam ? 'bg-emerald-500 text-white border-0' : 'bg-slate-100 text-slate-600 border border-slate-200'}`}
+                {/* Patient Information & Queue Badge */}
+                <div className="flex items-center gap-3.5 min-w-0 flex-1">
+                  {/* Queue Number Badge & Order Controls */}
+                  <div className="flex items-center gap-1.5 shrink-0">
+                    <div
+                      className={`flex items-center justify-center h-12 w-12 rounded-xl font-black text-sm shadow-xs ${isUnderExam
+                        ? 'bg-clinic-600 text-white ring-2 ring-clinic-400/30 shadow-clinic-200'
+                        : isPendingPayment
+                          ? 'bg-amber-500 text-white ring-2 ring-amber-400/30 shadow-amber-200'
+                          : 'bg-slate-100 text-slate-750 border border-slate-200/80'
+                        }`}
                     >
-                      {item.status}
-                    </Badge>
-                    {item.doctor?.name && (
-                      <span className="text-[10px] bg-blue-50 text-blue-700 font-semibold px-1.5 py-0.5 rounded border border-blue-200/60">
-                        👨‍⚕️ {item.doctor.name}
-                      </span>
-                    )}
-                  </div>
-                  <p className="text-[11px] text-slate-400 mt-0.5">
-                    Checked-in at {item.checked_in_at}
-                  </p>
-                </div>
+                      #{item.queue_no}
+                    </div>
 
-                {/* Queue Reorder Control & Actions */}
-                <div className="flex items-center gap-1">
-                  {/* Up / Down simple interactive controls */}
-                  <div className="flex flex-col gap-0.5 mr-1">
-                    <button
-                      onClick={() => handleMove(index, 'up')}
-                      disabled={index === 0 || reorderQueueMutation.isPending}
-                      className="p-0.5 rounded text-slate-450 hover:bg-slate-100 hover:text-slate-700 disabled:opacity-30 cursor-pointer transition-colors"
-                      title="Move patient up in queue"
-                    >
-                      <ArrowUp className="h-3 w-3" />
-                    </button>
-                    <button
-                      onClick={() => handleMove(index, 'down')}
-                      disabled={index === queue.length - 1 || reorderQueueMutation.isPending}
-                      className="p-0.5 rounded text-slate-450 hover:bg-slate-100 hover:text-slate-700 disabled:opacity-30 cursor-pointer transition-colors"
-                      title="Move patient down in queue"
-                    >
-                      <ArrowDown className="h-3 w-3" />
-                    </button>
+                    {/* Stepper Buttons for Queue Order */}
+                    <div className="flex flex-col gap-0.5">
+                      <button
+                        type="button"
+                        onClick={() => handleMove(index, 'up')}
+                        disabled={index === 0 || reorderQueueMutation.isPending}
+                        className="p-1 rounded hover:bg-slate-100 text-slate-400 hover:text-slate-700 disabled:opacity-20 disabled:cursor-not-allowed cursor-pointer transition-colors"
+                        title="Move patient up in queue"
+                      >
+                        <ArrowUp className="h-3 w-3" />
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => handleMove(index, 'down')}
+                        disabled={index === queue.length - 1 || reorderQueueMutation.isPending}
+                        className="p-1 rounded hover:bg-slate-100 text-slate-400 hover:text-slate-700 disabled:opacity-20 disabled:cursor-not-allowed cursor-pointer transition-colors"
+                        title="Move patient down in queue"
+                      >
+                        <ArrowDown className="h-3 w-3" />
+                      </button>
+                    </div>
                   </div>
 
-                  {/* Actions */}
-                  {isUnderExam ? (
-                    <Button
-                      variant="success"
-                      size="sm"
-                      isLoading={updateQueueMutation.isPending && updateQueueMutation.variables?.id === item.id}
-                      disabled={updateQueueMutation.isPending || deleteQueueMutation.isPending}
-                      onClick={() => handleStatusChange(item.id, 'completed')}
-                      className="h-8 w-8 p-0 rounded-lg flex items-center justify-center shadow-xs bg-emerald-600 hover:bg-emerald-700 focus:ring-emerald-500"
-                      title="Mark Examination as Completed & discharge"
-                    >
-                      <CheckCircle2 className="h-4.5 w-4.5" />
-                    </Button>
-                  ) : (
-                    <>
+                  {/* Patient Details */}
+                  <div className="flex-1 min-w-0">
+                    <div className="flex items-center gap-2 flex-wrap">
+                      <h4 className="font-bold text-slate-900 text-sm truncate" title={item.patient?.name}>
+                        {item.patient?.name || 'Unregistered Patient'}
+                      </h4>
+                    </div>
+
+                    {/* Badges: Status & Doctor */}
+                    <div className="flex flex-col items-start gap-1.5 mt-1.5 flex-wrap">
+                      <Badge
+                        variant={isUnderExam ? 'success' : isPendingPayment ? 'warning' : 'default'}
+                        className={`text-[10px] font-bold px-2 py-0.5 ${isUnderExam
+                          ? 'bg-emerald-500 text-white border-0'
+                          : isPendingPayment
+                            ? 'bg-amber-500 text-white border-0'
+                            : 'bg-slate-100 text-slate-600 border border-slate-200'
+                          }`}
+                      >
+                        {isUnderExam ? 'Under Exam' : isPendingPayment ? 'Pending Payment' : 'Waiting'}
+                      </Badge>
+
+                      {item.doctor?.name && (
+                        <span className="text-[10px] bg-blue-50 text-blue-700 font-semibold px-1.5 py-0.5 rounded border border-blue-200/60 truncate max-w-[140px]">
+                          👨‍⚕️ {item.doctor.name}
+                        </span>
+                      )}
+                    </div>
+
+                    {/* Checked-in Time */}
+                    <div className="flex items-center gap-1 text-[11px] text-slate-400 font-medium mt-1.5">
+                      <Clock className="h-3 w-3 shrink-0" />
+                      <span>Checked in: {item.checked_in_at}</span>
+                    </div>
+                  </div>
+                </div>
+
+                {/* 🎯 ACTIONS SECTION: Clean 2-row layout in normal flex flow */}
+                <div className="flex flex-col gap-2 shrink-0 w-full sm:w-[175px]">
+                  {/* Row 1: Primary Action Button (Start/Complete Exam) + Delete/Remove Button */}
+                  <div className="flex items-center gap-1.5 w-full">
+                    {isUnderExam ? (
+                      <Button
+                        variant="success"
+                        size="sm"
+                        isLoading={updateQueueMutation.isPending && updateQueueMutation.variables?.id === item.id}
+                        disabled={updateQueueMutation.isPending || deleteQueueMutation.isPending}
+                        onClick={() => handleStatusChange(item.id, 'completed')}
+                        leftIcon={<CheckCircle2 className="h-3.5 w-3.5 shrink-0" />}
+                        className="flex-1 justify-center text-xs font-semibold h-8.5 px-2 shadow-xs bg-emerald-600 hover:bg-emerald-700 text-white whitespace-nowrap"
+                        title="Complete examination and discharge patient"
+                      >
+                        <span>Complete</span>
+                      </Button>
+                    ) : (
                       <Button
                         variant="default"
                         size="sm"
                         isLoading={updateQueueMutation.isPending && updateQueueMutation.variables?.id === item.id && updateQueueMutation.variables?.status === 'under_examination'}
                         disabled={updateQueueMutation.isPending || deleteQueueMutation.isPending}
                         onClick={() => handleStatusChange(item.id, 'under_examination')}
-                        className="h-8 w-8 p-0 rounded-lg flex items-center justify-center shadow-xs bg-clinic-600 hover:bg-clinic-700 focus:ring-clinic-500"
-                        title="Send patient into Examination Room"
+                        leftIcon={<Play className="h-3 w-3 fill-current shrink-0" />}
+                        className="flex-1 justify-center text-xs font-semibold h-8.5 px-2 shadow-xs bg-clinic-600 hover:bg-clinic-700 text-white whitespace-nowrap"
+                        title="Send patient into examination room"
                       >
-                        <Play className="h-3.5 w-3.5 fill-current ml-0.5" />
+                        <span>Start Exam</span>
                       </Button>
-                      <Button
-                        variant="ghost"
-                        size="sm"
-                        isLoading={deleteQueueMutation.isPending && deleteQueueMutation.variables === item.id}
-                        disabled={deleteQueueMutation.isPending || updateQueueMutation.isPending}
-                        onClick={() => handleRemove(item.id)}
-                        className="h-8 w-8 p-0 rounded-lg flex items-center justify-center hover:bg-red-50 hover:text-red-600 text-slate-400"
-                        title="Mark as No-Show / Remove"
-                      >
-                        <UserMinus className="h-4 w-4" />
-                      </Button>
-                    </>
-                  )}
+                    )}
+
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      isLoading={deleteQueueMutation.isPending && deleteQueueMutation.variables === item.id}
+                      disabled={deleteQueueMutation.isPending || updateQueueMutation.isPending}
+                      onClick={() => handleRemove(item.id)}
+                      className="h-8.5 w-8.5 p-0 shrink-0 text-slate-400 hover:text-red-600 hover:bg-red-50 border border-slate-200/80 rounded-lg transition-colors cursor-pointer"
+                      title="Remove patient from queue"
+                    >
+                      <UserMinus className="h-4 w-4" />
+                    </Button>
+                  </div>
+
+                  {/* Row 2: Secondary Action (+ إضافة خدمة / فحوصات) */}
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => setServicesModalAppointmentId(item.appointment_id)}
+                    leftIcon={<Plus className="h-3.5 w-3.5 text-emerald-600 shrink-0" />}
+                    className="w-full justify-center text-xs font-semibold h-8.5 px-2.5 bg-emerald-50/60 hover:bg-emerald-100 text-emerald-800 border-emerald-200/80 shadow-xs whitespace-nowrap cursor-pointer"
+                    title="إضافة خدمات / فحوصات للمريض"
+                  >
+                    <span>+ إضافة خدمة / فحوصات</span>
+                  </Button>
                 </div>
               </div>
             );
           })
         )}
       </div>
+      {/* Manage Invoice Services Modal for Queue Patient */}
+      <ManageInvoiceServicesModal
+        isOpen={!!servicesModalAppointmentId}
+        appointmentId={servicesModalAppointmentId}
+        branchId={branchId}
+        onClose={() => setServicesModalAppointmentId(null)}
+        onUpdated={() => {
+          queryClient.invalidateQueries({ queryKey: ['liveQueue'] });
+          if (onPaymentSuccess) onPaymentSuccess();
+        }}
+      />
     </div>
   );
 }

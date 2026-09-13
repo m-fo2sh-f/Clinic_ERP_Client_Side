@@ -42,6 +42,7 @@ export default function DashboardLayout({ children }) {
   const menuItems = [
     { name: 'Dashboard', icon: LayoutDashboard, href: dashboardPath, active: location.pathname === '/dashboard' || location.pathname === '/doctor' },
     { name: 'Patients Directory', icon: Users, href: '/patients', active: location.pathname === '/patients' },
+    { name: 'إعدادات الخدمات والأسعار', icon: Settings, href: '/settings', active: location.pathname === '/settings' },
   ];
 
   const handleLogout = async () => {
@@ -205,7 +206,7 @@ export default function DashboardLayout({ children }) {
                       </p>
                     </div>
                     <div className="space-y-1">
-                      <button className="w-full text-left text-xs font-medium text-slate-600 hover:bg-slate-50 px-2 py-2 rounded-md flex items-center gap-2 cursor-pointer">
+                      <button onClick={() => { setIsProfileOpen(false); navigate('/settings'); }} className="w-full text-left text-xs font-medium text-slate-600 hover:bg-slate-50 px-2 py-2 rounded-md flex items-center gap-2 cursor-pointer">
                         <User className="h-4 w-4" />
                         <span>My Profile Settings</span>
                       </button>

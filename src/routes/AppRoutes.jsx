@@ -5,6 +5,7 @@ import LoginPage from '../pages/auth/LoginPage';
 import ReceptionistDashboard from '../modules/queue/pages/ReceptionistDashboard';
 import DoctorDashboard from '../modules/clinical/pages/DoctorDashboard';
 import PatientsPage from '../modules/patients/pages/PatientsPage';
+import ClinicSettingsPage from '../modules/clinic-settings/pages/ClinicSettingsPage';
 import WaitingRoomDisplay from '../modules/queue/pages/WaitingRoomDisplay';
 import DashboardLayout from '../layouts/DashboardLayout';
 import { ProtectedRoute, getRoleDefaultRoute } from './ProtectedRoute';
@@ -130,6 +131,18 @@ function AppRoutes() {
             <ProtectedRoute allowedRoles={['receptionist', 'doctor', 'tenant_admin', 'clinic_owner']}>
               <DashboardLayout>
                 <PatientsPage />
+              </DashboardLayout>
+            </ProtectedRoute>
+          }
+        />
+
+        {/* Clinic Settings (Services, Pricing) - Protected */}
+        <Route
+          path="/settings"
+          element={
+            <ProtectedRoute allowedRoles={['doctor', 'clinic_owner', 'tenant_admin']}>
+              <DashboardLayout>
+                <ClinicSettingsPage />
               </DashboardLayout>
             </ProtectedRoute>
           }

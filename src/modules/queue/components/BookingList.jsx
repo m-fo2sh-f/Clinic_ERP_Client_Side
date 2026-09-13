@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { CalendarDays, Clock, UserCheck, Trash2, Edit2 } from 'lucide-react';
-import { formatDateTime } from '../../../utils/dateFormat';
+import { formatDateTime, formatTimeOnly } from '../../../utils/dateFormat';
 import Badge from '../../../components/ui/Badge';
 import Button from '../../../components/ui/Button';
 import AppointmentModal from '../../appointments/components/AppointmentModal';
@@ -149,20 +149,23 @@ export default function BookingList({ bookings = [], branchName }) {
                     </Badge>
                   </div>
 
-                  <div className="border-t border-slate-100 pt-3 flex items-center justify-between">
-                    <div className="flex items-center gap-1.5 text-xs text-slate-500 font-semibold bg-slate-100/80 px-2 py-1 rounded-md">
-                      <Clock className="h-3.5 w-3.5 text-slate-400" />
-                      {/* 🎯 قراءة وقت الحجز من appointment_time المظبوطة */}
-                      <span>{formatDateTime(booking.appointment_time)}</span>
+                  <div className="border-t border-slate-100 pt-3 flex flex-wrap items-center justify-between gap-2">
+                    <div
+                      className="flex items-center gap-1.5 text-xs text-slate-500 font-semibold bg-slate-100/80 px-2 py-1 rounded-md shrink-0 cursor-default"
+                      title={`Appointment time: ${formatDateTime(booking.appointment_time)}`}
+                    >
+                      <Clock className="h-3.5 w-3.5 text-slate-400 shrink-0" />
+                      {/* 🎯 عرض الوقت بشكل أنيق ومختصر لتفادي ضغط الأزرار */}
+                      <span className="whitespace-nowrap font-mono">{formatTimeOnly(booking.appointment_time) || formatDateTime(booking.appointment_time)}</span>
                     </div>
 
-                    <div className="flex items-center gap-2">
+                    <div className="flex items-center gap-1.5 shrink-0">
                       <Button
                         variant="ghost"
                         size="sm"
                         disabled={deleteAppointmentMutation.isPending || checkInMutation.isPending}
                         onClick={() => handleEditClick(booking)}
-                        className="flex items-center gap-1 text-xs px-2 h-8 font-semibold text-slate-400 hover:text-blue-500 hover:bg-blue-50 transition-all"
+                        className="flex items-center justify-center text-xs px-2 h-8 font-semibold text-slate-400 hover:text-blue-500 hover:bg-blue-50 transition-all shrink-0"
                         title="Edit / Reassign Appointment"
                       >
                         <Edit2 className="h-3.5 w-3.5" />
@@ -173,7 +176,7 @@ export default function BookingList({ bookings = [], branchName }) {
                         isLoading={deleteAppointmentMutation.isPending && deleteAppointmentMutation.variables === booking.id}
                         disabled={deleteAppointmentMutation.isPending || checkInMutation.isPending}
                         onClick={() => handleDelete(booking.id)}
-                        className="flex items-center gap-1 text-xs px-2 h-8 font-semibold text-slate-400 hover:text-red-500 hover:bg-red-50 transition-all"
+                        className="flex items-center justify-center text-xs px-2 h-8 font-semibold text-slate-400 hover:text-red-500 hover:bg-red-50 transition-all shrink-0"
                         title="Cancel / Delete Appointment"
                       >
                         <Trash2 className="h-3.5 w-3.5" />
@@ -184,8 +187,8 @@ export default function BookingList({ bookings = [], branchName }) {
                         isLoading={checkInMutation.isPending && checkInMutation.variables === booking.id}
                         disabled={checkInMutation.isPending || deleteAppointmentMutation.isPending}
                         onClick={() => handleCheckIn(booking.id)}
-                        leftIcon={<UserCheck className="h-3.5 w-3.5" />}
-                        className="text-xs px-2.5 h-8 font-semibold shadow-xs transition-all hover:translate-x-[2px]"
+                        leftIcon={<UserCheck className="h-3.5 w-3.5 shrink-0" />}
+                        className="whitespace-nowrap shrink-0 text-xs px-2.5 h-8 font-semibold shadow-xs transition-all hover:translate-x-[2px]"
                       >
                         <span>Check-In</span>
                       </Button>
