@@ -36,7 +36,7 @@ export default function PatientsPage() {
 
   // Fetch detailed record for selected patient
   const { data: patientDetail, isLoading: isDetailLoading } = usePatientDetailQuery(selectedPatientId);
-
+  console.log('patientDetail', patientDetail);
   // Calculated totals
   const totalCompletedVisits = useMemo(() => {
     return patients.reduce((acc, p) => acc + (p.total_completed_count ?? p.completed_appointments_count ?? 0), 0);
@@ -59,7 +59,7 @@ export default function PatientsPage() {
             {isLoading && <Loader2 className="h-3.5 w-3.5 text-clinic-600 animate-spin ml-1" />}
           </p>
         </div>
-        
+
         <div className="flex items-center gap-3 w-full sm:w-auto justify-between sm:justify-end">
           <div className="flex items-center gap-1.5 text-xs text-slate-600 font-semibold bg-slate-50 border border-slate-200 rounded-lg px-3.5 py-2">
             <ShieldCheck className="h-4 w-4 text-clinic-600 shrink-0" />
@@ -321,12 +321,12 @@ export default function PatientsPage() {
                               appt.status === 'completed'
                                 ? 'success'
                                 : appt.status === 'under_examination'
-                                ? 'warning'
-                                : appt.status === 'checked_in'
-                                ? 'info'
-                                : appt.status === 'canceled'
-                                ? 'danger'
-                                : 'secondary'
+                                  ? 'warning'
+                                  : appt.status === 'checked_in'
+                                    ? 'info'
+                                    : appt.status === 'canceled'
+                                      ? 'danger'
+                                      : 'secondary'
                             }
                             className="text-[10px] font-bold capitalize"
                           >

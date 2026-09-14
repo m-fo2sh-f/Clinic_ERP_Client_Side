@@ -243,16 +243,16 @@ export default function LiveQueue({ onPaymentSuccess }) {
                     </Button>
                   </div>
 
-                  {/* Row 2: Secondary Action (+ إضافة خدمة / فحوصات) */}
+                  {/* Row 2: Secondary Action (+ Add Service) */}
                   <Button
                     variant="outline"
                     size="sm"
                     onClick={() => setServicesModalAppointmentId(item.appointment_id)}
                     leftIcon={<Plus className="h-3.5 w-3.5 text-emerald-600 shrink-0" />}
                     className="w-full justify-center text-xs font-semibold h-8.5 px-2.5 bg-emerald-50/60 hover:bg-emerald-100 text-emerald-800 border-emerald-200/80 shadow-xs whitespace-nowrap cursor-pointer"
-                    title="إضافة خدمات / فحوصات للمريض"
+                    title="Add services or procedures for patient"
                   >
-                    <span>+ إضافة خدمة / فحوصات</span>
+                    <span>Add Service</span>
                   </Button>
                 </div>
               </div>

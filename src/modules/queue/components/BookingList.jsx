@@ -15,7 +15,7 @@ export default function BookingList({ bookings = [], branchName }) {
   const { selectedBranchId } = useBranchContext();
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [selectedAppointmentId, setSelectedAppointmentId] = useState(null);
-  const [selectedPatientId, setSelectedPatientId] = useState(null); // 🎯 حفظ الـ ID بتاع المريض الحالي
+  const [selectedPatientId, setSelectedPatientId] = useState(null); // Active patient ID
 
   const [modalDefaultValues, setModalDefaultValues] = useState({
     patientName: '',
@@ -155,7 +155,7 @@ export default function BookingList({ bookings = [], branchName }) {
                       title={`Appointment time: ${formatDateTime(booking.appointment_time)}`}
                     >
                       <Clock className="h-3.5 w-3.5 text-slate-400 shrink-0" />
-                      {/* 🎯 عرض الوقت بشكل أنيق ومختصر لتفادي ضغط الأزرار */}
+                      {/* Compact time formatting to avoid button cramping */}
                       <span className="whitespace-nowrap font-mono">{formatTimeOnly(booking.appointment_time) || formatDateTime(booking.appointment_time)}</span>
                     </div>
 

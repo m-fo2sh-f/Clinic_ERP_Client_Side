@@ -197,12 +197,6 @@ export default function DoctorDashboard() {
               onOpenHistory={() => setIsHistoryOpen(true)}
             />
 
-            {/* Section 1.5: Extra Billable Clinical Procedures (ECG, Ultrasound, etc.) */}
-            <DoctorBillableServices
-              appointmentId={activeQueueItem?.appointment_id}
-              branchId={branchId}
-            />
-
             {/* Section 2: Clinical findings, vitals & diagnosis */}
             <ClinicalFindingsCard
               vitals={consultation.vitals}
@@ -237,6 +231,12 @@ export default function DoctorDashboard() {
               activePatient={activeQueueItem?.patient}
               doctorName={user?.name || 'Dr.'}
               clinicName={branchName}
+            />
+
+            {/* Section 1.5: Extra Billable Clinical Procedures (ECG, Ultrasound, etc.) */}
+            <DoctorBillableServices
+              appointmentId={activeQueueItem?.appointment_id}
+              branchId={branchId}
             />
           </div>
         )}

@@ -18,7 +18,7 @@ export const ProtectedRoute = ({ children, allowedRoles = [] }) => {
       <div className="min-h-screen bg-slate-900 flex flex-col items-center justify-center p-4">
         <div className="flex items-center gap-3 bg-slate-800/80 border border-slate-700/60 rounded-2xl px-6 py-4 shadow-xl backdrop-blur-md">
           <Loader2 className="h-6 w-6 text-clinic-600 animate-spin" />
-          <span className="text-sm font-medium text-slate-200">جاري التحقق من صلاحيات الدخول...</span>
+          <span className="text-sm font-medium text-slate-200">Verifying access permissions...</span>
         </div>
       </div>
     );
@@ -49,9 +49,9 @@ export const ProtectedRoute = ({ children, allowedRoles = [] }) => {
               <ShieldAlert className="h-8 w-8" />
             </div>
             
-            <h2 className="text-2xl font-bold text-slate-100 mb-2">غير مصرح بالوصول (403)</h2>
+            <h2 className="text-2xl font-bold text-slate-100 mb-2">Access Denied (403)</h2>
             <p className="text-sm text-slate-400 mb-6 leading-relaxed">
-              حسابك الحالي (<span className="text-clinic-400 font-semibold">{user.name}</span> - {userRoles.join(', ')}) لا يمتلك الصلاحية لعرض هذه الشاشة.
+              Your account (<span className="text-clinic-400 font-semibold">{user.name}</span> - {userRoles.join(', ')}) does not have permission to view this page.
             </p>
 
             <div className="flex flex-col sm:flex-row items-center justify-center gap-3">
@@ -60,7 +60,7 @@ export const ProtectedRoute = ({ children, allowedRoles = [] }) => {
                 className="w-full sm:w-auto inline-flex items-center justify-center gap-2 bg-clinic-600 hover:bg-clinic-500 text-white font-semibold text-sm px-5 py-2.5 rounded-xl transition-all shadow-lg shadow-clinic-600/25"
               >
                 <Home className="h-4 w-4" />
-                الذهاب للوحتك الخاصة
+                Go to Dashboard
               </a>
 
               <button
@@ -68,7 +68,7 @@ export const ProtectedRoute = ({ children, allowedRoles = [] }) => {
                 className="w-full sm:w-auto inline-flex items-center justify-center gap-2 bg-slate-700 hover:bg-slate-600 text-slate-200 font-semibold text-sm px-5 py-2.5 rounded-xl transition-all"
               >
                 <LogOut className="h-4 w-4" />
-                تسجيل الخروج
+                Logout
               </button>
             </div>
           </div>

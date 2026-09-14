@@ -13,9 +13,9 @@ import Badge from '../../../components/ui/Badge';
 import { useUpdateStaff } from '../hooks/useTenantStaffMutations';
 
 const AVAILABLE_ROLES = [
-  { id: 'clinic_owner', label: 'Clinic Owner (مالك العيادة)', variant: 'warning' },
-  { id: 'doctor', label: 'Doctor (طبيب)', variant: 'default' },
-  { id: 'receptionist', label: 'Receptionist (موظف استقبال)', variant: 'secondary' },
+  { id: 'clinic_owner', label: 'Clinic Owner', variant: 'warning' },
+  { id: 'doctor', label: 'Doctor', variant: 'default' },
+  { id: 'receptionist', label: 'Receptionist', variant: 'secondary' },
 ];
 
 export default function EditTenantUserModal({ isOpen, onClose, user, tenantId, branches = [] }) {
@@ -66,19 +66,19 @@ export default function EditTenantUserModal({ isOpen, onClose, user, tenantId, b
     setError(null);
 
     if (!name.trim()) {
-      setError('يرجى إدخال اسم الموظف.');
+      setError('Please enter staff name.');
       return;
     }
     if (!email.trim()) {
-      setError('يرجى إدخال البريد الإلكتروني.');
+      setError('Please enter email address.');
       return;
     }
     if (selectedRoles.length === 0) {
-      setError('يجب تحديد دور واحد على الأقل للموظف.');
+      setError('At least one role must be assigned.');
       return;
     }
     if (selectedBranches.length === 0) {
-      setError('يجب تعيين فرع واحد على الأقل للموظف.');
+      setError('At least one branch must be assigned.');
       return;
     }
 
@@ -97,7 +97,7 @@ export default function EditTenantUserModal({ isOpen, onClose, user, tenantId, b
           onClose();
         },
         onError: (err) => {
-          const msg = err.response?.data?.message || 'حدث خطأ أثناء تحديث بيانات الموظف.';
+          const msg = err.response?.data?.message || 'Error updating staff details.';
           setError(msg);
         },
       }
@@ -114,9 +114,9 @@ export default function EditTenantUserModal({ isOpen, onClose, user, tenantId, b
             <UserCheck className="h-5 w-5" />
           </div>
           <div>
-            <DialogTitle className="text-slate-900">تعديل بيانات الموظف</DialogTitle>
+            <DialogTitle className="text-slate-900">Edit Staff Member</DialogTitle>
             <DialogDescription className="text-slate-500 mt-0.5">
-              تعديل الصلاحيات والأدوار والفروع المسندة للمستخدم في العيادة
+              Update user permissions, roles, and assigned clinic branches
             </DialogDescription>
           </div>
         </div>
@@ -132,7 +132,7 @@ export default function EditTenantUserModal({ isOpen, onClose, user, tenantId, b
       <form onSubmit={handleSubmit} className="space-y-4 my-2">
         <div>
           <label className="block text-xs font-semibold text-slate-700 mb-1">
-            الاسم الكامل <span className="text-red-500">*</span>
+            Full Name <span className="text-red-500">*</span>
           </label>
           <input
             type="text"
@@ -140,13 +140,13 @@ export default function EditTenantUserModal({ isOpen, onClose, user, tenantId, b
             onChange={(e) => setName(e.target.value)}
             required
             className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-lg text-xs font-medium text-slate-900 focus:outline-none focus:ring-2 focus:ring-clinic-500 focus:bg-white transition-all"
-            placeholder="مثال: د. محمد أحمد"
+            placeholder="e.g. Dr. John Doe"
           />
         </div>
 
         <div>
           <label className="block text-xs font-semibold text-slate-700 mb-1">
-            البريد الإلكتروني <span className="text-red-500">*</span>
+            Email Address <span className="text-red-500">*</span>
           </label>
           <input
             type="email"
@@ -161,7 +161,7 @@ export default function EditTenantUserModal({ isOpen, onClose, user, tenantId, b
         <div>
           <label className="block text-xs font-semibold text-slate-700 mb-1.5 flex items-center gap-1.5">
             <Shield className="h-3.5 w-3.5 text-clinic-600" />
-            الأدوار والصلاحيات (Spatie Scoped) <span className="text-red-500">*</span>
+            Roles & Permissions <span className="text-red-500">*</span>
           </label>
           <div className="grid grid-cols-1 gap-2">
             {AVAILABLE_ROLES.map((role) => {
@@ -171,7 +171,7 @@ export default function EditTenantUserModal({ isOpen, onClose, user, tenantId, b
                   type="button"
                   key={role.id}
                   onClick={() => toggleRole(role.id)}
-                  className={`w-full text-right px-3 py-2 rounded-lg border text-xs font-semibold flex items-center justify-between transition-all cursor-pointer ${
+                  className={`w-full text-left px-3 py-2 rounded-lg border text-xs font-semibold flex items-center justify-between transition-all cursor-pointer ${
                     isChecked
                       ? 'bg-clinic-50/80 border-clinic-300 text-clinic-800 ring-1 ring-clinic-400'
                       : 'bg-white border-slate-200 text-slate-600 hover:bg-slate-50'
@@ -201,11 +201,11 @@ export default function EditTenantUserModal({ isOpen, onClose, user, tenantId, b
         <div>
           <label className="block text-xs font-semibold text-slate-700 mb-1.5 flex items-center gap-1.5">
             <MapPin className="h-3.5 w-3.5 text-clinic-600" />
-            الفروع المسندة للموظف (Anti-IDOR) <span className="text-red-500">*</span>
+            Assigned Branches <span className="text-red-500">*</span>
           </label>
           {branches.length === 0 ? (
             <p className="text-xs text-slate-400 italic p-3 bg-slate-50 rounded-lg border border-slate-200">
-              لا توجد فروع مسجلة لهذه العيادة حالياً.
+              No branches currently provisioned for this clinic.
             </p>
           ) : (
             <div className="max-h-40 overflow-y-auto space-y-1.5 border border-slate-200 rounded-lg p-2 bg-slate-50/50">
@@ -216,7 +216,7 @@ export default function EditTenantUserModal({ isOpen, onClose, user, tenantId, b
                     type="button"
                     key={b.id}
                     onClick={() => toggleBranch(b.id)}
-                    className={`w-full text-right px-3 py-2 rounded-lg border text-xs font-medium flex items-center justify-between transition-all cursor-pointer ${
+                    className={`w-full text-left px-3 py-2 rounded-lg border text-xs font-medium flex items-center justify-between transition-all cursor-pointer ${
                       isSelected
                         ? 'bg-white border-clinic-400 text-clinic-900 shadow-xs ring-1 ring-clinic-300'
                         : 'bg-white border-slate-200 text-slate-700 hover:bg-slate-50'
@@ -254,16 +254,16 @@ export default function EditTenantUserModal({ isOpen, onClose, user, tenantId, b
             disabled={isPending}
             className="text-xs font-semibold"
           >
-            إلغاء
+            Cancel
           </Button>
           <Button
             type="submit"
             variant="default"
             isLoading={isPending}
-            loadingText="جاري الحفظ..."
+            loadingText="Saving..."
             className="text-xs font-bold"
           >
-            حفظ التعديلات
+            Save Changes
           </Button>
         </DialogFooter>
       </form>

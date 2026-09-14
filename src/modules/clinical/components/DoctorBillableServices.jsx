@@ -50,7 +50,7 @@ export default function DoctorBillableServices({
       setInvoice(updated);
     } catch (err) {
       console.error('Failed to add service item:', err);
-      alert(err?.response?.data?.message || 'فشلت إضافة الخدمة إلى الفاتورة.');
+      alert(err?.response?.data?.message || 'Failed to add service to invoice.');
     } finally {
       setAddingServiceId(null);
     }
@@ -64,7 +64,7 @@ export default function DoctorBillableServices({
       setInvoice(updated);
     } catch (err) {
       console.error('Failed to remove item:', err);
-      alert(err?.response?.data?.message || 'فشل حذف البند.');
+      alert(err?.response?.data?.message || 'Failed to remove item.');
     } finally {
       setRemovingItemId(null);
     }
@@ -73,7 +73,7 @@ export default function DoctorBillableServices({
   if (!appointmentId) return null;
 
   return (
-    <div className="bg-white rounded-2xl border border-slate-200/90 shadow-sm p-5 space-y-4" dir="rtl">
+    <div className="bg-white rounded-2xl border border-slate-200/90 shadow-sm p-5 space-y-4" dir="ltr">
       {/* Header */}
       <div className="flex items-center justify-between border-b border-slate-100 pb-3 flex-wrap gap-2">
         <div className="flex items-center gap-2.5">
@@ -82,19 +82,19 @@ export default function DoctorBillableServices({
           </div>
           <div>
             <h4 className="font-bold text-sm text-slate-900 m-0">
-              الخدمات والإجراءات الطبية الإضافية (Extra Billable Procedures)
+              Extra Billable Services & Procedures
             </h4>
             <p className="text-xs text-slate-400 m-0 mt-0.5">
-              أضف فحوصات أو تحاليل أو إجراءات ملحقة بالكشف (كالرسم أو السونار) لتضاف فورياً لفاتورة المريض
+              Add attached procedures (e.g. ECG, Ultrasound) to be billed automatically on the patient invoice
             </p>
           </div>
         </div>
 
         {invoice && (
-          <div className="text-left bg-emerald-50 border border-emerald-200/80 px-3 py-1.5 rounded-xl">
-            <span className="text-[10px] text-emerald-700 font-semibold block">إجمالي الفاتورة الحالي</span>
+          <div className="text-right bg-emerald-50 border border-emerald-200/80 px-3 py-1.5 rounded-xl">
+            <span className="text-[10px] text-emerald-700 font-semibold block">Current Invoice Total</span>
             <span className="font-bold font-mono text-base text-emerald-800">
-              {Number(invoice.total || 0).toFixed(2)} ج.م
+              {Number(invoice.total || 0).toFixed(2)} EGP
             </span>
           </div>
         )}
@@ -103,7 +103,7 @@ export default function DoctorBillableServices({
       {loading && !invoice ? (
         <div className="flex items-center justify-center py-6 gap-2 text-xs text-slate-500">
           <Loader2 className="h-4 w-4 animate-spin text-clinic-600" />
-          <span>جاري تحميل بيانات الفاتورة...</span>
+          <span>Loading invoice details...</span>
         </div>
       ) : (
         <>
@@ -111,7 +111,7 @@ export default function DoctorBillableServices({
           {invoice?.items && invoice.items.length > 0 && (
             <div className="space-y-2">
               <span className="text-xs font-bold text-slate-700 block">
-                الخدمات المسجلة لهذا المريض حالياً:
+                Currently billed services for this patient:
               </span>
               <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-2.5">
                 {invoice.items.map((item) => (
@@ -127,7 +127,7 @@ export default function DoctorBillableServices({
                     </div>
                     <div className="flex items-center gap-2 shrink-0">
                       <span className="font-bold font-mono text-emerald-700">
-                        {Number(item.total).toFixed(2)} ج.م
+                        {Number(item.total).toFixed(2)} EGP
                       </span>
                       {item.service_id && (
                         <button
@@ -135,7 +135,7 @@ export default function DoctorBillableServices({
                           onClick={() => handleRemoveService(item.id)}
                           disabled={removingItemId === item.id}
                           className="text-slate-400 hover:text-red-600 p-1 rounded-md transition-colors cursor-pointer"
-                          title="حذف هذا البند"
+                          title="Remove item"
                         >
                           {removingItemId === item.id ? (
                             <Loader2 className="h-3.5 w-3.5 animate-spin" />
@@ -154,7 +154,7 @@ export default function DoctorBillableServices({
           {/* Quick Add Available Procedures */}
           <div className="pt-2">
             <span className="text-xs font-bold text-slate-700 block mb-2">
-              + إضافة سريعة لإجراء من قائمة العيادة:
+              + Quick add procedure from clinic catalog:
             </span>
             <div className="flex flex-wrap gap-2">
               {services.map((svc) => (
@@ -172,19 +172,14 @@ export default function DoctorBillableServices({
                   )}
                   <span>{svc.name}</span>
                   <span className="font-mono text-clinic-600 bg-white px-2 py-0.5 rounded-md border border-slate-200 text-[11px]">
-                    {Number(svc.price).toFixed(0)} ج.م
+                    {Number(svc.price).toFixed(0)} EGP
                   </span>
                 </button>
               ))}
             </div>
           </div>
 
-          <div className="p-3 bg-amber-50/80 border border-amber-200 rounded-xl text-xs text-amber-800 flex items-center gap-2.5">
-            <Sparkles className="h-4 w-4 text-amber-600 shrink-0" />
-            <span>
-              <strong>فصل المهام:</strong> لا تشغل نفسك بجمع المبالغ؛ بمجرد نقرك على «إنهاء الكشف»، ستتحول الفاتورة بكامل بنودها مباشرة لمكتب الاستقبال لتحصيل الحساب.
-            </span>
-          </div>
+
         </>
       )}
     </div>

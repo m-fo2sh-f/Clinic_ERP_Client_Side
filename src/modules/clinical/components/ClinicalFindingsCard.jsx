@@ -79,16 +79,16 @@ export default function ClinicalFindingsCard({
       <CardHeader className="p-5 border-b border-slate-100 bg-slate-50/50">
         <CardTitle className="text-base font-bold text-slate-900 flex items-center gap-2 m-0">
           <FileText className="h-5 w-5 text-clinic-600 shrink-0" />
-          الفحص الطبي والعلامات الحيوية (Clinical Examination &amp; Vitals)
+          Clinical Examination &amp; Vitals
         </CardTitle>
       </CardHeader>
 
       <CardContent className="p-6 space-y-6 !overflow-visible">
-        {/* Vital Signs Grid (بيانات الكشف / العلامات الحيوية) */}
+        {/* Vital Signs Grid */}
         <div className="p-4 rounded-xl border border-clinic-200/80 bg-clinic-50/30 space-y-3">
           <h4 className="text-xs font-bold uppercase tracking-wider text-clinic-900 m-0 flex items-center gap-1.5">
             <Activity className="h-4 w-4 text-clinic-600 shrink-0" />
-            العلامات الحيوية (Vital Signs)
+            Vital Signs
           </h4>
 
           <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3">
@@ -96,7 +96,7 @@ export default function ClinicalFindingsCard({
             <div>
               <label className="block text-[11px] font-semibold text-slate-600 mb-1 flex items-center gap-1">
                 <Activity className="h-3 w-3 text-red-500" />
-                ضغط الدم (BP)
+                Blood Pressure (BP)
               </label>
               <input
                 type="text"
@@ -111,7 +111,7 @@ export default function ClinicalFindingsCard({
             <div>
               <label className="block text-[11px] font-semibold text-slate-600 mb-1 flex items-center gap-1">
                 <Heart className="h-3 w-3 text-rose-500" />
-                نبض القلب (Pulse)
+                Heart Rate (Pulse)
               </label>
               <input
                 type="text"
@@ -126,7 +126,7 @@ export default function ClinicalFindingsCard({
             <div>
               <label className="block text-[11px] font-semibold text-slate-600 mb-1 flex items-center gap-1">
                 <Thermometer className="h-3 w-3 text-amber-500" />
-                الحرارة (Temp)
+                Temperature (Temp)
               </label>
               <input
                 type="text"
@@ -141,7 +141,7 @@ export default function ClinicalFindingsCard({
             <div>
               <label className="block text-[11px] font-semibold text-slate-600 mb-1 flex items-center gap-1">
                 <Weight className="h-3 w-3 text-indigo-500" />
-                الوزن (Weight)
+                Weight
               </label>
               <input
                 type="text"
@@ -156,7 +156,7 @@ export default function ClinicalFindingsCard({
             <div>
               <label className="block text-[11px] font-semibold text-slate-600 mb-1 flex items-center gap-1">
                 <Ruler className="h-3 w-3 text-blue-500" />
-                الطول (Height)
+                Height
               </label>
               <input
                 type="text"
@@ -171,7 +171,7 @@ export default function ClinicalFindingsCard({
             <div>
               <label className="block text-[11px] font-semibold text-slate-600 mb-1 flex items-center gap-1">
                 <Wind className="h-3 w-3 text-cyan-500" />
-                أكسجين الدم (SpO2)
+                Blood Oxygen (SpO2)
               </label>
               <input
                 type="text"
@@ -186,7 +186,7 @@ export default function ClinicalFindingsCard({
             <div className="col-span-2 sm:col-span-1">
               <label className="block text-[11px] font-semibold text-slate-600 mb-1 flex items-center gap-1">
                 <Droplet className="h-3 w-3 text-emerald-500" />
-                سكر الدم (RBS)
+                Blood Sugar (RBS)
               </label>
               <input
                 type="text"
@@ -204,13 +204,13 @@ export default function ClinicalFindingsCard({
           {/* Chief Complaint */}
           <div>
             <label className="block text-xs font-semibold text-slate-700 uppercase tracking-wide mb-1.5">
-              الشكوى الرئيسية (Chief Complaint) <span className="text-red-500">*</span>
+              Chief Complaint <span className="text-red-500">*</span>
             </label>
             <textarea
               rows={3}
               value={clinicalNotes.chiefComplaint}
               onChange={(e) => onUpdateNote('chiefComplaint', e.target.value)}
-              placeholder="مثال: آلام شديدة بالحلق مع ارتفاع في درجة الحرارة..."
+              placeholder="e.g. Severe sore throat with high fever..."
               className="w-full px-3.5 py-2.5 text-xs bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-clinic-500"
             />
           </div>
@@ -218,7 +218,7 @@ export default function ClinicalFindingsCard({
           {/* Physical Examination */}
           <div>
             <label className="block text-xs font-semibold text-slate-700 uppercase tracking-wide mb-1.5">
-              الفحص الإكلينيكي (Physical Examination)
+              Physical Examination
             </label>
             <textarea
               rows={3}
@@ -226,7 +226,7 @@ export default function ClinicalFindingsCard({
               onChange={(e) =>
                 onUpdateNote('examinationFindings', e.target.value)
               }
-              placeholder="مثال: التهاب واحمرار باللوزتين..."
+              placeholder="e.g. Erythematous pharynx, enlarged tonsils..."
               className="w-full px-3.5 py-2.5 text-xs bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-clinic-500"
             />
           </div>
@@ -235,7 +235,7 @@ export default function ClinicalFindingsCard({
         {/* Diagnosis autocomplete multi-tag */}
         <div className="relative" ref={diagnosisContainerRef}>
           <label className="block text-xs font-bold text-slate-800 uppercase tracking-wide mb-1.5">
-            التشخيص النهائي (Final Diagnosis) <span className="text-red-500">*</span>
+            Final Diagnosis <span className="text-red-500">*</span>
           </label>
 
           <div
@@ -269,8 +269,8 @@ export default function ClinicalFindingsCard({
               onKeyDown={onDiagnosisKeyDown}
               placeholder={
                 finalDiagnoses.length === 0
-                  ? 'ابحث عن التشخيص أو اكتب تشخيصاً جديداً...'
-                  : 'أضف تشخيصاً آخر...'
+                  ? 'Search diagnosis or type a new one...'
+                  : 'Add another diagnosis...'
               }
               className="flex-1 min-w-[200px] border-none bg-transparent text-xs font-semibold focus:outline-none p-1"
             />
@@ -287,7 +287,7 @@ export default function ClinicalFindingsCard({
                     onClick={() => onAddDiagnosis(diagnosisInput)}
                     className="w-full text-left px-4 py-2.5 hover:bg-clinic-50 text-xs font-semibold text-clinic-700"
                   >
-                    إضافة تشخيص مخصص: &quot;{diagnosisInput}&quot;
+                    Add custom diagnosis: &quot;{diagnosisInput}&quot;
                   </button>
                 ) : (
                   filteredDiagnoses.map((item, idx) => (
@@ -298,7 +298,7 @@ export default function ClinicalFindingsCard({
                       className="w-full text-left px-4 py-2.5 hover:bg-clinic-50 text-xs font-medium text-slate-800 flex justify-between"
                     >
                       {item}{' '}
-                      <span className="font-bold text-clinic-600">+ إضافة</span>
+                      <span className="font-bold text-clinic-600">+ Add</span>
                     </button>
                   ))
                 )}

@@ -256,9 +256,9 @@ export default function WaitingRoomDisplay() {
           <div className="w-16 h-16 bg-clinic-600/20 border border-clinic-500/30 rounded-2xl flex items-center justify-center mx-auto mb-4 text-clinic-400">
             <Tv className="h-8 w-8" />
           </div>
-          <h2 className="text-xl font-bold text-white mb-2">شاشة صالة الانتظار (TV Display)</h2>
+          <h2 className="text-xl font-bold text-white mb-2">Waiting Room TV Display</h2>
           <p className="text-xs text-slate-400 mb-6 leading-relaxed">
-            يرجى فتح هذه الشاشة بتمرير المعرف الخاص بالفرع (branch_id) في رابط المتصفح:
+            Please open this screen by passing the branch UUID (branch_id) in the browser URL:
           </p>
           <div className="bg-slate-950 p-3.5 rounded-xl border border-slate-800 font-mono text-xs text-clinic-300 break-all select-all">
             {window.location.origin}/waiting-room?branch_id=YOUR_BRANCH_UUID

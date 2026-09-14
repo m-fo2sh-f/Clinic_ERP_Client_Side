@@ -76,7 +76,7 @@ export default function TenantBranchesList({ branches, tenantId }) {
                 leftIcon={<Edit3 className="h-3.5 w-3.5 text-clinic-600" />}
                 className="text-xs font-semibold px-3 py-1.5 h-auto hover:bg-clinic-50 hover:text-clinic-700 hover:border-clinic-300 transition-all cursor-pointer"
               >
-                تعديل الفرع
+                Edit Branch
               </Button>
             </div>
           </div>

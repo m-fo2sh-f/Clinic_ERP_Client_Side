@@ -28,8 +28,8 @@ import { useUpdatePatientMutation } from '../../patients/hooks/usePatients';
  * Helper to calculate or format patient age
  */
 const formatAge = (patient, history) => {
-  if (patient?.age) return `${patient.age} سنة`;
-  if (history?.age) return `${history.age} سنة`;
+  if (patient?.age) return `${patient.age} yrs`;
+  if (history?.age) return `${history.age} yrs`;
   const dob = patient?.dob || patient?.date_of_birth || history?.date_of_birth;
   if (!dob) return null;
   const birthDate = new Date(dob);
@@ -40,7 +40,7 @@ const formatAge = (patient, history) => {
   if (m < 0 || (m === 0 && today.getDate() < birthDate.getDate())) {
     age--;
   }
-  return `${age} سنة`;
+  return `${age} yrs`;
 };
 
 /**
@@ -50,8 +50,8 @@ const formatGender = (patient, history) => {
   const gender = patient?.gender || patient?.sex || history?.gender;
   if (!gender) return null;
   const g = String(gender).toLowerCase();
-  if (g === 'male' || g === 'm' || g === 'ذكر') return 'ذكر (Male)';
-  if (g === 'female' || g === 'f' || g === 'أنثى') return 'أنثى (Female)';
+  if (g === 'male' || g === 'm' || g === '\u0630\u0643\u0631') return 'Male';
+  if (g === 'female' || g === 'f' || g === '\u0623\u0646\u062B\u0649') return 'Female';
   return gender;
 };
 
@@ -150,7 +150,7 @@ export default function ActivePatientCard({
         setIsEditOpen(false);
       },
       onError: (err) => {
-        alert(err?.response?.data?.message || 'فشل تحديث بيانات المريض');
+        alert(err?.response?.data?.message || 'Failed to update patient data');
       },
     });
   };
@@ -204,7 +204,7 @@ export default function ActivePatientCard({
                 className="bg-white/15 hover:bg-white/25 border-white/30 text-white font-bold gap-1.5 text-xs backdrop-blur-md shadow-xs cursor-pointer"
               >
                 <History className="h-4 w-4" />
-                <span>سجل الكشوفات والروشتات السابقة</span>
+                <span>Medical History & Prescriptions</span>
               </Button>
 
               {/* Edit Demographics Trigger */}
@@ -215,7 +215,7 @@ export default function ActivePatientCard({
                 className="bg-white/10 hover:bg-white/20 border-white/30 text-white font-bold gap-1.5 text-xs backdrop-blur-md cursor-pointer"
               >
                 <Edit3 className="h-4 w-4" />
-                <span>تعديل الملف الطبي</span>
+                <span>Edit Medical Profile</span>
               </Button>
             </div>
           </div>
@@ -228,8 +228,8 @@ export default function ActivePatientCard({
             <div className="flex items-center gap-2 text-slate-700">
               <Calendar className="h-4 w-4 text-clinic-600 shrink-0" />
               <div>
-                <span className="text-[11px] text-slate-500 block">العمر (Age):</span>
-                <strong className="font-bold text-slate-900">{ageStr || 'غير محدد'}</strong>
+                <span className="text-[11px] text-slate-500 block">Age:</span>
+                <strong className="font-bold text-slate-900">{ageStr || 'Not specified'}</strong>
               </div>
             </div>
 
@@ -237,8 +237,8 @@ export default function ActivePatientCard({
             <div className="flex items-center gap-2 text-slate-700">
               <UserCheck className="h-4 w-4 text-clinic-600 shrink-0" />
               <div>
-                <span className="text-[11px] text-slate-500 block">النوع (Gender):</span>
-                <strong className="font-bold text-slate-900">{genderStr || 'غير محدد'}</strong>
+                <span className="text-[11px] text-slate-500 block">Gender:</span>
+                <strong className="font-bold text-slate-900">{genderStr || 'Not specified'}</strong>
               </div>
             </div>
 
@@ -246,8 +246,8 @@ export default function ActivePatientCard({
             <div className="flex items-center gap-2 text-slate-700">
               <Phone className="h-4 w-4 text-clinic-600 shrink-0" />
               <div>
-                <span className="text-[11px] text-slate-500 block">الهاتف (Phone):</span>
-                <strong className="font-bold text-slate-900 dir-ltr">{phone || 'غير مسجل'}</strong>
+                <span className="text-[11px] text-slate-500 block">Phone:</span>
+                <strong className="font-bold text-slate-900">{phone || 'Not recorded'}</strong>
               </div>
             </div>
 
@@ -255,9 +255,9 @@ export default function ActivePatientCard({
             <div className="flex items-center gap-2 text-slate-700">
               <CreditCard className="h-4 w-4 text-clinic-600 shrink-0" />
               <div>
-                <span className="text-[11px] text-slate-500 block">الرقم القومي / الهوية:</span>
+                <span className="text-[11px] text-slate-500 block">National ID / MRN:</span>
                 <strong className="font-bold text-slate-900 font-mono">
-                  {nationalId || medicalNumber || 'غير مسجل'}
+                  {nationalId || medicalNumber || 'Not recorded'}
                 </strong>
               </div>
             </div>
@@ -270,7 +270,7 @@ export default function ActivePatientCard({
             <div className="flex items-center justify-center py-6">
               <Loader2 className="h-5 w-5 text-clinic-600 animate-spin mr-2 shrink-0" />
               <span className="text-xs text-slate-500 font-medium">
-                جاري تحميل بيانات السجل الطبي للمريض...
+                Loading patient medical record...
               </span>
             </div>
           ) : (
@@ -281,13 +281,13 @@ export default function ActivePatientCard({
                   <div className="flex items-center justify-between flex-wrap gap-2">
                     <h4 className="text-xs font-bold uppercase tracking-wider text-amber-900 m-0 flex items-center gap-1.5">
                       <ShieldAlert className="h-4 w-4 text-amber-600 shrink-0" />
-                      الأمراض المزمنة (Chronic Diseases)
+                      Chronic Diseases
                     </h4>
                     <button
                       onClick={handleOpenEdit}
                       className="text-[11px] font-bold text-amber-800 hover:text-amber-950 underline flex items-center gap-1 cursor-pointer"
                     >
-                      <Edit3 className="h-3 w-3" /> تعديل القائمة
+                      <Edit3 className="h-3 w-3" /> Edit List
                     </button>
                   </div>
                   <div className="flex items-center flex-wrap gap-2">
@@ -310,13 +310,13 @@ export default function ActivePatientCard({
                   <div className="flex items-center justify-between flex-wrap gap-2">
                     <h4 className="text-xs font-bold uppercase tracking-wider text-red-900 m-0 flex items-center gap-1.5">
                       <AlertTriangle className="h-4 w-4 text-red-600 shrink-0" />
-                      الحساسية الطبية (Known Allergies)
+                      Known Allergies
                     </h4>
                     <button
                       onClick={handleOpenEdit}
                       className="text-[11px] font-bold text-red-800 hover:text-red-950 underline flex items-center gap-1 cursor-pointer"
                     >
-                      <Edit3 className="h-3 w-3" /> تعديل
+                      <Edit3 className="h-3 w-3" /> Edit
                     </button>
                   </div>
                   <p className="text-xs text-red-800 font-medium m-0">
@@ -331,13 +331,13 @@ export default function ActivePatientCard({
                   <div className="flex items-center justify-between flex-wrap gap-2">
                     <h4 className="text-xs font-bold uppercase tracking-wider text-indigo-900 m-0 flex items-center gap-1.5">
                       <Activity className="h-4 w-4 text-indigo-600 shrink-0" />
-                      العمليات الجراحية السابقة (Past Surgeries)
+                      Past Surgeries
                     </h4>
                     <button
                       onClick={handleOpenEdit}
                       className="text-[11px] font-bold text-indigo-800 hover:text-indigo-950 underline flex items-center gap-1 cursor-pointer"
                     >
-                      <Edit3 className="h-3 w-3" /> تعديل
+                      <Edit3 className="h-3 w-3" /> Edit
                     </button>
                   </div>
                   <p className="text-xs text-indigo-900 font-medium m-0">
@@ -351,13 +351,13 @@ export default function ActivePatientCard({
                 <div className="p-4 rounded-xl border border-emerald-200/80 bg-emerald-50/40 flex items-center justify-between flex-wrap gap-2">
                   <p className="text-xs text-emerald-800 font-medium m-0 flex items-center gap-1.5">
                     <HeartPulse className="h-4 w-4 text-emerald-600 shrink-0" />
-                    لا توجد أمراض مزمنة أو حساسية أو عمليات سابقة مسجلة في ملف المريض.
+                    No chronic diseases, allergies, or past surgeries recorded.
                   </p>
                   <button
                     onClick={handleOpenEdit}
                     className="text-[11px] font-bold text-emerald-800 hover:text-emerald-950 underline cursor-pointer"
                   >
-                    + إضافة بيانات الملف الطبي
+                    + Add Medical Profile Info
                   </button>
                 </div>
               )}
@@ -377,7 +377,7 @@ export default function ActivePatientCard({
             <div className="flex items-center justify-between border-b border-slate-100 pb-3">
               <h3 className="font-bold text-slate-900 text-sm m-0 flex items-center gap-2">
                 <Edit3 className="h-4 w-4 text-clinic-600" />
-                تعديل الملف الطبي للمريض
+                Edit Patient Medical Profile
               </h3>
               <button
                 onClick={() => setIsEditOpen(false)}
@@ -392,15 +392,15 @@ export default function ActivePatientCard({
               <div className="p-3 bg-slate-100/90 rounded-xl border border-slate-200 text-slate-700 flex items-center justify-between gap-3">
                 <div>
                   <span className="block text-[10px] text-slate-400 font-bold uppercase tracking-wider">
-                    اسم المريض ورقم الهاتف
+                    Patient Name & Phone
                   </span>
                   <strong className="text-slate-900 text-xs font-bold block mt-0.5">
-                    {editData.name} — <span className="dir-ltr inline-block">{editData.phone}</span>
+                    {editData.name} — <span className="inline-block">{editData.phone}</span>
                   </strong>
                 </div>
                 <div className="flex items-center gap-1 text-[10px] font-bold text-slate-500 bg-slate-200 px-2 py-1 rounded-md shrink-0">
                   <Lock className="h-3 w-3 text-slate-400" />
-                  <span>تعديل الاستقبال فقط</span>
+                  <span>Reception edit only</span>
                 </div>
               </div>
 
@@ -408,7 +408,7 @@ export default function ActivePatientCard({
               <div className="grid grid-cols-2 gap-3">
                 <div>
                   <label className="block font-semibold text-slate-700 mb-1">
-                    النوع (Gender)
+                    Gender
                   </label>
                   <select
                     value={editData.gender}
@@ -417,14 +417,14 @@ export default function ActivePatientCard({
                     }
                     className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-lg font-medium focus:ring-2 focus:ring-clinic-500"
                   >
-                    <option value="male">ذكر (Male)</option>
-                    <option value="female">أنثى (Female)</option>
+                    <option value="male">Male</option>
+                    <option value="female">Female</option>
                   </select>
                 </div>
 
                 <div>
                   <label className="block font-semibold text-slate-700 mb-1">
-                    العمر (سنوات)
+                    Age (Years)
                   </label>
                   <input
                     type="number"
@@ -432,7 +432,7 @@ export default function ActivePatientCard({
                     onChange={(e) =>
                       setEditData((p) => ({ ...p, age: e.target.value }))
                     }
-                    placeholder="مثال: 34"
+                    placeholder="e.g. 34"
                     className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-lg font-medium focus:ring-2 focus:ring-clinic-500"
                   />
                 </div>
@@ -441,7 +441,7 @@ export default function ActivePatientCard({
               {/* Blood Group */}
               <div>
                 <label className="block font-semibold text-slate-700 mb-1">
-                  فصيلة الدم (Blood Group)
+                  Blood Group
                 </label>
                 <select
                   value={editData.blood_group}
@@ -450,7 +450,7 @@ export default function ActivePatientCard({
                   }
                   className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-lg font-medium focus:ring-2 focus:ring-clinic-500"
                 >
-                  <option value="">اختر الفصيلة...</option>
+                  <option value="">Select Blood Group...</option>
                   <option value="A+">A+</option>
                   <option value="A-">A-</option>
                   <option value="B+">B+</option>
@@ -465,7 +465,7 @@ export default function ActivePatientCard({
               {/* Chronic Diseases Tags Editor */}
               <div>
                 <label className="block font-semibold text-slate-700 mb-1">
-                  الأمراض المزمنة (إضافة / حذف)
+                  Chronic Diseases (Add / Remove)
                 </label>
                 <div className="flex items-center gap-2 mb-2">
                   <input
@@ -480,7 +480,7 @@ export default function ActivePatientCard({
                         handleAddChronicTag();
                       }
                     }}
-                    placeholder="اكتب اسم المرض واضغط إضافة..."
+                    placeholder="Type disease and press Enter..."
                     className="flex-1 px-3 py-1.5 bg-slate-50 border border-slate-200 rounded-lg"
                   />
                   <Button
@@ -489,14 +489,14 @@ export default function ActivePatientCard({
                     onClick={handleAddChronicTag}
                     className="gap-1 text-xs shrink-0"
                   >
-                    <Plus className="h-3.5 w-3.5" /> إضافة
+                    <Plus className="h-3.5 w-3.5" /> Add
                   </Button>
                 </div>
 
                 <div className="flex items-center flex-wrap gap-1.5 min-h-[36px] p-2 bg-slate-50 border rounded-lg">
                   {editData.chronicList.length === 0 ? (
                     <span className="text-slate-400 italic text-[11px]">
-                      لا توجد أمراض مزمنة مضافة.
+                      No chronic diseases added.
                     </span>
                   ) : (
                     editData.chronicList.map((tag, i) => (
@@ -520,7 +520,7 @@ export default function ActivePatientCard({
               {/* Allergies Text */}
               <div>
                 <label className="block font-semibold text-slate-700 mb-1">
-                  الحساسية الطبية (Known Allergies)
+                  Known Allergies
                 </label>
                 <textarea
                   rows={2}
@@ -528,7 +528,7 @@ export default function ActivePatientCard({
                   onChange={(e) =>
                     setEditData((p) => ({ ...p, allergies: e.target.value }))
                   }
-                  placeholder="مثال: حساسية البنسلين، حساسية السلفا..."
+                  placeholder="e.g. Penicillin allergy, Sulfa allergy..."
                   className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-lg font-medium focus:ring-2 focus:ring-clinic-500"
                 />
               </div>
@@ -536,7 +536,7 @@ export default function ActivePatientCard({
               {/* Surgeries Text */}
               <div>
                 <label className="block font-semibold text-slate-700 mb-1">
-                  العمليات الجراحية السابقة (Past Surgeries)
+                  Past Surgeries
                 </label>
                 <textarea
                   rows={2}
@@ -544,7 +544,7 @@ export default function ActivePatientCard({
                   onChange={(e) =>
                     setEditData((p) => ({ ...p, surgeries: e.target.value }))
                   }
-                  placeholder="مثال: استئصال الزائدة الدودية 2018، جراحة ركبة 2021..."
+                  placeholder="e.g. Appendectomy 2018, Knee surgery 2021..."
                   className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-lg font-medium focus:ring-2 focus:ring-clinic-500"
                 />
               </div>
@@ -557,7 +557,7 @@ export default function ActivePatientCard({
                 size="sm"
                 onClick={() => setIsEditOpen(false)}
               >
-                إلغاء
+                Cancel
               </Button>
               <Button
                 variant="default"
@@ -571,7 +571,7 @@ export default function ActivePatientCard({
                 ) : (
                   <Save className="h-4 w-4" />
                 )}
-                <span>حفظ التعديلات</span>
+                <span>Save Changes</span>
               </Button>
             </div>
           </div>

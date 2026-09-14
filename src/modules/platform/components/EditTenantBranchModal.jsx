@@ -37,7 +37,7 @@ export default function EditTenantBranchModal({ isOpen, onClose, branch, tenantI
     setError(null);
 
     if (!name.trim()) {
-      setError('يرجى إدخال اسم الفرع.');
+      setError('Please enter branch name.');
       return;
     }
 
@@ -56,7 +56,7 @@ export default function EditTenantBranchModal({ isOpen, onClose, branch, tenantI
           onClose();
         },
         onError: (err) => {
-          const msg = err.response?.data?.message || 'فشل تحديث بيانات الفرع.';
+          const msg = err.response?.data?.message || 'Failed to update branch details.';
           setError(msg);
         },
       }
@@ -73,9 +73,9 @@ export default function EditTenantBranchModal({ isOpen, onClose, branch, tenantI
             <Building2 className="h-5 w-5" />
           </div>
           <div>
-            <DialogTitle className="text-slate-900">تعديل بيانات الفرع</DialogTitle>
+            <DialogTitle className="text-slate-900">Edit Branch Details</DialogTitle>
             <DialogDescription className="text-slate-500 mt-0.5">
-              تحديث بيانات الاتصال والعنوان وحالة نشاط الفرع
+              Update contact details, address, and operating status
             </DialogDescription>
           </div>
         </div>
@@ -91,7 +91,7 @@ export default function EditTenantBranchModal({ isOpen, onClose, branch, tenantI
       <form onSubmit={handleSubmit} className="space-y-4 my-2">
         <div>
           <label className="block text-xs font-semibold text-slate-700 mb-1">
-            اسم الفرع <span className="text-red-500">*</span>
+            Branch Name <span className="text-red-500">*</span>
           </label>
           <input
             type="text"
@@ -99,42 +99,42 @@ export default function EditTenantBranchModal({ isOpen, onClose, branch, tenantI
             onChange={(e) => setName(e.target.value)}
             required
             className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-lg text-xs font-medium text-slate-900 focus:outline-none focus:ring-2 focus:ring-clinic-500 focus:bg-white transition-all"
-            placeholder="مثال: الفرع الرئيسي - القاهرة"
+            placeholder="e.g. Main Branch - Downtown"
           />
         </div>
 
         <div>
           <label className="block text-xs font-semibold text-slate-700 mb-1">
-            العنوان
+            Address
           </label>
           <input
             type="text"
             value={address}
             onChange={(e) => setAddress(e.target.value)}
             className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-lg text-xs font-medium text-slate-900 focus:outline-none focus:ring-2 focus:ring-clinic-500 focus:bg-white transition-all"
-            placeholder="مثال: 12 شارع التحرير، الدقي"
+            placeholder="e.g. 12 Street, Floor 3"
           />
         </div>
 
         <div>
           <label className="block text-xs font-semibold text-slate-700 mb-1">
-            رقم الهاتف
+            Phone Number
           </label>
           <input
             type="tel"
             value={phone}
             onChange={(e) => setPhone(e.target.value)}
             className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-lg text-xs font-mono text-slate-900 focus:outline-none focus:ring-2 focus:ring-clinic-500 focus:bg-white transition-all"
-            placeholder="مثال: 01012345678"
+            placeholder="e.g. 01012345678"
           />
         </div>
 
         <div className="pt-2 border-t border-slate-100">
           <label className="flex items-center justify-between p-3 rounded-xl bg-slate-50 border border-slate-200 cursor-pointer hover:bg-slate-100/70 transition-colors">
             <div>
-              <span className="block text-xs font-bold text-slate-900">حالة الفرع</span>
+              <span className="block text-xs font-bold text-slate-900">Branch Status</span>
               <span className="block text-[11px] text-slate-500">
-                {isActive ? 'الفرع نشط ويستقبل حجوزات ومرضى' : 'الفرع معطل وموقوف عن الخدمة مؤقتاً'}
+                {isActive ? 'Branch is active and accepting appointments' : 'Branch is temporarily deactivated'}
               </span>
             </div>
             <input
@@ -154,16 +154,16 @@ export default function EditTenantBranchModal({ isOpen, onClose, branch, tenantI
             disabled={isPending}
             className="text-xs font-semibold"
           >
-            إلغاء
+            Cancel
           </Button>
           <Button
             type="submit"
             variant="default"
             isLoading={isPending}
-            loadingText="جاري الحفظ..."
+            loadingText="Saving..."
             className="text-xs font-bold"
           >
-            حفظ بيانات الفرع
+            Save Branch Details
           </Button>
         </DialogFooter>
       </form>

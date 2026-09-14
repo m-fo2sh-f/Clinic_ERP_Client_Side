@@ -2,7 +2,7 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import api from '../../../services/api';
 import { markQueryInvalidated, debouncedInvalidate } from '../../../utils/invalidationTracker';
 
-// 🎯 تسمية خاصة وفريدة بمفاتيح الصالة لمنع أي تضارب مع الحجوزات
+// Dedicated and unique query keys for live queue to prevent collision with bookings
 export const queueKeys = {
     all: ['liveQueue'],
     lists: () => [...queueKeys.all, 'list'],

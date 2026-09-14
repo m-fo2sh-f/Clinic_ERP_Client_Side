@@ -42,7 +42,7 @@ export default function DashboardLayout({ children }) {
   const menuItems = [
     { name: 'Dashboard', icon: LayoutDashboard, href: dashboardPath, active: location.pathname === '/dashboard' || location.pathname === '/doctor' },
     { name: 'Patients Directory', icon: Users, href: '/patients', active: location.pathname === '/patients' },
-    { name: 'إعدادات الخدمات والأسعار', icon: Settings, href: '/settings', active: location.pathname === '/settings' },
+    { name: 'Services & Pricing', icon: Settings, href: '/settings', active: location.pathname === '/settings' },
   ];
 
   const handleLogout = async () => {

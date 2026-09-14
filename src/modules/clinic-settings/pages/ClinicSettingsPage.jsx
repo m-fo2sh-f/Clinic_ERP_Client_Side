@@ -20,7 +20,7 @@ import financialApi from '../../../services/financialApi';
 export default function ClinicSettingsPage() {
   const { activeBranch } = useBranchContext();
   const branchId = activeBranch?.id;
-  const branchName = activeBranch?.name || 'الفرع الرئيسي';
+  const branchName = activeBranch?.name || 'Main Branch';
 
   const [services, setServices] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -86,7 +86,7 @@ export default function ClinicSettingsPage() {
           price: Number(formPrice),
           branch_id: branchId,
         });
-        setFeedbackMsg('تم تحديث الخدمة وسعرها بنجاح.');
+        setFeedbackMsg('Service and pricing updated successfully.');
       } else {
         // Create new service
         await financialApi.createService({
@@ -95,7 +95,7 @@ export default function ClinicSettingsPage() {
           price: Number(formPrice),
           branch_id: branchId,
         });
-        setFeedbackMsg('تمت إضافة الخدمة الجديدة بنجاح.');
+        setFeedbackMsg('New service added successfully.');
       }
 
       await loadServices();
@@ -104,7 +104,7 @@ export default function ClinicSettingsPage() {
       }, 700);
     } catch (err) {
       console.error('Error saving service:', err);
-      alert(err?.response?.data?.message || 'فشل حفظ الخدمة.');
+      alert(err?.response?.data?.message || 'Failed to save service.');
     } finally {
       setIsSaving(false);
     }
@@ -116,7 +116,7 @@ export default function ClinicSettingsPage() {
   );
 
   return (
-    <div className="space-y-6 max-w-6xl mx-auto" dir="rtl">
+    <div className="space-y-6 max-w-6xl mx-auto" dir="ltr">
       {/* Top Banner */}
       <div className="bg-white px-6 py-5 rounded-2xl border border-slate-200/80 shadow-xs flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
         <div className="flex items-center gap-3">
@@ -124,9 +124,9 @@ export default function ClinicSettingsPage() {
             <Settings className="h-6 w-6" />
           </div>
           <div>
-            <h2 className="text-lg font-bold text-slate-900 m-0">إعدادات العيادة ودليل الخدمات الطبية</h2>
+            <h2 className="text-lg font-bold text-slate-900 m-0">Clinic Settings & Medical Services Catalog</h2>
             <p className="text-xs text-slate-500 mt-1 m-0">
-              إدارة أسماء وأسعار الكشوفات والإجراءات الطبية والفحوصات الخاصة بـ <strong className="text-clinic-600">{branchName}</strong>
+              Manage names, codes, and pricing for medical procedures for <strong className="text-clinic-600">{branchName}</strong>
             </p>
           </div>
         </div>
@@ -136,7 +136,7 @@ export default function ClinicSettingsPage() {
           className="bg-clinic-600 hover:bg-clinic-700 text-white font-bold py-2.5 px-4 rounded-xl text-xs flex items-center gap-2 transition-all shadow-xs cursor-pointer"
         >
           <Plus className="h-4 w-4" />
-          <span>إضافة خدمة / إجراء طبي جديد</span>
+          <span>Add New Service / Procedure</span>
         </button>
       </div>
 
@@ -145,20 +145,20 @@ export default function ClinicSettingsPage() {
         <div className="p-5 border-b border-slate-100 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
           <div className="flex items-center gap-2">
             <Receipt className="h-4 w-4 text-clinic-600" />
-            <h3 className="font-bold text-sm text-slate-900 m-0">قائمة الخدمات والأسعار المعتمدة</h3>
+            <h3 className="font-bold text-sm text-slate-900 m-0">Approved Services & Pricing</h3>
             <span className="text-xs bg-slate-100 font-mono text-slate-600 px-2 py-0.5 rounded-full font-bold">
-              {services.length} خدمة
+              {services.length} services
             </span>
           </div>
 
           <div className="relative w-full sm:w-64">
-            <Search className="h-4 w-4 text-slate-400 absolute right-3 top-2.5" />
+            <Search className="h-4 w-4 text-slate-400 absolute left-3 top-2.5" />
             <input
               type="text"
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              placeholder="بحث بالاسم أو الكود..."
-              className="w-full pr-9 pl-3 py-1.5 bg-slate-50 border border-slate-200 rounded-xl text-xs font-medium focus:bg-white focus:ring-1 focus:ring-clinic-500"
+              placeholder="Search by name or code..."
+              className="w-full pl-9 pr-3 py-1.5 bg-slate-50 border border-slate-200 rounded-xl text-xs font-medium focus:bg-white focus:ring-1 focus:ring-clinic-500"
             />
           </div>
         </div>
@@ -166,11 +166,11 @@ export default function ClinicSettingsPage() {
         {isLoading ? (
           <div className="py-16 flex items-center justify-center gap-2 text-xs text-slate-500">
             <Loader2 className="h-5 w-5 animate-spin text-clinic-600" />
-            <span>جاري تحميل دليل الخدمات...</span>
+            <span>Loading services catalog...</span>
           </div>
         ) : filteredServices.length === 0 ? (
           <div className="py-16 text-center text-xs text-slate-400">
-            لا توجد خدمات مطابقة للبحث.
+            No services matching your search.
           </div>
         ) : (
           <div className="divide-y divide-slate-100">
@@ -186,32 +186,32 @@ export default function ClinicSettingsPage() {
                   <div>
                     <h4 className="font-bold text-sm text-slate-900 m-0 flex items-center gap-2">
                       {svc.name}
-                      {svc.code === 'CONSULTATION' && (
+                      {(svc.code === 'CONSULTATION' || svc.code === 'CHECK_UP') && (
                         <span className="bg-clinic-50 text-clinic-700 text-[10px] px-2 py-0.5 rounded font-bold">
-                          الكشف الأساسي
+                          Consultation
                         </span>
                       )}
                     </h4>
                     {svc.code && (
                       <span className="text-[11px] text-slate-400 font-mono mt-0.5 block">
-                        كود: {svc.code}
+                        Code: {svc.code}
                       </span>
                     )}
                   </div>
                 </div>
 
                 <div className="flex items-center gap-4">
-                  <div className="text-left bg-emerald-50/70 border border-emerald-200/80 px-3.5 py-1.5 rounded-xl">
-                    <span className="text-[10px] text-emerald-700 font-semibold block">السعر الحالي</span>
+                  <div className="text-right bg-emerald-50/70 border border-emerald-200/80 px-3.5 py-1.5 rounded-xl">
+                    <span className="text-[10px] text-emerald-700 font-semibold block">Current Price</span>
                     <strong className="text-base font-bold font-mono text-emerald-800">
-                      {Number(svc.price).toFixed(2)} ج.م
+                      {Number(svc.price).toFixed(2)} EGP
                     </strong>
                   </div>
 
                   <button
                     onClick={() => handleOpenEdit(svc)}
                     className="p-2 text-slate-500 hover:text-clinic-600 hover:bg-clinic-50 border border-slate-200 hover:border-clinic-300 rounded-xl transition-all cursor-pointer"
-                    title="تعديل السعر والاسم"
+                    title="Edit service details"
                   >
                     <Edit3 className="h-4 w-4" />
                   </button>
@@ -224,12 +224,12 @@ export default function ClinicSettingsPage() {
 
       {/* EDIT / CREATE SERVICE MODAL */}
       {isEditModalOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/50 backdrop-blur-xs animate-in fade-in">
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/50 backdrop-blur-xs animate-in fade-in" dir="ltr">
           <div className="bg-white rounded-2xl shadow-2xl border border-slate-200 w-full max-w-md overflow-hidden animate-in zoom-in-95">
             <div className="bg-slate-900 text-white px-5 py-4 flex items-center justify-between">
               <h3 className="font-bold text-sm m-0 flex items-center gap-2">
                 <Edit3 className="h-4 w-4 text-clinic-400" />
-                <span>{editingService ? 'تعديل بيانات الخدمة والسعر' : 'إضافة خدمة جديدة لدليل العيادة'}</span>
+                <span>{editingService ? 'Edit Service & Pricing' : 'Add New Service to Catalog'}</span>
               </h3>
               <button
                 onClick={() => setIsEditModalOpen(false)}
@@ -249,13 +249,13 @@ export default function ClinicSettingsPage() {
 
               <div>
                 <label className="block text-xs font-bold text-slate-700 mb-1">
-                  اسم الخدمة أو الإجراء الطبي:
+                  Service / Procedure Name:
                 </label>
                 <input
                   type="text"
                   value={formName}
                   onChange={(e) => setFormName(e.target.value)}
-                  placeholder="مثال: رسم قلب (ECG) أو سونار باطني"
+                  placeholder="e.g. ECG Test or Ultrasound"
                   className="w-full px-3.5 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs font-medium text-slate-900 focus:bg-white focus:ring-1 focus:ring-clinic-500"
                   required
                 />
@@ -263,20 +263,20 @@ export default function ClinicSettingsPage() {
 
               <div>
                 <label className="block text-xs font-bold text-slate-700 mb-1">
-                  كود الخدمة (مختصر بالإنجليزية):
+                  Service Code (Short identifier):
                 </label>
                 <input
                   type="text"
                   value={formCode}
                   onChange={(e) => setFormCode(e.target.value)}
-                  placeholder="مثال: ECG أو ULTRASOUND"
+                  placeholder="e.g. ECG or US-ABD"
                   className="w-full px-3.5 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs font-mono text-slate-900 focus:bg-white focus:ring-1 focus:ring-clinic-500"
                 />
               </div>
 
               <div>
                 <label className="block text-xs font-bold text-slate-700 mb-1">
-                  السعر (بالجنيه المصري):
+                  Price (EGP):
                 </label>
                 <div className="relative">
                   <input
@@ -286,13 +286,13 @@ export default function ClinicSettingsPage() {
                     value={formPrice}
                     onChange={(e) => setFormPrice(e.target.value)}
                     placeholder="0.00"
-                    className="w-full pl-12 pr-4 py-2 bg-slate-50 border border-slate-200 rounded-xl text-sm font-bold font-mono text-slate-900 focus:bg-white focus:ring-1 focus:ring-emerald-500"
+                    className="w-full pr-14 pl-4 py-2 bg-slate-50 border border-slate-200 rounded-xl text-sm font-bold font-mono text-slate-900 focus:bg-white focus:ring-1 focus:ring-emerald-500"
                     required
                   />
-                  <span className="absolute left-3 top-2.5 text-xs text-slate-400 font-semibold">ج.م</span>
+                  <span className="absolute right-3 top-2.5 text-xs text-slate-400 font-semibold">EGP</span>
                 </div>
                 <p className="text-[10px] text-slate-400 mt-1">
-                  سيتم تطبيق هذا السعر فورياً على أي فواتير جديدة تصدر في هذا الفرع.
+                  This price will apply immediately to newly generated invoices for this branch.
                 </p>
               </div>
 
@@ -303,14 +303,14 @@ export default function ClinicSettingsPage() {
                   className="flex-1 bg-clinic-600 hover:bg-clinic-700 text-white font-bold py-2.5 px-4 rounded-xl text-xs flex items-center justify-center gap-2 transition-colors cursor-pointer"
                 >
                   {isSaving ? <Loader2 className="h-4 w-4 animate-spin" /> : <CheckCircle2 className="h-4 w-4" />}
-                  <span>حفظ التعديلات</span>
+                  <span>Save Changes</span>
                 </button>
                 <button
                   type="button"
                   onClick={() => setIsEditModalOpen(false)}
                   className="px-4 py-2.5 bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold rounded-xl text-xs transition-colors cursor-pointer"
                 >
-                  إلغاء
+                  Cancel
                 </button>
               </div>
             </form>

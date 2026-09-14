@@ -46,7 +46,7 @@ function AppRoutes() {
         <div className="min-h-screen bg-slate-900 flex items-center justify-center p-4">
           <div className="flex items-center gap-3 bg-slate-800/80 border border-slate-700/60 rounded-2xl px-6 py-4 shadow-xl backdrop-blur-md">
             <Loader2 className="h-6 w-6 text-clinic-600 animate-spin" />
-            <span className="text-sm font-medium text-slate-200">جاري تحميل التطبيق...</span>
+            <span className="text-sm font-medium text-slate-200">Loading Application...</span>
           </div>
         </div>
       );

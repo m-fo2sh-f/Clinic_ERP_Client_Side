@@ -27,12 +27,12 @@ export default function ResetUserPasswordModal({ isOpen, onClose, user, tenantId
     setSuccessMsg(null);
 
     if (password.length < 8) {
-      setError('يجب ألا تقل كلمة المرور الجديدة عن 8 أحرف.');
+      setError('New password must be at least 8 characters long.');
       return;
     }
 
     if (password !== passwordConfirmation) {
-      setError('كلمة المرور وتأكيد كلمة المرور غير متطابقين.');
+      setError('Password and confirmation do not match.');
       return;
     }
 
@@ -46,7 +46,7 @@ export default function ResetUserPasswordModal({ isOpen, onClose, user, tenantId
       },
       {
         onSuccess: (res) => {
-          setSuccessMsg(res?.message || 'تم إعادة تعيين كلمة المرور بنجاح.');
+          setSuccessMsg(res?.message || 'Password reset successfully.');
           setPassword('');
           setPasswordConfirmation('');
           setTimeout(() => {
@@ -55,7 +55,7 @@ export default function ResetUserPasswordModal({ isOpen, onClose, user, tenantId
           }, 1500);
         },
         onError: (err) => {
-          const msg = err.response?.data?.message || 'فشل إعادة تعيين كلمة المرور.';
+          const msg = err.response?.data?.message || 'Failed to reset password.';
           setError(msg);
         },
       }
@@ -72,9 +72,9 @@ export default function ResetUserPasswordModal({ isOpen, onClose, user, tenantId
             <KeyRound className="h-5 w-5" />
           </div>
           <div>
-            <DialogTitle className="text-slate-900">إعادة تعيين كلمة المرور</DialogTitle>
+            <DialogTitle className="text-slate-900">Reset User Password</DialogTitle>
             <DialogDescription className="text-slate-500 mt-0.5">
-              تغيير كلمة المرور للمستخدم: <strong className="text-slate-800">{user.name}</strong> ({user.email})
+              Change password for: <strong className="text-slate-800">{user.name}</strong> ({user.email})
             </DialogDescription>
           </div>
         </div>
@@ -83,8 +83,8 @@ export default function ResetUserPasswordModal({ isOpen, onClose, user, tenantId
       <div className="p-4 rounded-xl bg-amber-50/80 border border-amber-200 flex items-start gap-3 text-amber-900 text-xs leading-relaxed my-2">
         <ShieldAlert className="h-5 w-5 text-amber-600 shrink-0 mt-0.5" />
         <div>
-          <p className="font-bold text-amber-950 mb-1">تنبيه أمني وإجراء إلزامي:</p>
-          <span>سيتم إنهاء كافة جلسات المستخدم الحالية تلقائياً وتسجيل العملية في سجل التدقيق الأمني.</span>
+          <p className="font-bold text-amber-950 mb-1">Security Notice:</p>
+          <span>All active sessions for this user will be terminated immediately and logged in audit trails.</span>
         </div>
       </div>
 
@@ -105,7 +105,7 @@ export default function ResetUserPasswordModal({ isOpen, onClose, user, tenantId
       <form onSubmit={handleSubmit} className="space-y-4 my-2">
         <div>
           <label className="block text-xs font-semibold text-slate-700 mb-1">
-            كلمة المرور الجديدة (8 أحرف كحد أدنى) <span className="text-red-500">*</span>
+            New Password (Min 8 characters) <span className="text-red-500">*</span>
           </label>
           <input
             type="password"
@@ -120,7 +120,7 @@ export default function ResetUserPasswordModal({ isOpen, onClose, user, tenantId
 
         <div>
           <label className="block text-xs font-semibold text-slate-700 mb-1">
-            تأكيد كلمة المرور الجديدة <span className="text-red-500">*</span>
+            Confirm New Password <span className="text-red-500">*</span>
           </label>
           <input
             type="password"
@@ -141,16 +141,16 @@ export default function ResetUserPasswordModal({ isOpen, onClose, user, tenantId
             disabled={isPending}
             className="text-xs font-semibold"
           >
-            إلغاء
+            Cancel
           </Button>
           <Button
             type="submit"
             variant="default"
             isLoading={isPending}
-            loadingText="جاري التحديث وإنهاء الجلسات..."
+            loadingText="Resetting password..."
             className="bg-amber-600 hover:bg-amber-700 text-white text-xs font-bold shadow-sm"
           >
-            إعادة تعيين كلمة المرور
+            Reset Password
           </Button>
         </DialogFooter>
       </form>

@@ -28,9 +28,9 @@ class ErrorBoundary extends React.Component {
                         <AlertTriangle className="h-8 w-8" />
                     </div>
                     <div className="space-y-1">
-                        <h3 className="text-base font-bold text-white">حدث خطأ غير متوقع في هذه الشاشة</h3>
+                        <h3 className="text-base font-bold text-white">An unexpected error occurred in this view</h3>
                         <p className="text-xs text-slate-400 max-w-md mx-auto">
-                            عذراً، تعذر تحميل هذا الجزء من الصفحة بشكل صحيح. يمكنك المحاولة مرة أخرى دون التأثير على باقي النظام.
+                            Sorry, this section failed to render properly. You can reload the page without affecting the rest of the application.
                         </p>
                     </div>
                     <button
@@ -38,7 +38,7 @@ class ErrorBoundary extends React.Component {
                         className="px-4 py-2.5 bg-clinic-600 hover:bg-clinic-500 text-white font-bold text-xs rounded-xl transition-all shadow-lg shadow-clinic-600/20 inline-flex items-center gap-2 cursor-pointer"
                     >
                         <RefreshCw className="h-4 w-4" />
-                        <span>إعادة تحميل الصفحة</span>
+                        <span>Reload Page</span>
                     </button>
                 </div>
             );

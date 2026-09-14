@@ -61,10 +61,10 @@ export default function PatientHistoryModal({
             </div>
             <div>
               <h3 className="text-base font-bold text-white m-0 flex items-center gap-2">
-                السجل الطبي وسجل الزيارات السابقة
+                Medical History & Past Visits
               </h3>
               <p className="text-xs text-clinic-100 mt-0.5 m-0 font-medium">
-                {patientHistory?.name || 'المريض'} — ملف رقم:{' '}
+                {patientHistory?.name || 'Patient'} — MRN:{' '}
                 <span className="font-mono">{patientHistory?.medical_number || 'N/A'}</span>
               </p>
             </div>
@@ -81,29 +81,29 @@ export default function PatientHistoryModal({
         <div className="bg-slate-50 border-b border-slate-200 px-6 py-3 flex flex-wrap items-center justify-between gap-3 text-xs text-slate-700">
           <div className="flex items-center gap-4 flex-wrap">
             <span>
-              <strong>العمر:</strong> {patientHistory?.age ? `${patientHistory.age} سنة` : 'غير محدد'}
+              <strong>Age:</strong> {patientHistory?.age ? `${patientHistory.age} yrs` : 'Not specified'}
             </span>
             <span>
-              <strong>الجنس:</strong> {patientHistory?.gender === 'female' ? 'أنثى' : 'ذكر'}
+              <strong>Gender:</strong> {patientHistory?.gender === 'female' ? 'Female' : 'Male'}
             </span>
             <span>
-              <strong>فصيلة الدم:</strong>{' '}
+              <strong>Blood Group:</strong>{' '}
               <Badge variant="destructive" className="py-0 px-1.5 text-[10px]">
-                {patientHistory?.blood_group || 'غير مسجلة'}
+                {patientHistory?.blood_group || 'Not recorded'}
               </Badge>
             </span>
             {patientHistory?.surgeries && (
               <span>
-                <strong>العمليات السابقة:</strong>{' '}
+                <strong>Past Surgeries:</strong>{' '}
                 <span className="font-semibold text-indigo-900 bg-indigo-50 border border-indigo-200 px-2 py-0.5 rounded">
                   {patientHistory.surgeries}
                 </span>
               </span>
             )}
             <span>
-              <strong>إجمالي الكشوفات:</strong>{' '}
+              <strong>Total Visits:</strong>{' '}
               <Badge variant="success" className="py-0 px-1.5 text-[10px]">
-                {patientHistory?.completed_appointments_count || appointments.length} زيارة
+                {patientHistory?.completed_appointments_count || appointments.length} visits
               </Badge>
             </span>
           </div>
@@ -119,7 +119,7 @@ export default function PatientHistoryModal({
               }`}
             >
               <FileText className="h-3.5 w-3.5 inline mr-1" />
-              الكشوفات والفحوصات ({appointments.length})
+              Examinations ({appointments.length})
             </button>
             <button
               onClick={() => setActiveTab('prescriptions')}
@@ -130,7 +130,7 @@ export default function PatientHistoryModal({
               }`}
             >
               <Pill className="h-3.5 w-3.5 inline mr-1" />
-              الروشتات السابقة (
+              Past Prescriptions (
               {appointments.filter((a) => a.prescription).length})
             </button>
           </div>
@@ -141,13 +141,13 @@ export default function PatientHistoryModal({
           {isLoading ? (
             <div className="py-16 text-center text-slate-400">
               <Clock className="h-8 w-8 text-clinic-600 animate-spin mx-auto mb-2" />
-              <p className="text-xs font-semibold">جاري تحميل السجل الطبي...</p>
+              <p className="text-xs font-semibold">Loading medical history...</p>
             </div>
           ) : appointments.length === 0 ? (
             <div className="py-16 text-center text-slate-400 bg-white rounded-xl border border-slate-200">
               <FileText className="h-10 w-10 text-slate-300 mx-auto mb-2" />
-              <p className="text-xs font-bold text-slate-700">لا توجد زيارات سابقة لهذا المريض</p>
-              <p className="text-[11px] text-slate-400 mt-1">هذه أول زيارة أو كشف مسجل للمريض.</p>
+              <p className="text-xs font-bold text-slate-700">No past visits recorded for this patient</p>
+              <p className="text-[11px] text-slate-400 mt-1">This is the first registered visit or examination for this patient.</p>
             </div>
           ) : activeTab === 'examinations' ? (
             /* EXAMINATIONS TAB */
@@ -173,18 +173,18 @@ export default function PatientHistoryModal({
                         <Calendar className="h-3.5 w-3.5 text-clinic-600" />
                         <span>
                           {appt.appointment_time
-                            ? new Date(appt.appointment_time).toLocaleDateString('ar-EG', {
+                            ? new Date(appt.appointment_time).toLocaleDateString('en-US', {
                                 weekday: 'short',
                                 year: 'numeric',
                                 month: 'short',
                                 day: 'numeric',
                               })
-                            : 'تاريخ غير محدد'}
+                            : 'Unspecified date'}
                         </span>
                       </div>
 
                       <Badge variant="secondary" className="text-[11px] font-medium">
-                        {appt.branch_name || appt.branch?.name || 'الفرع الرئيسي'}
+                        {appt.branch_name || appt.branch?.name || 'Main Branch'}
                       </Badge>
 
                       {diagnoses.length > 0 && (
@@ -203,7 +203,7 @@ export default function PatientHistoryModal({
 
                     <div className="flex items-center gap-2">
                       <span className="text-[11px] text-slate-400 font-medium hidden sm:inline">
-                        {isExpanded ? 'طي التفاصيل' : 'عرض التفاصيل'}
+                        {isExpanded ? 'Collapse' : 'View Details'}
                       </span>
                       {isExpanded ? (
                         <ChevronUp className="h-4 w-4 text-slate-500" />
@@ -221,30 +221,30 @@ export default function PatientHistoryModal({
                         <div className="p-3 bg-clinic-50/40 rounded-xl border border-clinic-100">
                           <h5 className="text-[11px] font-bold text-clinic-900 uppercase tracking-wide mb-2 flex items-center gap-1">
                             <Activity className="h-3.5 w-3.5 text-clinic-600" />
-                            العلامات الحيوية في الكشف:
+                            Vital Signs Recorded:
                           </h5>
                           <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 text-[11px]">
                             {vitals.blood_pressure && (
                               <div className="bg-white p-2 rounded border border-slate-200">
-                                <span className="text-slate-500 block">ضغط الدم:</span>
+                                <span className="text-slate-500 block">Blood Pressure:</span>
                                 <strong className="font-bold text-slate-800">{vitals.blood_pressure}</strong>
                               </div>
                             )}
                             {vitals.heart_rate && (
                               <div className="bg-white p-2 rounded border border-slate-200">
-                                <span className="text-slate-500 block">النبض:</span>
+                                <span className="text-slate-500 block">Heart Rate:</span>
                                 <strong className="font-bold text-slate-800">{vitals.heart_rate}</strong>
                               </div>
                             )}
                             {vitals.temperature && (
                               <div className="bg-white p-2 rounded border border-slate-200">
-                                <span className="text-slate-500 block">الحرارة:</span>
+                                <span className="text-slate-500 block">Temperature:</span>
                                 <strong className="font-bold text-slate-800">{vitals.temperature}</strong>
                               </div>
                             )}
                             {vitals.weight && (
                               <div className="bg-white p-2 rounded border border-slate-200">
-                                <span className="text-slate-500 block">الوزن:</span>
+                                <span className="text-slate-500 block">Weight:</span>
                                 <strong className="font-bold text-slate-800">{vitals.weight}</strong>
                               </div>
                             )}
@@ -256,7 +256,7 @@ export default function PatientHistoryModal({
                             )}
                             {vitals.blood_sugar && (
                               <div className="bg-white p-2 rounded border border-slate-200">
-                                <span className="text-slate-500 block">السكر:</span>
+                                <span className="text-slate-500 block">Blood Sugar:</span>
                                 <strong className="font-bold text-slate-800">{vitals.blood_sugar}</strong>
                               </div>
                             )}
@@ -268,18 +268,18 @@ export default function PatientHistoryModal({
                       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                         <div>
                           <strong className="text-slate-700 font-bold block mb-1">
-                            الشكوى الرئيسية (Chief Complaint):
+                            Chief Complaint:
                           </strong>
                           <p className="bg-slate-50 p-2.5 rounded-lg border border-slate-200 text-slate-800 leading-relaxed m-0">
-                            {appt.chief_complaint || 'غير مدونة'}
+                            {appt.chief_complaint || 'None recorded'}
                           </p>
                         </div>
                         <div>
                           <strong className="text-slate-700 font-bold block mb-1">
-                            الفحص الإكلينيكي (Examination):
+                            Clinical Examination:
                           </strong>
                           <p className="bg-slate-50 p-2.5 rounded-lg border border-slate-200 text-slate-800 leading-relaxed m-0">
-                            {appt.clinical_examination || 'غير مدون'}
+                            {appt.clinical_examination || 'None recorded'}
                           </p>
                         </div>
                       </div>
@@ -306,12 +306,12 @@ export default function PatientHistoryModal({
                         <div className="flex items-center gap-2">
                           <Pill className="h-4 w-4 text-clinic-600" />
                           <h4 className="font-extrabold text-clinic-900 text-xs m-0">
-                            روشتة رقم: <span className="font-mono text-clinic-700">{rx.prescription_code}</span>
+                            Rx Code: <span className="font-mono text-clinic-700">{rx.prescription_code}</span>
                           </h4>
                         </div>
                         <p className="text-[11px] text-slate-500 mt-0.5 m-0">
-                          بتاريخ: {rx.prescription_date} — بواسطة د.{' '}
-                          {rx.doctor?.name || 'الطبيب الممارس'}
+                          Date: {rx.prescription_date} — Dr.{' '}
+                          {rx.doctor?.name || 'General Practitioner'}
                         </p>
                       </div>
                     </div>
@@ -321,11 +321,11 @@ export default function PatientHistoryModal({
                       <table className="w-full text-left text-xs border-collapse">
                         <thead>
                           <tr className="bg-slate-100/70 text-slate-700 border-b border-slate-200">
-                            <th className="p-2 font-bold">اسم الدواء (Drug)</th>
-                            <th className="p-2 font-bold">الجرعة (Dose)</th>
-                            <th className="p-2 font-bold">التكرار (Frequency)</th>
-                            <th className="p-2 font-bold">المدة (Duration)</th>
-                            <th className="p-2 font-bold">التعليمات (Instructions)</th>
+                            <th className="p-2 font-bold">Medication (Drug)</th>
+                            <th className="p-2 font-bold">Dose</th>
+                            <th className="p-2 font-bold">Frequency</th>
+                            <th className="p-2 font-bold">Duration</th>
+                            <th className="p-2 font-bold">Instructions</th>
                           </tr>
                         </thead>
                         <tbody className="divide-y divide-slate-100">
@@ -345,7 +345,7 @@ export default function PatientHistoryModal({
                     {/* General Advice */}
                     {rx.general_advice && (
                       <div className="p-3 bg-amber-50/60 rounded-lg border border-amber-200/80 text-xs">
-                        <strong className="text-amber-900 block mb-0.5">نصائح وإرشادات الطبيب:</strong>
+                        <strong className="text-amber-900 block mb-0.5">Doctor's Advice & Instructions:</strong>
                         <p className="text-amber-950 m-0">{rx.general_advice}</p>
                       </div>
                     )}
@@ -358,7 +358,7 @@ export default function PatientHistoryModal({
         {/* Footer */}
         <div className="p-4 bg-slate-100 border-t border-slate-200 flex justify-end">
           <Button variant="outline" size="sm" onClick={onClose}>
-            إغلاق النافذة
+            Close
           </Button>
         </div>
       </div>
