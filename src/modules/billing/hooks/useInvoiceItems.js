@@ -91,6 +91,11 @@ export function useInvoiceItems({ invoice, setInvoice, onUpdated } = {}) {
     [invoice, setInvoice, onUpdated]
   );
 
+  const clearMessages = useCallback(() => {
+    setErrorMessage('');
+    setSuccessMessage('');
+  }, []);
+
   return {
     selectedServiceId,
     setSelectedServiceId,
@@ -103,10 +108,7 @@ export function useInvoiceItems({ invoice, setInvoice, onUpdated } = {}) {
     setSuccessMessage,
     handleAddService,
     handleRemoveItem,
-    clearMessages: () => {
-      setErrorMessage('');
-      setSuccessMessage('');
-    },
+    clearMessages,
   };
 }
 

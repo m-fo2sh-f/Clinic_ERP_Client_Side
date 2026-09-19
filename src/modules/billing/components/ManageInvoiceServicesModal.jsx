@@ -88,7 +88,7 @@ export default function ManageInvoiceServicesModal({
     return () => {
       isMounted = false;
     };
-  }, [isOpen, appointmentId, branchId, clearMessages, setSelectedServiceId, setErrorMessage]);
+  }, [isOpen, appointmentId, branchId]);
 
   if (!isOpen) return null;
 
