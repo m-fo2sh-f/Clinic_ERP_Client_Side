@@ -11,6 +11,14 @@ export const getPlatformMetricsApi = async () => {
 /**
  * Fetch paginated list of tenants with filters
  */
+/**
+ * Provision new tenant clinic with isolated database and owner credentials
+ */
+export const createTenantApi = async (tenantData) => {
+  const response = await api.post('/platform/tenants', tenantData);
+  return response.data;
+};
+
 export const getPlatformTenantsApi = async ({ page = 1, search = '', status = '', perPage = 10 } = {}) => {
   const params = {
     page,

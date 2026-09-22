@@ -11,11 +11,14 @@ import {
   Power,
   Globe,
   X,
+  Plus,
+  ExternalLink,
 } from 'lucide-react';
 import { usePlatformTenants } from '../hooks/usePlatformTenants';
 import { useTenantImpersonate, useToggleTenantStatus } from '../hooks/useTenantImpersonate';
 import TenantStatusBadge from '../components/TenantStatusBadge';
 import ImpersonateConfirmModal from '../components/ImpersonateConfirmModal';
+import CreateClinicModal from '../components/CreateClinicModal';
 import { Card, CardHeader, CardTitle, CardContent, CardFooter } from '../../../components/ui/Card';
 import Button from '../../../components/ui/Button';
 
@@ -25,6 +28,7 @@ export default function PlatformTenantsListPage() {
   const [debouncedSearch, setDebouncedSearch] = useState('');
   const [status, setStatus] = useState('all');
   const [impersonateTenant, setImpersonateTenant] = useState(null);
+  const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
 
   // Debounce search input by 300ms
   useEffect(() => {
@@ -77,6 +81,16 @@ export default function PlatformTenantsListPage() {
             {isLoading && <Loader2 className="h-3.5 w-3.5 text-clinic-600 animate-spin ml-1" />}
           </p>
         </div>
+
+        {/* Action Button: Provision New Clinic */}
+        <Button
+          variant="primary"
+          onClick={() => setIsCreateModalOpen(true)}
+          leftIcon={<Plus className="h-4 w-4 shrink-0" />}
+          className="bg-clinic-600 hover:bg-clinic-700 text-white text-xs sm:text-sm font-bold shadow-sm cursor-pointer px-4 py-2.5"
+        >
+          إضافة عيادة جديدة (Provision Clinic)
+        </Button>
       </div>
 
       {/* Filters Bar */}
@@ -189,6 +203,18 @@ export default function PlatformTenantsListPage() {
 
                       <td className="py-4 px-6 text-right">
                         <div className="inline-flex items-center gap-2">
+                          {/* Direct Clinic Workspace Link */}
+                          <a
+                            href={`http://${t.domain}:5173`}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            title="Open Clinic Workspace in New Tab"
+                            className="inline-flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg border border-clinic-200 bg-clinic-50/60 hover:bg-clinic-100 text-clinic-700 text-xs font-semibold shadow-xs transition-colors cursor-pointer"
+                          >
+                            <ExternalLink className="h-3.5 w-3.5" />
+                            <span>زيارة العيادة</span>
+                          </a>
+
                           <button
                             type="button"
                             onClick={() => handleToggleStatus(t)}
@@ -276,6 +302,12 @@ export default function PlatformTenantsListPage() {
         onClose={() => setImpersonateTenant(null)}
         onConfirm={handleConfirmImpersonate}
         isPending={isImpersonating}
+      />
+
+      {/* Create Clinic Modal */}
+      <CreateClinicModal
+        isOpen={isCreateModalOpen}
+        onClose={() => setIsCreateModalOpen(false)}
       />
     </div>
   );
