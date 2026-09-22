@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Activity, Mail, Lock, LogIn, AlertCircle } from 'lucide-react';
 import { loginApi } from '../../services/authService';
+import { setAuthToken } from '../../services/api';
 import { useBranchContext } from '../../context/BranchContext';
 import BranchSelectionModal from '../../components/modals/BranchSelectionModal';
 import Button from '../../components/ui/Button';
@@ -36,10 +37,15 @@ export default function LoginPage() {
     setError('');
     setIsLoading(true);
 
+
     try {
       const data = await loginApi(email, password);
+      if (data?.token) {
+        setAuthToken(data.token);
+      }
       const userData = data?.user || null;
       setLoggedInUser(userData);
+      
 
       const result = processLoginData(data);
 
