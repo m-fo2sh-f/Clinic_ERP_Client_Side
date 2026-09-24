@@ -26,17 +26,28 @@ const echo = new Echo({
     authorizer: (channel, options) => {
         return {
             authorize: (socketId, callback) => {
-                api.post('/broadcasting/auth', {
+                const payload = {
                     socket_id: socketId,
                     channel_name: channel.name
-                })
-                .then(response => {
-                    callback(false, response.data);
-                })
-                .catch(error => {
-                    console.error('WebSocket broadcasting auth error:', error);
-                    callback(true, error);
-                });
+                };
+
+                // Try /api/v1/broadcasting/auth first (CSRF-exempt and API scoped), fallback to /broadcasting/auth
+                api.post('/broadcasting/auth', payload)
+                    .then(response => {
+                        callback(false, response.data);
+                    })
+                    .catch(error => {
+                        if (error.response?.status === 404) {
+                            return api.post(authEndpoint, payload)
+                                .then(response => callback(false, response.data))
+                                .catch(fallbackErr => {
+                                    console.error('WebSocket broadcasting auth error (fallback):', fallbackErr);
+                                    callback(true, fallbackErr);
+                                });
+                        }
+                        console.error('WebSocket broadcasting auth error:', error);
+                        callback(true, error);
+                    });
             }
         };
     }

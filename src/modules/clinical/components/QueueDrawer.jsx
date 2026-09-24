@@ -21,13 +21,18 @@ import Badge from '../../../components/ui/Badge';
  * @param {boolean} props.isCallingNext   – Mutation pending state
  */
 export default function QueueDrawer({
-  queueItems,
+  queueItems = [],
   waitingItems,
-  queueLoading,
+  activeQueueItem,
+  queueLoading = false,
   onClose,
   onNextPatient,
-  isCallingNext,
+  isCallingNext = false,
 }) {
+  const safeWaitingItems = Array.isArray(waitingItems)
+    ? waitingItems
+    : (Array.isArray(queueItems) ? queueItems.filter((item) => item?.status === 'checked_in') : []);
+
   return (
     <div className="fixed inset-0 z-40 flex justify-end no-print">
       {/* Backdrop */}
@@ -46,7 +51,7 @@ export default function QueueDrawer({
               Live Waiting Queue
             </h3>
             <Badge variant="success" className="text-xs font-bold">
-              {waitingItems.length} Waiting
+              {safeWaitingItems.length} Waiting
             </Badge>
           </div>
           <button

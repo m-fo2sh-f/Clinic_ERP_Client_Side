@@ -163,6 +163,7 @@ export default function DoctorDashboard() {
       {isQueueOpen && (
         <QueueDrawer
           queueItems={queueItems}
+          waitingItems={waitingItems}
           activeQueueItem={activeQueueItem}
           queueLoading={queueLoading}
           onClose={() => setIsQueueOpen(false)}
