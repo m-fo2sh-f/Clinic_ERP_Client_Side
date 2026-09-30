@@ -1,4 +1,4 @@
-/**
+﻿/**
  * Normalizes user roles into a clean array of role strings.
  * Handles strings, arrays, or objects returned by backend APIs.
  */
@@ -20,17 +20,18 @@ export const hasRole = (user, roleName) => {
 
 /**
  * Determines the primary dashboard route for a given user.
- * - Doctor -> '/doctor'
- * - Receptionist, Tenant Admin, Clinic Owner -> '/dashboard'
+ * - Doctor or Clinic Owner in Solo mode -> '/doctor'
+ * - Receptionist, Tenant Admin, Clinic Owner in Polyclinic -> '/dashboard'
  */
-export const getRoleDefaultRoute = (user) => {
+export const getRoleDefaultRoute = (user, activeBranch = null) => {
   if (!user) return '/login';
   if (user.is_super_admin) {
     return '/platform';
   }
   const roles = getUserRoles(user);
+  const isSolo = activeBranch?.clinic_mode === 'solo';
   
-  if (roles.includes('doctor')) {
+  if (roles.includes('doctor') || (isSolo && roles.includes('clinic_owner'))) {
     return '/doctor';
   }
   return '/dashboard';

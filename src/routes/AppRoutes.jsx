@@ -4,6 +4,7 @@ import { Route, Routes, Navigate } from 'react-router-dom';
 import LoginPage from '../pages/auth/LoginPage';
 import ReceptionistDashboard from '../modules/queue/pages/ReceptionistDashboard';
 import DoctorDashboard from '../modules/clinical/pages/DoctorDashboard';
+import SoloWorkspaceView from '../modules/clinical/pages/SoloWorkspaceView';
 import PatientsPage from '../modules/patients/pages/PatientsPage';
 import ClinicSettingsPage from '../modules/clinic-settings/pages/ClinicSettingsPage';
 import WaitingRoomDisplay from '../modules/queue/pages/WaitingRoomDisplay';
@@ -39,7 +40,7 @@ function AppRoutes() {
   }, []);
 
   const RootRedirect = () => {
-    const { user, loading } = useBranchContext();
+    const { user, loading, activeBranch } = useBranchContext();
 
     if (loading) {
       return (
@@ -56,7 +57,12 @@ function AppRoutes() {
       return <Navigate to="/login" replace />;
     }
 
-    return <Navigate to={getRoleDefaultRoute(user)} replace />;
+    return <Navigate to={getRoleDefaultRoute(user, activeBranch)} replace />;
+  };
+
+  const DoctorRouteElement = () => {
+    const { clinicMode } = useBranchContext();
+    return clinicMode === 'solo' ? <SoloWorkspaceView /> : <DoctorDashboard />;
   };
 
   return (
@@ -112,13 +118,13 @@ function AppRoutes() {
           }
         />
 
-        {/* Doctor Dashboard - Protected */}
+        {/* Doctor Dashboard / Solo Workspace - Protected */}
         <Route
           path="/doctor"
           element={
             <ProtectedRoute allowedRoles={['doctor', 'tenant_admin', 'clinic_owner']}>
               <DashboardLayout>
-                <DoctorDashboard />
+                <DoctorRouteElement />
               </DashboardLayout>
             </ProtectedRoute>
           }

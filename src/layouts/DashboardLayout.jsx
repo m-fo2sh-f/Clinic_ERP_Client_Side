@@ -36,13 +36,29 @@ export default function DashboardLayout({ children }) {
 
   const location = useLocation();
 
-  const dashboardPath = getRoleDefaultRoute(currentUser);
+  const isSolo = activeBranch?.clinic_mode === 'solo';
+  const dashboardPath = getRoleDefaultRoute(currentUser, activeBranch);
   const userRolesDisplay = getUserRoles(currentUser).map(r => r.replace('_', ' ')).join(', ') || 'User';
 
   const menuItems = [
-    { name: 'Dashboard', icon: LayoutDashboard, href: dashboardPath, active: location.pathname === '/dashboard' || location.pathname === '/doctor' },
-    { name: 'Patients Directory', icon: Users, href: '/patients', active: location.pathname === '/patients' },
-    { name: 'Services & Pricing', icon: Settings, href: '/settings', active: location.pathname === '/settings' },
+    {
+      name: isSolo ? 'Clinical Workspace' : 'Dashboard',
+      icon: LayoutDashboard,
+      href: dashboardPath,
+      active: location.pathname === '/dashboard' || location.pathname === '/doctor',
+    },
+    {
+      name: 'Patients Directory',
+      icon: Users,
+      href: '/patients',
+      active: location.pathname === '/patients',
+    },
+    {
+      name: 'Services & Pricing',
+      icon: Settings,
+      href: '/settings',
+      active: location.pathname === '/settings',
+    },
   ];
 
   const handleLogout = async () => {
@@ -84,9 +100,16 @@ export default function DashboardLayout({ children }) {
 
         {/* Sidebar Footer Info */}
         <div className="p-4 border-t border-slate-850 bg-slate-950/40 text-xs text-slate-500 space-y-2">
-          <div className="flex items-center gap-1.5 text-[10px] font-mono text-slate-400 bg-slate-800/50 p-2 rounded-md border border-slate-800">
-            <Key className="h-3.5 w-3.5 text-clinic-400" />
-            <span className="truncate">Active Branch: {activeBranch?.name}</span>
+          <div className="flex items-center justify-between text-[10px] font-mono text-slate-400 bg-slate-800/50 p-2 rounded-md border border-slate-800">
+            <div className="flex items-center gap-1.5 truncate">
+              <Key className="h-3.5 w-3.5 text-clinic-400 shrink-0" />
+              <span className="truncate">{activeBranch?.name}</span>
+            </div>
+            <span className={`px-1.5 py-0.5 rounded text-[9px] font-bold uppercase ${
+              isSolo ? 'bg-clinic-500/20 text-clinic-300' : 'bg-indigo-500/20 text-indigo-300'
+            }`}>
+              {isSolo ? 'Solo' : 'Polyclinic'}
+            </span>
           </div>
           <div className="text-center text-[10px] text-slate-650">
             v1.2.0-beta.1 (Multi-tenant)

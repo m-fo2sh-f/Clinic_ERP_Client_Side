@@ -80,7 +80,20 @@ export const BranchProvider = ({ children }) => {
     }
   };
 
-  const activeBranch = branches.find(b => b.id === selectedBranchId) || branches[0] || { name: 'No Branch Selected', id: '' };
+  const activeBranch = branches.find(b => b.id === selectedBranchId) || branches[0] || { name: 'No Branch Selected', id: '', clinic_mode: 'solo' };
+  const clinicMode = activeBranch?.clinic_mode || 'solo';
+  const vitalsConfig = Array.isArray(activeBranch?.vitals_config) && activeBranch.vitals_config.length > 0
+    ? activeBranch.vitals_config
+    : [
+        { key: 'bp_systolic', label: 'Blood Pressure (Systolic)', unit: 'mmHg', type: 'number' },
+        { key: 'bp_diastolic', label: 'Blood Pressure (Diastolic)', unit: 'mmHg', type: 'number' },
+        { key: 'heart_rate', label: 'Heart Rate', unit: 'bpm', type: 'number' },
+        { key: 'temperature', label: 'Body Temperature', unit: '°C', type: 'number', step: '0.1' },
+        { key: 'respiratory_rate', label: 'Respiratory Rate', unit: 'bpm', type: 'number' },
+        { key: 'spo2', label: 'Oxygen Saturation (SpO2)', unit: '%', type: 'number' },
+        { key: 'weight', label: 'Weight', unit: 'kg', type: 'number', step: '0.1' },
+        { key: 'height', label: 'Height', unit: 'cm', type: 'number' },
+      ];
 
   return (
     <BranchContext.Provider value={{
@@ -94,6 +107,10 @@ export const BranchProvider = ({ children }) => {
       setSelectedBranchId: selectBranch,
       selectBranch,
       activeBranch,
+      clinicMode,
+      clinic_mode: clinicMode,
+      vitalsConfig,
+      vitals_config: vitalsConfig,
       processLoginData,
       logout
     }}>

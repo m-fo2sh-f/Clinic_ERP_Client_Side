@@ -16,6 +16,8 @@ import {
   RefreshCw,
   Copy,
   Check,
+  Stethoscope,
+  Users,
 } from 'lucide-react';
 import {
   Dialog,
@@ -55,6 +57,7 @@ export default function CreateClinicModal({ isOpen, onClose }) {
   const [formData, setFormData] = useState({
     clinic_name: '',
     subdomain: '',
+    clinic_mode: 'solo',
     admin_name: '',
     admin_email: '',
     admin_password: '',
@@ -76,6 +79,7 @@ export default function CreateClinicModal({ isOpen, onClose }) {
       setFormData({
         clinic_name: '',
         subdomain: '',
+        clinic_mode: 'solo',
         admin_name: '',
         admin_email: '',
         admin_password: generatePassword(),
@@ -151,11 +155,15 @@ export default function CreateClinicModal({ isOpen, onClose }) {
 
     createTenant(formData, {
       onSuccess: (res) => {
-        setCreatedTenant(res?.data || {
+        const tenantData = res?.data || {};
+        const sub = tenantData.id || formData.subdomain;
+        setCreatedTenant({
+          ...tenantData,
           clinic_name: formData.clinic_name,
-          subdomain: formData.subdomain,
-          domain: `${formData.subdomain}.localhost`,
-          url: `http://${formData.subdomain}.localhost:5173`,
+          subdomain: sub,
+          clinic_mode: formData.clinic_mode,
+          domain: `${sub}.localhost`,
+          url: `http://${sub}.localhost:5173`,
           owner_email: formData.admin_email,
         });
       },
@@ -372,8 +380,72 @@ export default function CreateClinicModal({ isOpen, onClose }) {
               <div className="mt-1.5 p-2 bg-slate-50 border border-slate-200/80 rounded-lg flex items-center justify-between text-[11px]">
                 <span className="text-slate-500 font-medium">رابط العيادة المباشر:</span>
                 <span className="font-mono font-bold text-clinic-700 flex items-center gap-1">
-                  <span>http://${previewDomain}</span>
+                  <span>http://{previewDomain}</span>
                 </span>
+              </div>
+            </div>
+
+            {/* Clinic Mode Selection (Solo vs Polyclinic) */}
+            <div>
+              <label className="block text-xs font-bold text-slate-700 mb-1.5">
+                نمط تشغيل العيادة (Clinic Mode) <span className="text-rose-500">*</span>
+              </label>
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
+                <div
+                  onClick={() => !isPending && setFormData((prev) => ({ ...prev, clinic_mode: 'solo' }))}
+                  className={`p-3 rounded-xl border-2 transition-all cursor-pointer flex flex-col justify-between ${
+                    formData.clinic_mode === 'solo'
+                      ? 'border-clinic-600 bg-clinic-50/50 shadow-xs'
+                      : 'border-slate-200 bg-white hover:border-slate-300'
+                  }`}
+                >
+                  <div className="flex items-center justify-between mb-1.5">
+                    <div className="flex items-center gap-2">
+                      <div className={`p-1.5 rounded-lg ${formData.clinic_mode === 'solo' ? 'bg-clinic-600 text-white' : 'bg-slate-100 text-slate-600'}`}>
+                        <Stethoscope className="h-4 w-4" />
+                      </div>
+                      <span className="font-bold text-xs text-slate-900">طبيب فردي (Solo)</span>
+                    </div>
+                    <input
+                      type="radio"
+                      name="clinic_mode"
+                      checked={formData.clinic_mode === 'solo'}
+                      onChange={() => {}}
+                      className="text-clinic-600 focus:ring-clinic-500 cursor-pointer"
+                    />
+                  </div>
+                  <p className="text-[11px] text-slate-500 leading-relaxed">
+                    كشف ومتابعة مباشرة، مساحة عمل متكاملة للطبيب مع تحصيل فوري دون حاجة لمكتب استقبال.
+                  </p>
+                </div>
+
+                <div
+                  onClick={() => !isPending && setFormData((prev) => ({ ...prev, clinic_mode: 'polyclinic' }))}
+                  className={`p-3 rounded-xl border-2 transition-all cursor-pointer flex flex-col justify-between ${
+                    formData.clinic_mode === 'polyclinic'
+                      ? 'border-clinic-600 bg-clinic-50/50 shadow-xs'
+                      : 'border-slate-200 bg-white hover:border-slate-300'
+                  }`}
+                >
+                  <div className="flex items-center justify-between mb-1.5">
+                    <div className="flex items-center gap-2">
+                      <div className={`p-1.5 rounded-lg ${formData.clinic_mode === 'polyclinic' ? 'bg-clinic-600 text-white' : 'bg-slate-100 text-slate-600'}`}>
+                        <Users className="h-4 w-4" />
+                      </div>
+                      <span className="font-bold text-xs text-slate-900">مجمع عيادات (Polyclinic)</span>
+                    </div>
+                    <input
+                      type="radio"
+                      name="clinic_mode"
+                      checked={formData.clinic_mode === 'polyclinic'}
+                      onChange={() => {}}
+                      className="text-clinic-600 focus:ring-clinic-500 cursor-pointer"
+                    />
+                  </div>
+                  <p className="text-[11px] text-slate-500 leading-relaxed">
+                    مكتب استقبال، إدارة طابور انتظار، غرف كشف متعددة، وإدارة مواعيد مجدولة.
+                  </p>
+                </div>
               </div>
             </div>
 
