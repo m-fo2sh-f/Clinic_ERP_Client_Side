@@ -31,7 +31,7 @@ export default function DoctorDashboard() {
   const doctorId = user?.id;
 
   // â”€â”€ Session Recovery: Active In-Progress Encounter â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
-  const { data: activeEncounterData } = useQuery({
+  const { data: activeEncounterData, isLoading: encounterLoading } = useQuery({
     queryKey: ['encounter', 'active', doctorId, branchId],
     queryFn: async () => {
       const res = await getActiveEncounter(branchId);
