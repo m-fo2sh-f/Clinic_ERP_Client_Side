@@ -41,7 +41,7 @@ export function useQueueWebSocket(branchId, onPatientCalled, isPublic = false) {
         }
 
         const channel = isPublic
-            ? echo.channel(`live-queue.${branchId}`)
+            ? echo.channel(`public-queue.${branchId}`)
             : echo.private(`live-queue.${branchId}`);
 
         channelRef.current = channel;

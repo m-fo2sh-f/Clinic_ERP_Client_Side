@@ -1,7 +1,7 @@
 import { useState, useMemo, useRef, useEffect, useCallback } from 'react';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { DIAGNOSIS_DICTIONARY } from '../../../constants/medicalDiagnoses';
-import { consultationService } from '../../../services/consultationService';
+import { completeEncounter } from '../api/encounterApi';
 import { markQueryInvalidated, debouncedInvalidate } from '../../../utils/invalidationTracker';
 
 /**
@@ -201,20 +201,22 @@ export default function useDoctorConsultation() {
 }
 
 /**
- * React Query mutation for completing a doctor consultation.
+ * React Query mutation for completing a doctor encounter.
  * Submits the full clinical payload and invalidates all related caches on success.
  */
 export function useCompleteConsultationMutation() {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: (payload) => consultationService.completeConsultation(payload),
+    mutationFn: ({ encounterId, ...payload }) => completeEncounter(encounterId, payload),
     onMutate: () => markQueryInvalidated(),
     onSuccess: (_data, variables) => {
       markQueryInvalidated();
       debouncedInvalidate(queryClient, [
+        ['encounter', 'active'],
         ['liveQueue'],
         ['appointments'],
+        ['invoices', 'pending'],
         ['patientHistory', variables.patient_id],
       ], 100);
     },

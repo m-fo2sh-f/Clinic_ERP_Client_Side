@@ -26,6 +26,32 @@ export const completeEncounter = async (encounterId, payload) => {
 };
 
 /**
+ * Retrieve doctor's active in-progress encounter for session recovery.
+ */
+export const getActiveEncounter = async (branchId) => {
+  const response = await api.get('/encounters/active', {
+    params: { branch_id: branchId },
+  });
+  return response.data;
+};
+
+/**
+ * Abandon active encounter when patient is absent / no-show.
+ */
+export const abandonEncounter = async (encounterId, reason = null) => {
+  const response = await api.post(`/encounters/${encounterId}/abandon`, { reason });
+  return response.data;
+};
+
+/**
+ * Cancel a checked-in queue item when patient walks away.
+ */
+export const cancelQueueItem = async (queueId, reason = null) => {
+  const response = await api.patch(`/live-queues/${queueId}/cancel`, { reason });
+  return response.data;
+};
+
+/**
  * Get aggregated summary of today's encounters for the active branch/doctor.
  */
 export const getTodaySummary = async (branchId) => {

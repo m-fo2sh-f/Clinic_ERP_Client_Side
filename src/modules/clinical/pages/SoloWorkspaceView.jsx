@@ -1,23 +1,19 @@
-import React, { useState, useEffect, useCallback, useMemo } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import {
   UserSearch,
   UserPlus,
   Calendar,
-  Save,
   CheckCircle2,
-  AlertCircle,
   Plus,
   Trash2,
   Pill,
   Stethoscope,
-  FileText,
   CreditCard,
   User,
   ShieldAlert,
   HeartPulse,
-  Printer,
-  ChevronDown,
   RotateCcw,
+  X,
 } from 'lucide-react';
 import { useBranchContext } from '../../../context/BranchContext';
 import Button from '../../../components/ui/Button';
@@ -35,7 +31,7 @@ import {
 import api from '../../../services/api';
 
 export default function SoloWorkspaceView() {
-  const { activeBranch, user, vitalsConfig } = useBranchContext();
+  const { activeBranch, vitalsConfig } = useBranchContext();
   const branchId = activeBranch?.id;
 
   // ── 1. Encounter & Patient State ──────────────────────────────
@@ -145,7 +141,7 @@ export default function SoloWorkspaceView() {
     };
   }, [chiefComplaint, clinicalExamination, diagnoses, vitals, privateNotes]);
 
-  const { isSaving, lastSavedAt, saveNow, cancelPendingDrafts } = useEncounterDraft(
+  const { isSaving, lastSavedAt, cancelPendingDrafts } = useEncounterDraft(
     activeEncounter?.id,
     getFormData,
     activeEncounter?.status === 'completed'
@@ -272,7 +268,7 @@ export default function SoloWorkspaceView() {
         payments,
       };
 
-      const res = await completeEncounter(activeEncounter.id, payload);
+      await completeEncounter(activeEncounter.id, payload);
       setIsCheckoutModalOpen(false);
       setActionNotice({ type: 'success', text: 'تم إنهاء الكشف وإصدار الفاتورة والروشتة بنجاح!' });
 
@@ -296,6 +292,15 @@ export default function SoloWorkspaceView() {
 
   return (
     <div className="space-y-6">
+      {actionNotice && (
+        <div className="p-3 bg-emerald-50 border border-emerald-200 text-emerald-800 rounded-xl text-xs font-semibold flex items-center justify-between">
+          <span>{actionNotice.text}</span>
+          <button onClick={() => setActionNotice(null)} className="text-emerald-600 hover:text-emerald-900 cursor-pointer">
+            <X className="h-4 w-4" />
+          </button>
+        </div>
+      )}
+
       {/* ── Top Bar: Quick Actions & Live Patient Search ──────── */}
       <div className="bg-white border border-slate-200/90 rounded-2xl p-4 shadow-xs flex flex-col md:flex-row items-center justify-between gap-4">
         {/* Search Autocomplete */}
@@ -757,10 +762,10 @@ export default function SoloWorkspaceView() {
           initFormWithEncounter(enc, enc.patient);
           setIsTodayDrawerOpen(false);
         }}
-        onPrintPrescription={(enc) => {
+        onPrintPrescription={() => {
           window.print();
         }}
-        onPrintInvoice={(enc) => {
+        onPrintInvoice={() => {
           window.print();
         }}
       />

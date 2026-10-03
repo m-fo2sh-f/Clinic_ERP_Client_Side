@@ -1,76 +1,105 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState } from 'react';
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import {
-  CreditCard,
   Plus,
   Loader2,
   CheckCircle2,
   Trash2,
-  Sparkles,
   Receipt,
 } from 'lucide-react';
 import financialApi from '../../../services/financialApi';
 
 export default function DoctorBillableServices({
   appointmentId,
+  queueId,
+  encounterId,
   branchId,
+  isEncounterLoading = false,
 }) {
-  const [invoice, setInvoice] = useState(null);
-  const [services, setServices] = useState([]);
-  const [loading, setLoading] = useState(false);
-  const [addingServiceId, setAddingServiceId] = useState(null);
-  const [removingItemId, setRemovingItemId] = useState(null);
+  const queryClient = useQueryClient();
+  const [actionError, setActionError] = useState(null);
 
-  const loadData = useCallback(async () => {
-    if (!branchId || !appointmentId) return;
-    try {
-      setLoading(true);
-      const [servicesData, invoiceData] = await Promise.all([
-        financialApi.getBranchServices(branchId),
-        financialApi.getInvoiceForAppointment(appointmentId),
-      ]);
+  // If encounter query is currently in flight and we don't have encounterId yet, wait for it to stabilize
+  const isResolvingIdentifier = isEncounterLoading && !encounterId;
 
-      setServices((servicesData || []).filter((s) => s.code !== 'CONSULTATION'));
-      setInvoice(invoiceData);
-    } catch (err) {
-      console.error('Failed to load billable services or invoice for doctor:', err);
-    } finally {
-      setLoading(false);
-    }
-  }, [branchId, appointmentId]);
+  // Determine prioritized identifier
+  const identifierType = encounterId
+    ? 'encounter'
+    : queueId
+    ? 'queue'
+    : appointmentId
+    ? 'appointment'
+    : null;
 
-  useEffect(() => {
-    loadData();
-  }, [loadData]);
+  const identifierId = encounterId || queueId || appointmentId;
+  const hasIdentifier = Boolean(identifierId) && !isResolvingIdentifier;
 
-  const handleAddService = async (serviceId) => {
-    if (!invoice?.id || !serviceId) return;
-    try {
-      setAddingServiceId(serviceId);
-      const updated = await financialApi.addInvoiceItem(invoice.id, serviceId, 1);
-      setInvoice(updated);
-    } catch (err) {
+  // 1. Branch catalog services query (cached for 10 minutes across renders)
+  const { data: services = [] } = useQuery({
+    queryKey: ['branchServices', branchId],
+    queryFn: async () => {
+      const data = await financialApi.getBranchServices(branchId);
+      return (data || []).filter((s) => s.code !== 'CONSULTATION');
+    },
+    enabled: Boolean(branchId),
+    staleTime: 1000 * 60 * 10, // 10 minutes cache
+  });
+
+  // 2. Invoice query for this encounter / queue item
+  const invoiceQueryKey = ['invoice', identifierType, identifierId];
+  const {
+    data: invoice = null,
+    isLoading: invoiceLoading,
+  } = useQuery({
+    queryKey: invoiceQueryKey,
+    queryFn: async () => {
+      if (encounterId) {
+        return await financialApi.getInvoiceForEncounter(encounterId);
+      }
+      if (queueId) {
+        return await financialApi.getInvoiceForQueue(queueId);
+      }
+      if (appointmentId) {
+        return await financialApi.getInvoiceForAppointment(appointmentId);
+      }
+      return null;
+    },
+    enabled: Boolean(branchId && hasIdentifier),
+    staleTime: 1000 * 30, // 30 seconds freshness
+    retry: 1,
+  });
+
+  // 3. Add Service Item Mutation
+  const addServiceMutation = useMutation({
+    mutationFn: (serviceId) => financialApi.addInvoiceItem(invoice.id, serviceId, 1),
+    onSuccess: (updatedInvoice) => {
+      setActionError(null);
+      queryClient.setQueryData(invoiceQueryKey, updatedInvoice);
+      queryClient.invalidateQueries({ queryKey: ['invoice'] });
+    },
+    onError: (err) => {
       console.error('Failed to add service item:', err);
-      alert(err?.response?.data?.message || 'Failed to add service to invoice.');
-    } finally {
-      setAddingServiceId(null);
-    }
-  };
+      setActionError(err?.response?.data?.message || 'Failed to add service to invoice.');
+    },
+  });
 
-  const handleRemoveService = async (itemId) => {
-    if (!invoice?.id || !itemId) return;
-    try {
-      setRemovingItemId(itemId);
-      const updated = await financialApi.removeInvoiceItem(invoice.id, itemId);
-      setInvoice(updated);
-    } catch (err) {
+  // 4. Remove Service Item Mutation
+  const removeServiceMutation = useMutation({
+    mutationFn: (itemId) => financialApi.removeInvoiceItem(invoice.id, itemId),
+    onSuccess: (updatedInvoice) => {
+      setActionError(null);
+      queryClient.setQueryData(invoiceQueryKey, updatedInvoice);
+      queryClient.invalidateQueries({ queryKey: ['invoice'] });
+    },
+    onError: (err) => {
       console.error('Failed to remove item:', err);
-      alert(err?.response?.data?.message || 'Failed to remove item.');
-    } finally {
-      setRemovingItemId(null);
-    }
-  };
+      setActionError(err?.response?.data?.message || 'Failed to remove item.');
+    },
+  });
 
-  if (!appointmentId) return null;
+  if (!identifierId && !isResolvingIdentifier) return null;
+
+  const loading = invoiceLoading || isResolvingIdentifier;
 
   return (
     <div className="bg-white rounded-2xl border border-slate-200/90 shadow-sm p-5 space-y-4" dir="ltr">
@@ -99,6 +128,12 @@ export default function DoctorBillableServices({
           </div>
         )}
       </div>
+
+      {actionError && (
+        <div className="text-xs text-red-600 bg-red-50 border border-red-200 p-2.5 rounded-xl">
+          {actionError}
+        </div>
+      )}
 
       {loading && !invoice ? (
         <div className="flex items-center justify-center py-6 gap-2 text-xs text-slate-500">
@@ -132,12 +167,12 @@ export default function DoctorBillableServices({
                       {item.service_id && (
                         <button
                           type="button"
-                          onClick={() => handleRemoveService(item.id)}
-                          disabled={removingItemId === item.id}
-                          className="text-slate-400 hover:text-red-600 p-1 rounded-md transition-colors cursor-pointer"
+                          onClick={() => removeServiceMutation.mutate(item.id)}
+                          disabled={removeServiceMutation.isPending && removeServiceMutation.variables === item.id}
+                          className="text-slate-400 hover:text-red-600 p-1 rounded-md transition-colors cursor-pointer disabled:opacity-50"
                           title="Remove item"
                         >
-                          {removingItemId === item.id ? (
+                          {removeServiceMutation.isPending && removeServiceMutation.variables === item.id ? (
                             <Loader2 className="h-3.5 w-3.5 animate-spin" />
                           ) : (
                             <Trash2 className="h-3.5 w-3.5" />
@@ -161,11 +196,11 @@ export default function DoctorBillableServices({
                 <button
                   key={svc.id}
                   type="button"
-                  onClick={() => handleAddService(svc.id)}
-                  disabled={addingServiceId === svc.id}
-                  className="inline-flex items-center gap-2 bg-slate-50 hover:bg-clinic-50 border border-slate-200 hover:border-clinic-400 px-3.5 py-2 rounded-xl text-xs font-bold text-slate-700 hover:text-clinic-700 transition-all cursor-pointer shadow-2xs hover:shadow-xs"
+                  onClick={() => addServiceMutation.mutate(svc.id)}
+                  disabled={addServiceMutation.isPending && addServiceMutation.variables === svc.id}
+                  className="inline-flex items-center gap-2 bg-slate-50 hover:bg-clinic-50 border border-slate-200 hover:border-clinic-400 px-3.5 py-2 rounded-xl text-xs font-bold text-slate-700 hover:text-clinic-700 transition-all cursor-pointer shadow-2xs hover:shadow-xs disabled:opacity-50"
                 >
-                  {addingServiceId === svc.id ? (
+                  {addServiceMutation.isPending && addServiceMutation.variables === svc.id ? (
                     <Loader2 className="h-4 w-4 animate-spin text-clinic-600" />
                   ) : (
                     <Plus className="h-4 w-4 text-clinic-600" />
@@ -178,8 +213,6 @@ export default function DoctorBillableServices({
               ))}
             </div>
           </div>
-
-
         </>
       )}
     </div>

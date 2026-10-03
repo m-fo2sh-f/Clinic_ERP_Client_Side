@@ -10,6 +10,7 @@ import { useAppointmentsQuery } from '../../appointments/hooks/useAppointments';
 import { useQueueWebSocket } from '../hooks/useQueueWebSocket';
 import useBilling from '../../billing/hooks/useBilling';
 import PendingPaymentsDrawer from '../../billing/components/PendingPaymentsDrawer';
+import ErrorBoundary from '../../../components/ui/ErrorBoundary';
 
 export default function ReceptionistDashboard() {
   const { activeBranch } = useBranchContext();
@@ -128,33 +129,41 @@ export default function ReceptionistDashboard() {
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
         {/* COLUMN 1: CONTROL DESK & STATS */}
         <div className="lg:col-span-12 xl:col-span-3 space-y-6">
-          <QuickActions
-            stats={stats}
-            patients={patients}
-          />
+          <ErrorBoundary title="خطأ في الإجراءات السريعة">
+            <QuickActions
+              stats={stats}
+              patients={patients}
+            />
+          </ErrorBoundary>
         </div>
 
         {/* COLUMN 2: BOOKINGS LIST */}
         <div className="lg:col-span-6 xl:col-span-4">
-          <BookingList
-            bookings={bookings}
-            branchName={branchName}
-          />
+          <ErrorBoundary title="خطأ في جدول الحجوزات">
+            <BookingList
+              bookings={bookings}
+              branchName={branchName}
+            />
+          </ErrorBoundary>
         </div>
 
         {/* COLUMN 3: LIVE WAITING QUEUE */}
         <div className="lg:col-span-6 xl:col-span-5">
-          <LiveQueue onPaymentSuccess={() => refetchPending()} />
+          <ErrorBoundary title="خطأ في صالة الانتظار الحية">
+            <LiveQueue onPaymentSuccess={() => refetchPending()} />
+          </ErrorBoundary>
         </div>
       </div>
 
       {/* Slide-over Pending Payments Drawer */}
-      <PendingPaymentsDrawer
-        isOpen={isPaymentsOpen}
-        onClose={() => setIsPaymentsOpen(false)}
-        pendingInvoices={pendingInvoices}
-        onPaymentSuccess={() => refetchPending()}
-      />
+      <ErrorBoundary title="خطأ في سداد الفواتير">
+        <PendingPaymentsDrawer
+          isOpen={isPaymentsOpen}
+          onClose={() => setIsPaymentsOpen(false)}
+          pendingInvoices={pendingInvoices}
+          onPaymentSuccess={() => refetchPending()}
+        />
+      </ErrorBoundary>
     </div>
   );
 }

@@ -67,31 +67,60 @@ api.interceptors.request.use(
   (error) => Promise.reject(error)
 );
 
-// Response Interceptor: handle session expiry and unauthorized cross-tenant access
+// Response Interceptor: handle session expiry, branch errors, and human-readable feedback
 api.interceptors.response.use(
   (response) => response,
   (error) => {
     if (error.response) {
       const { status, data } = error.response;
 
-      // لو الباك إند رفض الريكويست بسبب عدم التبعية للعيادة
-      if (
-        status === 403 &&
-        (data?.code === 'TENANT_ACCESS_DENIED' || data?.code === 'TENANT_BRANCH_UNASSIGNED')
-      ) {
-        clearTenantSession();
-        if (window.location.pathname !== '/login') {
-          window.location.href = '/login';
-        }
-        return Promise.reject(error);
-      }
+      let humanMessage = data?.message;
 
-      // لو التوكن غير صالح أو انتهت صلاحيته
+      // 401 Unauthorized
       if (status === 401) {
         clearTenantSession();
+        humanMessage = humanMessage || 'انتهت صلاحية الجلسة، يرجى تسجيل الدخول مرة أخرى.';
         if (window.location.pathname !== '/login') {
           window.location.href = '/login';
         }
+      }
+      // 403 Forbidden / Branch IDOR
+      else if (status === 403) {
+        humanMessage = humanMessage || 'عذراً، ليس لديك صلاحية للوصول إلى هذا السجل أو هذا الفرع.';
+        if (data?.code === 'TENANT_ACCESS_DENIED' || data?.code === 'TENANT_BRANCH_UNASSIGNED') {
+          clearTenantSession();
+          if (window.location.pathname !== '/login') {
+            window.location.href = '/login';
+          }
+        }
+      }
+      // 409 Conflict
+      else if (status === 409) {
+        humanMessage = humanMessage || 'لديك كشف مفتوح بالفعل أو تعارض في العملية، يرجى التحقق.';
+      }
+      // 422 Unprocessable Content
+      else if (status === 422) {
+        humanMessage = humanMessage || 'بيانات الإدخال غير صالحة أو غير مكتملة.';
+      }
+      // 500 Internal Server Error
+      else if (status >= 500) {
+        humanMessage = humanMessage || 'حدث خطأ غير متوقع في الخادم، تم تسجيل المشكلة وجارٍ التعامل معها.';
+      }
+
+      error.userMessage = humanMessage;
+
+      // Dispatch global custom event for notification handling
+      if (typeof window !== 'undefined') {
+        window.dispatchEvent(
+          new CustomEvent('app:api-error', {
+            detail: {
+              status,
+              message: humanMessage,
+              errorCode: data?.error_code || data?.code,
+              details: data?.details || [],
+            },
+          })
+        );
       }
     }
 

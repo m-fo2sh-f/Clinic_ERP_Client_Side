@@ -16,6 +16,9 @@ export default function ManageInvoiceServicesModal({
   isOpen,
   onClose,
   appointmentId,
+  queueId,
+  encounterId,
+  queueItem,
   branchId,
   onUpdated,
 }) {
@@ -43,7 +46,11 @@ export default function ManageInvoiceServicesModal({
 
   // Fetch invoice & branch services catalog on open
   useEffect(() => {
-    if (!isOpen || !appointmentId) {
+    const effectiveApptId = appointmentId || queueItem?.appointment_id;
+    const effectiveQueueId = queueId || queueItem?.id;
+    const effectiveEncounterId = encounterId || queueItem?.encounter_id;
+
+    if (!isOpen || (!effectiveApptId && !effectiveQueueId && !effectiveEncounterId)) {
       setInvoice(null);
       clearMessages();
       setSelectedServiceId('');
@@ -57,12 +64,20 @@ export default function ManageInvoiceServicesModal({
       clearMessages();
 
       try {
-        const inv = await financialApi.getInvoiceForAppointment(appointmentId);
+        let inv = null;
+        if (effectiveQueueId) {
+          inv = await financialApi.getInvoiceForQueue(effectiveQueueId);
+        } else if (effectiveEncounterId) {
+          inv = await financialApi.getInvoiceForEncounter(effectiveEncounterId);
+        } else if (effectiveApptId) {
+          inv = await financialApi.getInvoiceForAppointment(effectiveApptId);
+        }
+
         if (isMounted) {
           setInvoice(inv);
         }
 
-        const effectiveBranchId = branchId || inv?.branch_id;
+        const effectiveBranchId = branchId || queueItem?.branch_id || inv?.branch_id;
         if (effectiveBranchId) {
           const services = await financialApi.getBranchServices(effectiveBranchId);
           if (isMounted) {
@@ -88,7 +103,7 @@ export default function ManageInvoiceServicesModal({
     return () => {
       isMounted = false;
     };
-  }, [isOpen, appointmentId, branchId]);
+  }, [isOpen, appointmentId, queueId, encounterId, queueItem, branchId]);
 
   if (!isOpen) return null;
 

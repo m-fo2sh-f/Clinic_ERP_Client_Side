@@ -25,6 +25,16 @@ export const financialApi = {
     return response.data?.data || null;
   },
 
+  getInvoiceForQueue: async (queueId) => {
+    const response = await api.get(`/invoices/live-queue/${queueId}`);
+    return response.data?.data || null;
+  },
+
+  getInvoiceForEncounter: async (encounterId) => {
+    const response = await api.get(`/invoices/encounter/${encounterId}`);
+    return response.data?.data || null;
+  },
+
   addInvoiceItem: async (invoiceId, serviceId, quantity = 1) => {
     const response = await api.post(`/invoices/${invoiceId}/items`, {
       service_id: serviceId,

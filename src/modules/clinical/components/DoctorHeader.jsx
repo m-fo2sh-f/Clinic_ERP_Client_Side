@@ -8,6 +8,8 @@ import {
   Siren,
   PanelRightClose,
   PanelRightOpen,
+  UserX,
+  Check,
 } from 'lucide-react';
 import Button from '../../../components/ui/Button';
 import Badge from '../../../components/ui/Badge';
@@ -26,6 +28,10 @@ export default function DoctorHeader({
   onToggleQueue,
   onNextPatient,
   isCallingNext,
+  isNextDisabled = false,
+  onAbandon = null,
+  isAbandoning = false,
+  saveStatus = null,
 }) {
   const displayBranch = branchName || activeBranchName || 'Main Branch';
   const displayActivePatient = activeQueueItem || activePatient;
@@ -103,6 +109,32 @@ export default function DoctorHeader({
             </Badge>
           </Button>
 
+          {/* Persistent Save Status Indicator */}
+          {saveStatus && (
+            <div className="hidden lg:flex items-center gap-1.5 text-xs text-slate-500 font-medium px-2 py-1 bg-slate-50 rounded-lg border border-slate-200/60">
+              <Check className="h-3 w-3 text-emerald-500" />
+              <span>{saveStatus}</span>
+            </div>
+          )}
+
+          {/* Patient Absent / Abandon Button */}
+          {onAbandon && displayActivePatient && (
+            <Button
+              id="btn-abandon-patient"
+              variant="outline"
+              size="sm"
+              onClick={onAbandon}
+              isLoading={isAbandoning}
+              loadingText="Abandoning..."
+              leftIcon={<UserX className="h-3.5 w-3.5 text-rose-500 shrink-0" />}
+              className="border-rose-200 text-rose-700 hover:bg-rose-50 hover:border-rose-300 font-semibold text-xs shadow-xs cursor-pointer"
+              title="Mark patient as absent / no-show and cancel encounter"
+            >
+              <span className="hidden sm:inline">Patient Absent</span>
+              <span className="sm:hidden">Absent</span>
+            </Button>
+          )}
+
           {/* Call next patient */}
           <Button
             id="btn-next-patient-header"
@@ -110,10 +142,12 @@ export default function DoctorHeader({
             size="sm"
             onClick={onNextPatient}
             isLoading={isCallingNext}
+            disabled={isNextDisabled || isCallingNext}
             loadingText="Calling..."
             leftIcon={<Siren className="h-4 w-4 shrink-0" />}
             rightIcon={<ChevronRight className="h-4 w-4 shrink-0" />}
-            className="bg-clinic-600 hover:bg-clinic-700 text-white font-bold shadow-sm px-4 cursor-pointer"
+            className="bg-clinic-600 hover:bg-clinic-700 disabled:opacity-50 disabled:cursor-not-allowed text-white font-bold shadow-sm px-4 cursor-pointer"
+            title={isNextDisabled ? 'Please complete or abandon the current active encounter first' : 'Call next patient'}
           >
             <span className="hidden sm:inline">Call Next Patient</span>
             <span className="sm:hidden">Next</span>

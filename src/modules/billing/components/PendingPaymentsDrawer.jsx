@@ -103,7 +103,7 @@ export default function PendingPaymentsDrawer({
                   <div className="flex items-center gap-1.5 text-slate-700">
                     <Stethoscope className="h-3.5 w-3.5 text-clinic-600 shrink-0" />
                     <span className="font-medium">
-                      Doctor: {inv.appointment?.doctor?.name || 'Clinic Doctor'}
+                      Doctor: {inv.appointment?.doctor?.name || inv.encounter?.doctor?.name || 'Clinic Doctor'}
                     </span>
                   </div>
 

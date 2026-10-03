@@ -19,8 +19,6 @@ export default function PaymentCheckoutModal({
   const [splitVisa, setSplitVisa] = useState('');
   const [splitRef, setSplitRef] = useState('');
 
-  if (!isOpen) return null;
-
   // Calculate items total
   const { itemsList, subtotal } = useMemo(() => {
     let sum = Number(consultationFee) || 0;
@@ -110,6 +108,8 @@ export default function PaymentCheckoutModal({
       payments: paymentsPayload,
     });
   };
+
+  if (!isOpen) return null;
 
   return (
     <div className="fixed inset-0 z-50 overflow-y-auto bg-slate-900/60 backdrop-blur-xs flex items-center justify-center p-4 animate-fadeIn">

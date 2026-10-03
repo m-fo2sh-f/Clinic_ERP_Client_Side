@@ -90,9 +90,18 @@ export const resetTenantUserPasswordApi = async (tenantId, userId, data) => {
 };
 
 /**
+ * Create a new tenant branch
+ */
+export const createTenantBranchApi = async (tenantId, data) => {
+  const response = await api.post(`/platform/tenants/${tenantId}/branches`, data);
+  return response.data?.data;
+};
+
+/**
  * Update tenant branch details (name, address, phone, is_active)
  */
 export const updateTenantBranchApi = async (tenantId, branchId, data) => {
   const response = await api.put(`/platform/tenants/${tenantId}/branches/${branchId}`, data);
   return response.data?.data;
 };
+

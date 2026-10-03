@@ -6,7 +6,9 @@ import { markQueryInvalidated, debouncedInvalidate } from '../../../utils/invali
 export const queueKeys = {
     all: ['liveQueue'],
     lists: () => [...queueKeys.all, 'list'],
-    list: (branchId, doctorId) => [...queueKeys.lists(), { branchId, doctorId }]
+    list: (branchId, doctorId) => [...queueKeys.lists(), { branchId, doctorId }],
+    publicLists: () => [...queueKeys.all, 'public'],
+    publicList: (branchId, doctorId) => [...queueKeys.publicLists(), { branchId, doctorId }],
 };
 
 /**
@@ -44,7 +46,7 @@ export const useLiveQueueQuery = (branchId, doctorId) => {
  */
 export const usePublicLiveQueueQuery = (branchId, doctorId) => {
     return useQuery({
-        queryKey: queueKeys.list(branchId, doctorId),
+        queryKey: queueKeys.publicList(branchId, doctorId),
         queryFn: async () => {
             try {
                 const response = await api.get('/public/live-queues', {
@@ -60,6 +62,7 @@ export const usePublicLiveQueueQuery = (branchId, doctorId) => {
         },
         enabled: !!branchId,
         staleTime: 1000 * 5,
+        refetchInterval: 10000, // 10s fallback polling for public TV displays
     });
 };
 
@@ -86,6 +89,21 @@ export const useDeleteQueueMutation = () => {
 
     return useMutation({
         mutationFn: (id) => api.delete(`/live-queues/${id}`),
+        onMutate: () => markQueryInvalidated(),
+        onSuccess: () => {
+            invalidateAfterMutation(queryClient);
+        },
+    });
+};
+
+/**
+ * Cancel patient from live queue (walk-away / left)
+ */
+export const useCancelQueueMutation = () => {
+    const queryClient = useQueryClient();
+
+    return useMutation({
+        mutationFn: ({ id, reason }) => api.patch(`/live-queues/${id}/cancel`, { reason }),
         onMutate: () => markQueryInvalidated(),
         onSuccess: () => {
             invalidateAfterMutation(queryClient);
