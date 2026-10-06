@@ -1,46 +1,86 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect } from 'react';
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import echo from '../../../services/echo';
 import financialApi from '../../../services/financialApi';
 
+export const serviceKeys = {
+  all: ['branchServices'],
+  branch: (branchId) => [...serviceKeys.all, branchId],
+};
+
+export const billingKeys = {
+  all: ['pendingInvoices'],
+  pending: (branchId) => [...billingKeys.all, branchId],
+};
+
+/**
+ * TanStack Query hook to fetch pending invoices for a branch.
+ */
+export function usePendingInvoicesQuery(branchId) {
+  return useQuery({
+    queryKey: billingKeys.pending(branchId),
+    queryFn: async () => {
+      if (!branchId) return [];
+      const data = await financialApi.getPendingInvoices(branchId);
+      return data || [];
+    },
+    enabled: !!branchId,
+    staleTime: 1000 * 5, // 5s stale time
+  });
+}
+
+/**
+ * TanStack Query hook to fetch available branch services.
+ * Master catalog rarely changes — cached for 30 minutes with no refetch on focus or mount.
+ */
+export function useBranchServicesQuery(branchId) {
+  return useQuery({
+    queryKey: serviceKeys.branch(branchId),
+    queryFn: async () => {
+      if (!branchId) return [];
+      const data = await financialApi.getBranchServices(branchId);
+      return data || [];
+    },
+    enabled: !!branchId,
+    staleTime: 1000 * 60 * 30, // 30 minutes cache
+    gcTime: 1000 * 60 * 60, // 1 hour garbage collection retention
+    refetchOnWindowFocus: false,
+    refetchOnMount: false,
+  });
+}
+
+/**
+ * TanStack Query mutation to process payment and automatically invalidate
+ * billing, live queue, and appointment queries.
+ */
+export function useProcessPaymentMutation() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async ({ invoiceId, payments }) => {
+      return await financialApi.processPayment(invoiceId, payments);
+    },
+    onSuccess: () => {
+      // 1. Invalidate pending invoices drawer
+      queryClient.invalidateQueries({ queryKey: billingKeys.all });
+      // 2. Invalidate live queue so patient is immediately updated or removed
+      queryClient.invalidateQueries({ queryKey: ['liveQueue'] });
+      // 3. Invalidate appointments list
+      queryClient.invalidateQueries({ queryKey: ['appointments'] });
+    },
+  });
+}
+
+/**
+ * Combined useBilling hook for ReceptionistDashboard and billing drawers.
+ * Upgraded to TanStack Query v5 with automatic WebSocket cache synchronization.
+ */
 export function useBilling(branchId) {
-  const [pendingInvoices, setPendingInvoices] = useState([]);
-  const [services, setServices] = useState([]);
-  const [isLoading, setIsLoading] = useState(false);
-  const [servicesLoading, setServicesLoading] = useState(false);
+  const queryClient = useQueryClient();
   const [newInvoiceAlert, setNewInvoiceAlert] = useState(null);
 
-  // Fetch pending invoices for the branch
-  const fetchPending = useCallback(async () => {
-    if (!branchId) return;
-    try {
-      setIsLoading(true);
-      const data = await financialApi.getPendingInvoices(branchId);
-      setPendingInvoices(data);
-    } catch (err) {
-      console.error('Failed to fetch pending invoices:', err);
-    } finally {
-      setIsLoading(false);
-    }
-  }, [branchId]);
-
-  // Fetch available services catalog
-  const fetchServices = useCallback(async () => {
-    if (!branchId) return;
-    try {
-      setServicesLoading(true);
-      const data = await financialApi.getBranchServices(branchId);
-      setServices(data);
-    } catch (err) {
-      console.error('Failed to fetch branch services:', err);
-    } finally {
-      setServicesLoading(false);
-    }
-  }, [branchId]);
-
-  useEffect(() => {
-    fetchPending();
-    fetchServices();
-  }, [fetchPending, fetchServices]);
+  const pendingQuery = usePendingInvoicesQuery(branchId);
+  const servicesQuery = useBranchServicesQuery(branchId);
 
   // WebSocket real-time listener on private-branch.{branchId}
   useEffect(() => {
@@ -53,66 +93,42 @@ export function useBilling(branchId) {
     channel.listen('.invoice.ready_for_payment', (e) => {
       console.log('🔔 [WebSocket] New Invoice Ready for Payment received:', e);
       setNewInvoiceAlert(e);
-      // Play subtle chime sound if possible
       try {
         const audio = new Audio('/sounds/chime.mp3');
         audio.play().catch(() => {});
       } catch (_) {}
 
-      // Add or update in list
-      setPendingInvoices((prev) => {
-        const exists = prev.some((inv) => String(inv.id) === String(e.invoice_id));
-        if (exists) {
-          return prev.map((inv) =>
-            String(inv.id) === String(e.invoice_id)
-              ? {
-                  ...inv,
-                  total: e.total,
-                  subtotal: e.subtotal,
-                  items: e.items,
-                }
-              : inv
-          );
-        }
-        return [
-          {
-            id: e.invoice_id,
-            invoice_number: e.invoice_number,
-            appointment_id: e.appointment_id,
-            patient: { name: e.patient_name, id: e.patient_id },
-            appointment: { doctor: { name: e.doctor_name } },
-            total: e.total,
-            subtotal: e.subtotal,
-            items: e.items,
-            created_at: e.created_at,
-          },
-          ...prev,
-        ];
-      });
+      // Immediately invalidate React Query cache
+      queryClient.invalidateQueries({ queryKey: billingKeys.all });
+      queryClient.invalidateQueries({ queryKey: ['liveQueue'] });
+      queryClient.invalidateQueries({ queryKey: ['appointments'] });
     });
 
     // 2. Listener for paid invoice
     channel.listen('.invoice.paid', (e) => {
       console.log('✅ [WebSocket] Invoice Paid event received:', e);
-      setPendingInvoices((prev) =>
-        prev.filter((inv) => String(inv.id) !== String(e.invoice_id))
-      );
+      // Immediately invalidate React Query cache
+      queryClient.invalidateQueries({ queryKey: billingKeys.all });
+      queryClient.invalidateQueries({ queryKey: ['liveQueue'] });
+      queryClient.invalidateQueries({ queryKey: ['appointments'] });
     });
 
     return () => {
       channel.stopListening('.invoice.ready_for_payment');
       channel.stopListening('.invoice.paid');
     };
-  }, [branchId]);
+  }, [branchId, queryClient]);
+
+  const pendingInvoices = pendingQuery.data || [];
 
   return {
     pendingInvoices,
     pendingCount: pendingInvoices.length,
-    isLoading,
-    services,
-    servicesLoading,
-    refetchPending: fetchPending,
-    refetchServices: fetchServices,
+    isLoading: pendingQuery.isLoading,
+    services: servicesQuery.data || [],
+    servicesLoading: servicesQuery.isLoading,
+    refetchPending: pendingQuery.refetch,
+    refetchServices: servicesQuery.refetch,
     newInvoiceAlert,
     clearAlert: () => setNewInvoiceAlert(null),
   };

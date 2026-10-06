@@ -11,6 +11,7 @@ import {
 } from 'lucide-react';
 import financialApi from '../../../services/financialApi';
 import useInvoiceItems from '../hooks/useInvoiceItems';
+import { useBranchServicesQuery } from '../hooks/useBilling';
 
 export default function ManageInvoiceServicesModal({
   isOpen,
@@ -23,8 +24,10 @@ export default function ManageInvoiceServicesModal({
   onUpdated,
 }) {
   const [invoice, setInvoice] = useState(null);
-  const [availableServices, setAvailableServices] = useState([]);
   const [isLoading, setIsLoading] = useState(false);
+
+  const effectiveBranchId = branchId || queueItem?.branch_id || invoice?.branch_id;
+  const { data: availableServices = [] } = useBranchServicesQuery(isOpen ? effectiveBranchId : null);
 
   const {
     selectedServiceId,
@@ -75,14 +78,6 @@ export default function ManageInvoiceServicesModal({
 
         if (isMounted) {
           setInvoice(inv);
-        }
-
-        const effectiveBranchId = branchId || queueItem?.branch_id || inv?.branch_id;
-        if (effectiveBranchId) {
-          const services = await financialApi.getBranchServices(effectiveBranchId);
-          if (isMounted) {
-            setAvailableServices(services || []);
-          }
         }
       } catch (err) {
         console.error('Error loading invoice services:', err);

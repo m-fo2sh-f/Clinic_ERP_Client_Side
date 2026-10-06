@@ -34,7 +34,7 @@ export default function DoctorBillableServices({
   const identifierId = encounterId || queueId || appointmentId;
   const hasIdentifier = Boolean(identifierId) && !isResolvingIdentifier;
 
-  // 1. Branch catalog services query (cached for 10 minutes across renders)
+  // 1. Branch catalog services query (cached for 30 minutes across renders)
   const { data: services = [] } = useQuery({
     queryKey: ['branchServices', branchId],
     queryFn: async () => {
@@ -42,7 +42,10 @@ export default function DoctorBillableServices({
       return (data || []).filter((s) => s.code !== 'CONSULTATION');
     },
     enabled: Boolean(branchId),
-    staleTime: 1000 * 60 * 10, // 10 minutes cache
+    staleTime: 1000 * 60 * 30, // 30 minutes cache
+    gcTime: 1000 * 60 * 60, // 1 hour memory retention
+    refetchOnWindowFocus: false,
+    refetchOnMount: false,
   });
 
   // 2. Invoice query for this encounter / queue item

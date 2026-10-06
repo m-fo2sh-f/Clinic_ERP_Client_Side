@@ -14,8 +14,10 @@ import {
   Plus,
   Trash2,
 } from 'lucide-react';
+import { useQueryClient } from '@tanstack/react-query';
 import financialApi from '../../../services/financialApi';
 import useInvoiceItems from '../hooks/useInvoiceItems';
+import { useProcessPaymentMutation, useBranchServicesQuery } from '../hooks/useBilling';
 
 export default function PaymentModal({
   invoice: initialInvoice,
@@ -24,7 +26,6 @@ export default function PaymentModal({
   onPaymentSuccess,
 }) {
   const [currentInvoice, setCurrentInvoice] = useState(initialInvoice);
-  const [availableServices, setAvailableServices] = useState([]);
 
   const {
     selectedServiceId,
@@ -47,18 +48,16 @@ export default function PaymentModal({
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [completedInvoice, setCompletedInvoice] = useState(null);
 
+  const queryClient = useQueryClient();
+  const processPaymentMutation = useProcessPaymentMutation();
+
   const activeBranchId = branchId || currentInvoice?.branch_id;
   const appointmentStatus = currentInvoice?.appointment?.status;
   // Can only process payment if appointment reached pending_payment or completed
   const isAllowedToPay = !appointmentStatus || appointmentStatus === 'pending_payment' || appointmentStatus === 'completed';
 
-  // Fetch branch services catalog for adding extra items
-  useEffect(() => {
-    if (!activeBranchId) return;
-    financialApi.getBranchServices(activeBranchId)
-      .then((data) => setAvailableServices(data || []))
-      .catch((err) => console.error('Error fetching services:', err));
-  }, [activeBranchId]);
+  // Branch services catalog retrieved directly from TanStack Query 30-min cache
+  const { data: availableServices = [] } = useBranchServicesQuery(activeBranchId);
 
   const invoiceTotal = Number(currentInvoice?.total || 0);
 
@@ -130,8 +129,17 @@ export default function PaymentModal({
 
     try {
       setIsSubmitting(true);
-      const updated = await financialApi.processPayment(currentInvoice.id, payments);
+      const updated = await processPaymentMutation.mutateAsync({
+        invoiceId: currentInvoice.id,
+        payments,
+      });
       setCompletedInvoice(updated || currentInvoice);
+
+      // Explicitly invalidate all related queries across the UI
+      queryClient.invalidateQueries({ queryKey: ['liveQueue'] });
+      queryClient.invalidateQueries({ queryKey: ['appointments'] });
+      queryClient.invalidateQueries({ queryKey: ['billing'] });
+
       if (onPaymentSuccess) {
         onPaymentSuccess(updated || currentInvoice);
       }

@@ -255,11 +255,10 @@ export default function PrescriptionSheet({
             loadingText="Saving Examination..."
             disabled={isPrescriptionSaved}
             leftIcon={<FileCheck className="h-4 w-4" />}
-            className={`px-6 ${
-              isPrescriptionSaved
+            className={`px-6 ${isPrescriptionSaved
                 ? 'bg-emerald-500 cursor-default'
                 : 'bg-emerald-600 hover:bg-emerald-700'
-            }`}
+              }`}
           >
             <span>{isPrescriptionSaved ? 'Examination Completed ✓' : 'Complete Examination & Save Rx'}</span>
           </Button>

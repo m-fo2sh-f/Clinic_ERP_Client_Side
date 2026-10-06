@@ -1,4 +1,5 @@
 import { useState, useCallback } from 'react';
+import { useQueryClient } from '@tanstack/react-query';
 import financialApi from '../../../services/financialApi';
 
 /**
@@ -11,6 +12,7 @@ import financialApi from '../../../services/financialApi';
  * @param {Function} options.onUpdated   – Optional callback triggered when invoice changes
  */
 export function useInvoiceItems({ invoice, setInvoice, onUpdated } = {}) {
+  const queryClient = useQueryClient();
   const [selectedServiceId, setSelectedServiceId] = useState('');
   const [isAddingItem, setIsAddingItem] = useState(false);
   const [deletingItemId, setDeletingItemId] = useState(null);
@@ -44,6 +46,9 @@ export function useInvoiceItems({ invoice, setInvoice, onUpdated } = {}) {
         setSelectedServiceId('');
         setSuccessMessage('Service added to invoice successfully.');
 
+        queryClient.invalidateQueries({ queryKey: ['billing'] });
+        queryClient.invalidateQueries({ queryKey: ['liveQueue'] });
+
         if (onUpdated) {
           onUpdated(updated || invoice);
         }
@@ -56,7 +61,7 @@ export function useInvoiceItems({ invoice, setInvoice, onUpdated } = {}) {
         setIsAddingItem(false);
       }
     },
-    [invoice, selectedServiceId, setInvoice, onUpdated]
+    [invoice, selectedServiceId, setInvoice, onUpdated, queryClient]
   );
 
   // Remove service item
@@ -76,6 +81,9 @@ export function useInvoiceItems({ invoice, setInvoice, onUpdated } = {}) {
         }
         setSuccessMessage('Item removed successfully.');
 
+        queryClient.invalidateQueries({ queryKey: ['billing'] });
+        queryClient.invalidateQueries({ queryKey: ['liveQueue'] });
+
         if (onUpdated) {
           onUpdated(updated || invoice);
         }
@@ -88,7 +96,7 @@ export function useInvoiceItems({ invoice, setInvoice, onUpdated } = {}) {
         setDeletingItemId(null);
       }
     },
-    [invoice, setInvoice, onUpdated]
+    [invoice, setInvoice, onUpdated, queryClient]
   );
 
   const clearMessages = useCallback(() => {

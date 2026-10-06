@@ -3,6 +3,7 @@ import QuickActions from '../components/QuickActions';
 import BookingList from '../components/BookingList';
 import LiveQueue from '../components/LiveQueue';
 import { Wifi, ShieldCheck, Loader2, Receipt } from 'lucide-react';
+import { useQueryClient } from '@tanstack/react-query';
 import { useBranchContext } from '../../../context/BranchContext';
 
 import { formatDateToYMD } from '../../../utils/dateFormat';
@@ -13,6 +14,7 @@ import PendingPaymentsDrawer from '../../billing/components/PendingPaymentsDrawe
 import ErrorBoundary from '../../../components/ui/ErrorBoundary';
 
 export default function ReceptionistDashboard() {
+  const queryClient = useQueryClient();
   const { activeBranch } = useBranchContext();
   const [targetDate, setTargetDate] = useState(formatDateToYMD(new Date()));
   const [isPaymentsOpen, setIsPaymentsOpen] = useState(false);
@@ -150,7 +152,15 @@ export default function ReceptionistDashboard() {
         {/* COLUMN 3: LIVE WAITING QUEUE */}
         <div className="lg:col-span-6 xl:col-span-5">
           <ErrorBoundary title="خطأ في صالة الانتظار الحية">
-            <LiveQueue onPaymentSuccess={() => refetchPending()} />
+            <LiveQueue
+              onPaymentSuccess={() => {
+                queryClient.invalidateQueries({ queryKey: ['liveQueue'] });
+                queryClient.invalidateQueries({ queryKey: ['appointments'] });
+                queryClient.invalidateQueries({ queryKey: ['billing'] });
+                refetchPending();
+              }}
+              onOpenPayments={() => setIsPaymentsOpen(true)}
+            />
           </ErrorBoundary>
         </div>
       </div>
@@ -161,7 +171,12 @@ export default function ReceptionistDashboard() {
           isOpen={isPaymentsOpen}
           onClose={() => setIsPaymentsOpen(false)}
           pendingInvoices={pendingInvoices}
-          onPaymentSuccess={() => refetchPending()}
+          onPaymentSuccess={() => {
+            queryClient.invalidateQueries({ queryKey: ['liveQueue'] });
+            queryClient.invalidateQueries({ queryKey: ['appointments'] });
+            queryClient.invalidateQueries({ queryKey: ['billing'] });
+            refetchPending();
+          }}
         />
       </ErrorBoundary>
     </div>

@@ -30,7 +30,7 @@ import ManageInvoiceServicesModal from '../../billing/components/ManageInvoiceSe
  * - Stats counter cards and search bar removed per user preference.
  * - Queue reordering is restricted strictly among waiting patients.
  */
-export default function LiveQueue({ onPaymentSuccess }) {
+export default function LiveQueue({ onPaymentSuccess, onOpenPayments }) {
   const { activeBranch } = useBranchContext();
   const branchId = activeBranch?.id;
   const branchName = activeBranch?.name || 'Selected Branch';
@@ -306,7 +306,7 @@ export default function LiveQueue({ onPaymentSuccess }) {
                     <Button
                       variant="default"
                       size="sm"
-                      onClick={() => onPaymentSuccess?.()}
+                      onClick={() => (onOpenPayments ? onOpenPayments() : onPaymentSuccess?.())}
                       leftIcon={<Receipt className="h-3.5 w-3.5 text-white shrink-0" />}
                       className="bg-purple-600 hover:bg-purple-700 text-white text-xs font-bold px-3 py-1.5 rounded-lg shadow-2xs cursor-pointer"
                     >
@@ -407,6 +407,7 @@ export default function LiveQueue({ onPaymentSuccess }) {
         onClose={() => setServicesModalQueueItem(null)}
         onUpdated={() => {
           queryClient.invalidateQueries({ queryKey: ['liveQueue'] });
+          queryClient.invalidateQueries({ queryKey: ['billing'] });
           if (onPaymentSuccess) onPaymentSuccess();
         }}
       />

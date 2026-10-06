@@ -214,6 +214,8 @@ export default function DoctorDashboard() {
   }, [branchId, doctorId, callNextMutation, isNextDisabled, consultation, queryClient]);
 
   const handleCompleteExamination = useCallback(() => {
+    console.log('handleCompleteExamination', activeEncounter);
+    console.log('handleCompleteExamination', activeQueueItem);
     const encounterId = activeEncounter?.id || activeQueueItem?.encounter_id;
     if (!encounterId || completeConsultationMutation.isPending) return;
 
@@ -388,7 +390,7 @@ export default function DoctorDashboard() {
                 followUpDate={consultation.followUpDate}
                 onUpdateFollowUpDate={consultation.setFollowUpDate}
                 isPrescriptionSaved={consultation.isPrescriptionSaved}
-                onSavePrescription={handleCompleteExamination}
+                onCompleteExamination={handleCompleteExamination}
                 isSaving={completeConsultationMutation.isPending}
                 activePatient={activeQueueItem?.patient}
                 doctorName={user?.name || 'Dr.'}
