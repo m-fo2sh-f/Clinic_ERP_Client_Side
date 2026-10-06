@@ -14,8 +14,6 @@ import {
   Plus,
   Trash2,
 } from 'lucide-react';
-import { useQueryClient } from '@tanstack/react-query';
-import financialApi from '../../../services/financialApi';
 import useInvoiceItems from '../hooks/useInvoiceItems';
 import { useProcessPaymentMutation, useBranchServicesQuery } from '../hooks/useBilling';
 
@@ -48,7 +46,6 @@ export default function PaymentModal({
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [completedInvoice, setCompletedInvoice] = useState(null);
 
-  const queryClient = useQueryClient();
   const processPaymentMutation = useProcessPaymentMutation();
 
   const activeBranchId = branchId || currentInvoice?.branch_id;
@@ -98,6 +95,10 @@ export default function PaymentModal({
     e.preventDefault();
     setErrorMessage('');
 
+    if (isSubmitting || processPaymentMutation.isPending) {
+      return;
+    }
+
     if (!isAllowedToPay) {
       setErrorMessage('Invoice cannot be collected before doctor completes the examination and status changes to pending payment.');
       return;
@@ -134,11 +135,6 @@ export default function PaymentModal({
         payments,
       });
       setCompletedInvoice(updated || currentInvoice);
-
-      // Explicitly invalidate all related queries across the UI
-      queryClient.invalidateQueries({ queryKey: ['liveQueue'] });
-      queryClient.invalidateQueries({ queryKey: ['appointments'] });
-      queryClient.invalidateQueries({ queryKey: ['billing'] });
 
       if (onPaymentSuccess) {
         onPaymentSuccess(updated || currentInvoice);
@@ -511,14 +507,14 @@ export default function PaymentModal({
             <div className="flex items-center gap-3 pt-2">
               <button
                 type="submit"
-                disabled={!isExactMatch || isSubmitting || !isAllowedToPay}
+                disabled={!isExactMatch || isSubmitting || processPaymentMutation.isPending || !isAllowedToPay}
                 className={`flex-1 py-3 px-4 rounded-xl font-bold text-xs flex items-center justify-center gap-2 transition-all cursor-pointer ${
-                  isExactMatch && !isSubmitting && isAllowedToPay
+                  isExactMatch && !isSubmitting && !processPaymentMutation.isPending && isAllowedToPay
                     ? 'bg-emerald-600 hover:bg-emerald-700 text-white shadow-md shadow-emerald-600/20'
                     : 'bg-slate-200 text-slate-400 cursor-not-allowed'
                 }`}
               >
-                {isSubmitting ? (
+                {isSubmitting || processPaymentMutation.isPending ? (
                   <>
                     <Loader2 className="h-4 w-4 animate-spin" />
                     <span>Processing Payment...</span>

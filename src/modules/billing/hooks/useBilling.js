@@ -1,7 +1,12 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import echo from '../../../services/echo';
 import financialApi from '../../../services/financialApi';
+import {
+  markQueryInvalidated,
+  shouldSkipWebSocketInvalidate,
+  debouncedInvalidate,
+} from '../../../utils/invalidationTracker';
 
 export const serviceKeys = {
   all: ['branchServices'],
@@ -51,7 +56,7 @@ export function useBranchServicesQuery(branchId) {
 
 /**
  * TanStack Query mutation to process payment and automatically invalidate
- * billing, live queue, and appointment queries.
+ * billing, live queue, and appointment queries via debounced tracker.
  */
 export function useProcessPaymentMutation() {
   const queryClient = useQueryClient();
@@ -60,13 +65,17 @@ export function useProcessPaymentMutation() {
     mutationFn: async ({ invoiceId, payments }) => {
       return await financialApi.processPayment(invoiceId, payments);
     },
+    onMutate: () => {
+      markQueryInvalidated();
+    },
     onSuccess: () => {
-      // 1. Invalidate pending invoices drawer
-      queryClient.invalidateQueries({ queryKey: billingKeys.all });
-      // 2. Invalidate live queue so patient is immediately updated or removed
-      queryClient.invalidateQueries({ queryKey: ['liveQueue'] });
-      // 3. Invalidate appointments list
-      queryClient.invalidateQueries({ queryKey: ['appointments'] });
+      markQueryInvalidated();
+      // Debounce and invalidate all relevant query keys together in ONE shot
+      debouncedInvalidate(
+        queryClient,
+        [billingKeys.all, ['liveQueue'], ['appointments']],
+        150
+      );
     },
   });
 }
@@ -78,6 +87,7 @@ export function useProcessPaymentMutation() {
 export function useBilling(branchId) {
   const queryClient = useQueryClient();
   const [newInvoiceAlert, setNewInvoiceAlert] = useState(null);
+  const channelRef = useRef(null);
 
   const pendingQuery = usePendingInvoicesQuery(branchId);
   const servicesQuery = useBranchServicesQuery(branchId);
@@ -86,36 +96,41 @@ export function useBilling(branchId) {
   useEffect(() => {
     if (!branchId) return;
 
+    if (channelRef.current) {
+      channelRef.current.stopListening('.invoice.ready_for_payment');
+      channelRef.current.stopListening('.invoice.paid');
+    }
+
     const channelName = `branch.${branchId}`;
     const channel = echo.private(channelName);
+    channelRef.current = channel;
 
     // 1. Listener for new invoice ready for payment
     channel.listen('.invoice.ready_for_payment', (e) => {
-      console.log('🔔 [WebSocket] New Invoice Ready for Payment received:', e);
       setNewInvoiceAlert(e);
       try {
         const audio = new Audio('/sounds/chime.mp3');
         audio.play().catch(() => {});
       } catch (_) {}
 
-      // Immediately invalidate React Query cache
-      queryClient.invalidateQueries({ queryKey: billingKeys.all });
-      queryClient.invalidateQueries({ queryKey: ['liveQueue'] });
-      queryClient.invalidateQueries({ queryKey: ['appointments'] });
+      // Suppress WebSocket refetch flood if mutation already ran locally
+      if (!shouldSkipWebSocketInvalidate(3500)) {
+        debouncedInvalidate(queryClient, [billingKeys.all, ['liveQueue'], ['appointments']], 300);
+      }
     });
 
     // 2. Listener for paid invoice
     channel.listen('.invoice.paid', (e) => {
-      console.log('✅ [WebSocket] Invoice Paid event received:', e);
-      // Immediately invalidate React Query cache
-      queryClient.invalidateQueries({ queryKey: billingKeys.all });
-      queryClient.invalidateQueries({ queryKey: ['liveQueue'] });
-      queryClient.invalidateQueries({ queryKey: ['appointments'] });
+      // Suppress WebSocket refetch flood if payment was done locally by this user
+      if (!shouldSkipWebSocketInvalidate(3500)) {
+        debouncedInvalidate(queryClient, [billingKeys.all, ['liveQueue'], ['appointments']], 300);
+      }
     });
 
     return () => {
       channel.stopListening('.invoice.ready_for_payment');
       channel.stopListening('.invoice.paid');
+      channelRef.current = null;
     };
   }, [branchId, queryClient]);
 

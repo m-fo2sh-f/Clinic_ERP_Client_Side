@@ -41,7 +41,9 @@ export default function PatientHistoryModal({
 
   if (!isOpen) return null;
 
-  const appointments = patientHistory?.appointments || [];
+  const appointments = (patientHistory?.encounters && patientHistory.encounters.length > 0)
+    ? patientHistory.encounters
+    : (patientHistory?.appointments || []);
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 sm:p-6 no-print">
@@ -172,8 +174,8 @@ export default function PatientHistoryModal({
                       <div className="flex items-center gap-1.5 text-xs font-bold text-clinic-800 bg-clinic-50 border border-clinic-200 px-2.5 py-1 rounded-lg">
                         <Calendar className="h-3.5 w-3.5 text-clinic-600" />
                         <span>
-                          {appt.appointment_time
-                            ? new Date(appt.appointment_time).toLocaleDateString('en-US', {
+                          {(appt.started_at || appt.appointment_time)
+                            ? new Date(appt.started_at || appt.appointment_time).toLocaleDateString('en-US', {
                                 weekday: 'short',
                                 year: 'numeric',
                                 month: 'short',

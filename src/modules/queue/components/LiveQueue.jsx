@@ -21,6 +21,8 @@ import { useBranchDoctorsQuery } from '../../appointments/hooks/useAppointments'
 import { useBranchContext } from '../../../context/BranchContext';
 import { useQueryClient } from '@tanstack/react-query';
 import ManageInvoiceServicesModal from '../../billing/components/ManageInvoiceServicesModal';
+import { markQueryInvalidated, debouncedInvalidate } from '../../../utils/invalidationTracker';
+import { billingKeys } from '../../billing/hooks/useBilling';
 
 /**
  * LiveQueue — Receptionist live waiting room queue monitor.
@@ -406,9 +408,8 @@ export default function LiveQueue({ onPaymentSuccess, onOpenPayments }) {
         branchId={branchId}
         onClose={() => setServicesModalQueueItem(null)}
         onUpdated={() => {
-          queryClient.invalidateQueries({ queryKey: ['liveQueue'] });
-          queryClient.invalidateQueries({ queryKey: ['billing'] });
-          if (onPaymentSuccess) onPaymentSuccess();
+          markQueryInvalidated();
+          debouncedInvalidate(queryClient, [billingKeys.all, ['liveQueue']], 200);
         }}
       />
     </div>

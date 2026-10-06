@@ -3,7 +3,6 @@ import QuickActions from '../components/QuickActions';
 import BookingList from '../components/BookingList';
 import LiveQueue from '../components/LiveQueue';
 import { Wifi, ShieldCheck, Loader2, Receipt } from 'lucide-react';
-import { useQueryClient } from '@tanstack/react-query';
 import { useBranchContext } from '../../../context/BranchContext';
 
 import { formatDateToYMD } from '../../../utils/dateFormat';
@@ -14,7 +13,6 @@ import PendingPaymentsDrawer from '../../billing/components/PendingPaymentsDrawe
 import ErrorBoundary from '../../../components/ui/ErrorBoundary';
 
 export default function ReceptionistDashboard() {
-  const queryClient = useQueryClient();
   const { activeBranch } = useBranchContext();
   const [targetDate, setTargetDate] = useState(formatDateToYMD(new Date()));
   const [isPaymentsOpen, setIsPaymentsOpen] = useState(false);
@@ -23,7 +21,7 @@ export default function ReceptionistDashboard() {
   const branchName = activeBranch ? activeBranch.name : 'Unknown Branch';
 
   useQueueWebSocket(branchId);
-  const { pendingInvoices, pendingCount, refetchPending } = useBilling(branchId);
+  const { pendingInvoices, pendingCount } = useBilling(branchId);
 
   const { data: appointments = [], isLoading, isError } = useAppointmentsQuery(branchId, targetDate);
 
@@ -153,12 +151,6 @@ export default function ReceptionistDashboard() {
         <div className="lg:col-span-6 xl:col-span-5">
           <ErrorBoundary title="خطأ في صالة الانتظار الحية">
             <LiveQueue
-              onPaymentSuccess={() => {
-                queryClient.invalidateQueries({ queryKey: ['liveQueue'] });
-                queryClient.invalidateQueries({ queryKey: ['appointments'] });
-                queryClient.invalidateQueries({ queryKey: ['billing'] });
-                refetchPending();
-              }}
               onOpenPayments={() => setIsPaymentsOpen(true)}
             />
           </ErrorBoundary>
@@ -171,12 +163,6 @@ export default function ReceptionistDashboard() {
           isOpen={isPaymentsOpen}
           onClose={() => setIsPaymentsOpen(false)}
           pendingInvoices={pendingInvoices}
-          onPaymentSuccess={() => {
-            queryClient.invalidateQueries({ queryKey: ['liveQueue'] });
-            queryClient.invalidateQueries({ queryKey: ['appointments'] });
-            queryClient.invalidateQueries({ queryKey: ['billing'] });
-            refetchPending();
-          }}
         />
       </ErrorBoundary>
     </div>

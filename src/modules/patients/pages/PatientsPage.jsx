@@ -30,16 +30,17 @@ export default function PatientsPage() {
 
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedPatientId, setSelectedPatientId] = useState(null);
+  const [modalTab, setModalTab] = useState('encounters');
 
   // Fetch patient directory
   const { data: patients = [], isLoading, isError } = usePatientsQuery(branchId, searchQuery);
 
   // Fetch detailed record for selected patient
   const { data: patientDetail, isLoading: isDetailLoading } = usePatientDetailQuery(selectedPatientId);
-  console.log('patientDetail', patientDetail);
+
   // Calculated totals
   const totalCompletedVisits = useMemo(() => {
-    return patients.reduce((acc, p) => acc + (p.total_completed_count ?? p.completed_appointments_count ?? 0), 0);
+    return patients.reduce((acc, p) => acc + (p.completed_encounters_count ?? p.total_completed_count ?? p.completed_appointments_count ?? 0), 0);
   }, [patients]);
 
   return (
@@ -187,7 +188,7 @@ export default function PatientsPage() {
 
                       <td className="py-4 px-6 text-center">
                         {(() => {
-                          const visitsCount = patient.total_completed_count ?? patient.completed_appointments_count ?? 0;
+                          const visitsCount = patient.completed_encounters_count ?? patient.total_completed_count ?? patient.completed_appointments_count ?? 0;
                           return (
                             <Badge
                               variant={visitsCount > 0 ? 'success' : 'secondary'}
@@ -228,9 +229,16 @@ export default function PatientsPage() {
               <Stethoscope className="h-6 w-6" />
             </div>
             <div>
-              <DialogTitle className="text-xl font-extrabold text-slate-900 m-0">
-                {patientDetail?.name || 'Patient Medical Profile'}
-              </DialogTitle>
+              <div className="flex items-center gap-2">
+                <DialogTitle className="text-xl font-extrabold text-slate-900 m-0">
+                  {patientDetail?.name || 'Patient Medical Profile'}
+                </DialogTitle>
+                {patientDetail?.mrn && (
+                  <Badge variant="secondary" className="font-mono text-[11px] font-semibold">
+                    {patientDetail.mrn}
+                  </Badge>
+                )}
+              </div>
               <DialogDescription className="text-xs text-slate-500 mt-0.5">
                 Full clinical records & appointment history across branches
               </DialogDescription>
@@ -249,7 +257,7 @@ export default function PatientsPage() {
             {/* Patient Meta Cards */}
             <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
               <div className="bg-slate-50 p-3 rounded-lg border border-slate-100">
-                <span className="text-[10px] font-bold uppercase tracking-wider text-slate-400 block flex items-center gap-1">
+                <span className="text-[10px] font-bold uppercase tracking-wider text-slate-400 flex items-center gap-1">
                   <Calendar className="h-3 w-3" /> Age
                 </span>
                 <span className="text-sm font-extrabold text-slate-800 mt-0.5 block">
@@ -257,7 +265,7 @@ export default function PatientsPage() {
                 </span>
               </div>
               <div className="bg-slate-50 p-3 rounded-lg border border-slate-100">
-                <span className="text-[10px] font-bold uppercase tracking-wider text-slate-400 block flex items-center gap-1">
+                <span className="text-[10px] font-bold uppercase tracking-wider text-slate-400 flex items-center gap-1">
                   <BadgeCheck className="h-3 w-3" /> Gender
                 </span>
                 <span className="text-sm font-extrabold text-slate-800 mt-0.5 block capitalize">
@@ -265,7 +273,7 @@ export default function PatientsPage() {
                 </span>
               </div>
               <div className="bg-slate-50 p-3 rounded-lg border border-slate-100">
-                <span className="text-[10px] font-bold uppercase tracking-wider text-slate-400 block flex items-center gap-1">
+                <span className="text-[10px] font-bold uppercase tracking-wider text-slate-400 flex items-center gap-1">
                   <Phone className="h-3 w-3" /> Phone
                 </span>
                 <span className="text-sm font-extrabold text-slate-800 mt-0.5 block font-mono truncate">
@@ -273,11 +281,11 @@ export default function PatientsPage() {
                 </span>
               </div>
               <div className="bg-slate-50 p-3 rounded-lg border border-slate-100">
-                <span className="text-[10px] font-bold uppercase tracking-wider text-slate-400 block flex items-center gap-1">
+                <span className="text-[10px] font-bold uppercase tracking-wider text-slate-400 flex items-center gap-1">
                   <UserCheck className="h-3 w-3 text-emerald-600" /> Finished Visits
                 </span>
                 <span className="text-sm font-extrabold text-slate-800 mt-0.5 block">
-                  {patientDetail.completed_appointments_count ?? patientDetail.total_completed_count ?? 0}
+                  {patientDetail.completed_encounters_count ?? patientDetail.completed_appointments_count ?? patientDetail.total_completed_count ?? 0}
                 </span>
               </div>
             </div>
@@ -295,53 +303,156 @@ export default function PatientsPage() {
               </div>
             )}
 
-            {/* Visit & Appointment History Timeline */}
-            <div>
-              <h4 className="text-xs font-extrabold uppercase tracking-wider text-slate-700 mb-3 flex items-center gap-1.5">
-                <Clock className="h-4 w-4 text-clinic-600" />
-                Appointment & Consultation History ({patientDetail.appointments?.length || 0})
-              </h4>
+            {/* Visit & Appointment History Tabs */}
+            <div className="space-y-4">
+              <div className="flex items-center gap-2 border-b border-slate-200 pb-2">
+                <button
+                  type="button"
+                  onClick={() => setModalTab('encounters')}
+                  className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold transition-colors cursor-pointer ${
+                    modalTab === 'encounters'
+                      ? 'bg-clinic-50 text-clinic-700 border border-clinic-200 shadow-xs'
+                      : 'text-slate-500 hover:text-slate-800 hover:bg-slate-50'
+                  }`}
+                >
+                  <Stethoscope className="h-3.5 w-3.5" />
+                  الكشوفات والزيارات السريرية ({patientDetail.encounters?.length || 0})
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setModalTab('appointments')}
+                  className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold transition-colors cursor-pointer ${
+                    modalTab === 'appointments'
+                      ? 'bg-clinic-50 text-clinic-700 border border-clinic-200 shadow-xs'
+                      : 'text-slate-500 hover:text-slate-800 hover:bg-slate-50'
+                  }`}
+                >
+                  <Clock className="h-3.5 w-3.5" />
+                  المواعيد الإدارية ({patientDetail.appointments?.length || 0})
+                </button>
+              </div>
 
-              {!patientDetail.appointments?.length ? (
-                <div className="p-8 text-center bg-slate-50 rounded-xl border border-slate-100 text-slate-400 text-xs">
-                  No appointments recorded for this patient.
+              {modalTab === 'encounters' ? (
+                <div>
+                  {!patientDetail.encounters?.length ? (
+                    <div className="p-8 text-center bg-slate-50 rounded-xl border border-slate-100 text-slate-400 text-xs">
+                      لا توجد كشوفات أو زيارات سريرية مسجلة لهذا المريض حتى الآن.
+                    </div>
+                  ) : (
+                    <div className="relative pl-5 border-l-2 border-slate-200 space-y-4 my-2">
+                      {patientDetail.encounters.map((enc) => (
+                        <div key={enc.id} className="relative">
+                          <div className="absolute -left-[27px] top-1.5 h-3.5 w-3.5 rounded-full bg-clinic-600 border-2 border-white ring-2 ring-clinic-100" />
+                          <div className="bg-slate-50/80 p-3.5 rounded-xl border border-slate-200/80 space-y-2 hover:bg-white transition-colors">
+                            <div className="flex items-center justify-between">
+                              <span className="text-xs font-bold text-slate-800 capitalize flex items-center gap-1.5">
+                                <Stethoscope className="h-3.5 w-3.5 text-clinic-600" />
+                                {enc.type?.replace('_', ' ') || 'Consultation'}
+                              </span>
+                              <Badge
+                                variant={
+                                  enc.status === 'completed'
+                                    ? 'success'
+                                    : enc.status === 'in_progress'
+                                      ? 'warning'
+                                      : enc.status === 'canceled'
+                                        ? 'danger'
+                                        : 'secondary'
+                                }
+                                className="text-[10px] font-bold capitalize"
+                              >
+                                {enc.status?.replace('_', ' ')}
+                              </Badge>
+                            </div>
+
+                            <div className="flex flex-wrap items-center gap-x-4 gap-y-1 text-[11px] text-slate-500 font-medium">
+                              <span>🕒 {enc.started_at || enc.completed_at || 'N/A'}</span>
+                              {enc.doctor_name && <span>👨‍⚕️ د. {enc.doctor_name}</span>}
+                              {enc.branch_name && <span>📍 {enc.branch_name}</span>}
+                            </div>
+
+                            {/* Chief Complaint if staff has permission */}
+                            {enc.chief_complaint && (
+                              <p className="text-[11px] text-slate-600 bg-white p-2 rounded border border-slate-100 m-0">
+                                <span className="font-semibold text-slate-700">الشكوى: </span>
+                                {enc.chief_complaint}
+                              </p>
+                            )}
+
+                            {/* Diagnosis if available */}
+                            {enc.diagnosis && (
+                              <p className="text-[11px] text-slate-600 bg-white p-2 rounded border border-slate-100 m-0">
+                                <span className="font-semibold text-slate-700">التشخيص: </span>
+                                {enc.diagnosis}
+                              </p>
+                            )}
+
+                            {/* Linked Invoice status if present */}
+                            {enc.invoice && (
+                              <div className="flex items-center justify-between text-[11px] bg-slate-100/70 px-2.5 py-1.5 rounded-lg border border-slate-200/60">
+                                <span className="font-mono text-slate-600">فاتورة #{enc.invoice.invoice_number}</span>
+                                <div className="flex items-center gap-2">
+                                  <span className="font-bold text-slate-800">{enc.invoice.total} EGP</span>
+                                  <Badge
+                                    variant={enc.invoice.payment_status === 'paid' ? 'success' : 'warning'}
+                                    className="text-[9px] py-0 px-1.5 font-bold uppercase"
+                                  >
+                                    {enc.invoice.payment_status}
+                                  </Badge>
+                                </div>
+                              </div>
+                            )}
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  )}
                 </div>
               ) : (
-                <div className="relative pl-5 border-l-2 border-slate-200 space-y-4 my-2">
-                  {patientDetail.appointments.map((appt) => (
-                    <div key={appt.id} className="relative">
-                      <div className="absolute -left-[27px] top-1.5 h-3.5 w-3.5 rounded-full bg-clinic-600 border-2 border-white ring-2 ring-clinic-100" />
-                      <div className="bg-slate-50/80 p-3.5 rounded-xl border border-slate-200/80 space-y-1 hover:bg-white transition-colors">
-                        <div className="flex items-center justify-between">
-                          <span className="text-xs font-bold text-slate-800 capitalize">
-                            {appt.type?.replace('_', ' ') || 'Consultation'}
-                          </span>
-                          <Badge
-                            variant={
-                              appt.status === 'completed'
-                                ? 'success'
-                                : appt.status === 'under_examination'
-                                  ? 'warning'
-                                  : appt.status === 'checked_in'
-                                    ? 'info'
-                                    : appt.status === 'canceled'
-                                      ? 'danger'
-                                      : 'secondary'
-                            }
-                            className="text-[10px] font-bold capitalize"
-                          >
-                            {appt.status?.replace('_', ' ')}
-                          </Badge>
-                        </div>
-                        <p className="text-[11px] text-slate-500 font-medium m-0">
-                          Scheduled: {appt.appointment_time || 'N/A'}
-                        </p>
-                        {appt.branch_name && (
-                          <p className="text-[10px] text-slate-400 font-medium m-0">📍 Branch: {appt.branch_name}</p>
-                        )}
-                      </div>
+                <div>
+                  {!patientDetail.appointments?.length ? (
+                    <div className="p-8 text-center bg-slate-50 rounded-xl border border-slate-100 text-slate-400 text-xs">
+                      لا توجد مواعيد إدارية مسجلة لهذا المريض.
                     </div>
-                  ))}
+                  ) : (
+                    <div className="relative pl-5 border-l-2 border-slate-200 space-y-4 my-2">
+                      {patientDetail.appointments.map((appt) => (
+                        <div key={appt.id} className="relative">
+                          <div className="absolute -left-[27px] top-1.5 h-3.5 w-3.5 rounded-full bg-slate-400 border-2 border-white ring-2 ring-slate-100" />
+                          <div className="bg-slate-50/80 p-3.5 rounded-xl border border-slate-200/80 space-y-1 hover:bg-white transition-colors">
+                            <div className="flex items-center justify-between">
+                              <span className="text-xs font-bold text-slate-800 capitalize">
+                                {appt.type?.replace('_', ' ') || 'Consultation'}
+                              </span>
+                              <Badge
+                                variant={
+                                  appt.status === 'completed'
+                                    ? 'success'
+                                    : appt.status === 'under_examination'
+                                      ? 'warning'
+                                      : appt.status === 'checked_in'
+                                        ? 'info'
+                                        : appt.status === 'canceled'
+                                          ? 'danger'
+                                          : 'secondary'
+                                }
+                                className="text-[10px] font-bold capitalize"
+                              >
+                                {appt.status?.replace('_', ' ')}
+                              </Badge>
+                            </div>
+                            <p className="text-[11px] text-slate-500 font-medium m-0">
+                              Scheduled: {appt.appointment_time || 'N/A'}
+                            </p>
+                            <div className="flex flex-wrap items-center gap-x-4 gap-y-1 text-[10px] text-slate-400 font-medium">
+                              {appt.doctor_name && <span>👨‍⚕️ د. {appt.doctor_name}</span>}
+                              {appt.branch_name && <span>📍 {appt.branch_name}</span>}
+                            </div>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  )}
                 </div>
               )}
             </div>

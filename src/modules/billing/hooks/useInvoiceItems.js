@@ -1,6 +1,8 @@
 import { useState, useCallback } from 'react';
 import { useQueryClient } from '@tanstack/react-query';
 import financialApi from '../../../services/financialApi';
+import { markQueryInvalidated, debouncedInvalidate } from '../../../utils/invalidationTracker';
+import { billingKeys } from './useBilling';
 
 /**
  * useInvoiceItems — reusable hook to manage adding and removing items/services
@@ -46,8 +48,8 @@ export function useInvoiceItems({ invoice, setInvoice, onUpdated } = {}) {
         setSelectedServiceId('');
         setSuccessMessage('Service added to invoice successfully.');
 
-        queryClient.invalidateQueries({ queryKey: ['billing'] });
-        queryClient.invalidateQueries({ queryKey: ['liveQueue'] });
+        markQueryInvalidated();
+        debouncedInvalidate(queryClient, [billingKeys.all, ['liveQueue'], ['invoice']], 200);
 
         if (onUpdated) {
           onUpdated(updated || invoice);
@@ -81,8 +83,8 @@ export function useInvoiceItems({ invoice, setInvoice, onUpdated } = {}) {
         }
         setSuccessMessage('Item removed successfully.');
 
-        queryClient.invalidateQueries({ queryKey: ['billing'] });
-        queryClient.invalidateQueries({ queryKey: ['liveQueue'] });
+        markQueryInvalidated();
+        debouncedInvalidate(queryClient, [billingKeys.all, ['liveQueue'], ['invoice']], 200);
 
         if (onUpdated) {
           onUpdated(updated || invoice);

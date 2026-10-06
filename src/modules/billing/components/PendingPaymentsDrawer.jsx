@@ -1,5 +1,4 @@
 import React, { useState } from 'react';
-import { useQueryClient } from '@tanstack/react-query';
 import {
   CreditCard,
   Receipt,
@@ -20,7 +19,6 @@ export default function PendingPaymentsDrawer({
   pendingInvoices = [],
   onPaymentSuccess,
 }) {
-  const queryClient = useQueryClient();
   const [selectedInvoice, setSelectedInvoice] = useState(null);
 
   if (!isOpen) return null;
@@ -144,9 +142,6 @@ export default function PendingPaymentsDrawer({
           onClose={() => setSelectedInvoice(null)}
           onPaymentSuccess={(paidInvoice) => {
             setSelectedInvoice(null);
-            queryClient.invalidateQueries({ queryKey: ['liveQueue'] });
-            queryClient.invalidateQueries({ queryKey: ['appointments'] });
-            queryClient.invalidateQueries({ queryKey: ['billing'] });
             if (onPaymentSuccess) {
               onPaymentSuccess(paidInvoice);
             }
