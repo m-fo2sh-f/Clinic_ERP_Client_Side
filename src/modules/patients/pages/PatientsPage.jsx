@@ -22,6 +22,7 @@ import Button from '../../../components/ui/Button';
 import Badge from '../../../components/ui/Badge';
 import { Card, CardHeader, CardTitle, CardContent } from '../../../components/ui/Card';
 import { Dialog, DialogHeader, DialogTitle, DialogDescription, DialogClose } from '../../../components/ui/Dialog';
+import { formatClinicalText } from '../../../utils/clinicalFormat';
 
 export default function PatientsPage() {
   const { activeBranch } = useBranchContext();
@@ -291,14 +292,14 @@ export default function PatientsPage() {
             </div>
 
             {/* Medical History / Chronic Conditions */}
-            {patientDetail.medical_history && (
+            {formatClinicalText(patientDetail.medical_history) && (
               <div className="p-3.5 bg-amber-50 border border-amber-200 rounded-xl space-y-1">
                 <span className="text-xs uppercase font-extrabold text-amber-800 flex items-center gap-1.5">
                   <HeartPulse className="h-4 w-4 text-amber-600 shrink-0" />
                   Medical History & Chronic Conditions
                 </span>
                 <p className="text-xs text-amber-950 font-medium m-0 leading-relaxed">
-                  {patientDetail.medical_history}
+                  {formatClinicalText(patientDetail.medical_history)}
                 </p>
               </div>
             )}
@@ -372,18 +373,18 @@ export default function PatientsPage() {
                             </div>
 
                             {/* Chief Complaint if staff has permission */}
-                            {enc.chief_complaint && (
+                            {formatClinicalText(enc.chief_complaint) && (
                               <p className="text-[11px] text-slate-600 bg-white p-2 rounded border border-slate-100 m-0">
                                 <span className="font-semibold text-slate-700">الشكوى: </span>
-                                {enc.chief_complaint}
+                                {formatClinicalText(enc.chief_complaint)}
                               </p>
                             )}
 
                             {/* Diagnosis if available */}
-                            {enc.diagnosis && (
+                            {formatClinicalText(enc.diagnosis) && (
                               <p className="text-[11px] text-slate-600 bg-white p-2 rounded border border-slate-100 m-0">
                                 <span className="font-semibold text-slate-700">التشخيص: </span>
-                                {enc.diagnosis}
+                                {formatClinicalText(enc.diagnosis)}
                               </p>
                             )}
 

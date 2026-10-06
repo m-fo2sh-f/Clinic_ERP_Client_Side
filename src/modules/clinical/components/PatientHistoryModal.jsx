@@ -19,6 +19,7 @@ import {
 } from 'lucide-react';
 import Badge from '../../../components/ui/Badge';
 import Button from '../../../components/ui/Button';
+import { formatClinicalText } from '../../../utils/clinicalFormat';
 
 /**
  * PatientHistoryModal — comprehensive view of patient's past medical visits,
@@ -191,14 +192,17 @@ export default function PatientHistoryModal({
 
                       {diagnoses.length > 0 && (
                         <div className="flex items-center gap-1">
-                          {diagnoses.map((d, i) => (
-                            <span
-                              key={i}
-                              className="text-[11px] font-semibold bg-amber-50 text-amber-800 border border-amber-200 px-2 py-0.5 rounded"
-                            >
-                              {d}
-                            </span>
-                          ))}
+                          {diagnoses.map((d, i) => {
+                            const label = typeof d === 'object' && d !== null ? d.name || d.title || d.label || JSON.stringify(d) : String(d);
+                            return (
+                              <span
+                                key={i}
+                                className="text-[11px] font-semibold bg-amber-50 text-amber-800 border border-amber-200 px-2 py-0.5 rounded"
+                              >
+                                {label}
+                              </span>
+                            );
+                          })}
                         </div>
                       )}
                     </div>
@@ -273,7 +277,7 @@ export default function PatientHistoryModal({
                             Chief Complaint:
                           </strong>
                           <p className="bg-slate-50 p-2.5 rounded-lg border border-slate-200 text-slate-800 leading-relaxed m-0">
-                            {appt.chief_complaint || 'None recorded'}
+                            {formatClinicalText(appt.chief_complaint) || 'None recorded'}
                           </p>
                         </div>
                         <div>
@@ -281,7 +285,7 @@ export default function PatientHistoryModal({
                             Clinical Examination:
                           </strong>
                           <p className="bg-slate-50 p-2.5 rounded-lg border border-slate-200 text-slate-800 leading-relaxed m-0">
-                            {appt.clinical_examination || 'None recorded'}
+                            {formatClinicalText(appt.clinical_examination) || 'None recorded'}
                           </p>
                         </div>
                       </div>

@@ -27,6 +27,7 @@ export const usePatientsQuery = (branchId, search = '') => {
       return response.data?.data || [];
     },
     enabled: !!branchId,
+    staleTime: 1000 * 60 * 2,
   });
 };
 
@@ -60,6 +61,7 @@ export const usePatientDetailQuery = (patientId) => {
       return response.data?.data || null;
     },
     enabled: !!patientId,
+    staleTime: 1000 * 60 * 2,
   });
 };
 
