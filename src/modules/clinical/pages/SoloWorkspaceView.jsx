@@ -1,6 +1,5 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import {
-  UserSearch,
   UserPlus,
   Calendar,
   CheckCircle2,
@@ -18,13 +17,12 @@ import {
 import { useBranchContext } from '../../../context/BranchContext';
 import Button from '../../../components/ui/Button';
 import DynamicVitalsForm from '../components/DynamicVitalsForm';
-import QuickPatientDrawer from '../components/QuickPatientDrawer';
+import SoloWalkInModal from '../components/SoloWalkInModal';
 import PaymentCheckoutModal from '../components/PaymentCheckoutModal';
 import TodayEncountersDrawer from '../components/TodayEncountersDrawer';
 import useEncounterDraft from '../hooks/useEncounterDraft';
 import { clearEncounterDraft } from '../services/encounterDraftStorage';
 import {
-  searchPatients,
   quickStartEncounter,
   completeEncounter,
   getTodaySummary,
@@ -56,15 +54,10 @@ export default function SoloWorkspaceView() {
   const [consultationFee, setConsultationFee] = useState(150);
 
   // ── 2. Drawers & Modals ───────────────────────────────────────
-  const [isRegisterDrawerOpen, setIsRegisterDrawerOpen] = useState(false);
+  const [isWalkInModalOpen, setIsWalkInModalOpen] = useState(false);
+  const [walkInConflictError, setWalkInConflictError] = useState(null);
   const [isTodayDrawerOpen, setIsTodayDrawerOpen] = useState(false);
   const [isCheckoutModalOpen, setIsCheckoutModalOpen] = useState(false);
-
-  // Search Combobox State
-  const [searchQuery, setSearchQuery] = useState('');
-  const [searchResults, setSearchResults] = useState([]);
-  const [isSearching, setIsSearching] = useState(false);
-  const [isSearchOpen, setIsSearchOpen] = useState(false);
 
   // Today Summary State
   const [todaySummary, setTodaySummary] = useState(null);
@@ -108,28 +101,6 @@ export default function SoloWorkspaceView() {
     fetchServices();
     fetchTodaySummary();
   }, [fetchServices, fetchTodaySummary]);
-
-  // ── 4. Patient Search Debounce ────────────────────────────────
-  useEffect(() => {
-    if (!searchQuery.trim() || searchQuery.trim().length < 2) {
-      setSearchResults([]);
-      return;
-    }
-
-    const timer = setTimeout(async () => {
-      setIsSearching(true);
-      try {
-        const res = await searchPatients(searchQuery.trim());
-        setSearchResults(res.data || []);
-      } catch (err) {
-        console.error('Search error:', err);
-      } finally {
-        setIsSearching(false);
-      }
-    }, 300);
-
-    return () => clearTimeout(timer);
-  }, [searchQuery]);
 
   // ── 5. Form Data Getter for Auto-Save Hook ────────────────────
   const getFormData = useCallback(() => {
@@ -176,6 +147,7 @@ export default function SoloWorkspaceView() {
   const handleStartWalkIn = async (patientPayload) => {
     if (!branchId) return;
     setIsStartingEncounter(true);
+    setWalkInConflictError(null);
     try {
       const res = await quickStartEncounter({
         branch_id: branchId,
@@ -184,34 +156,21 @@ export default function SoloWorkspaceView() {
 
       const enc = res.data;
       initFormWithEncounter(enc, enc.patient);
-      setIsRegisterDrawerOpen(false);
-      setIsSearchOpen(false);
-      setSearchQuery('');
+      setIsWalkInModalOpen(false);
+      setWalkInConflictError(null);
       setActionNotice({ type: 'success', text: 'تم بدء جلسة الكشف بنجاح' });
       fetchTodaySummary();
     } catch (err) {
       if (err.response?.status === 409) {
-        // Patient has active draft -> ask to resume
-        if (window.confirm('المريض لديه جلسة فحص نشطة بالفعل. هل تريد استئناف الجلسة الحالية؟')) {
-          const res = await quickStartEncounter({
-            branch_id: branchId,
-            ...patientPayload,
-            resume_existing: true,
-          });
-          initFormWithEncounter(res.data, res.data.patient);
-          setIsRegisterDrawerOpen(false);
-          setIsSearchOpen(false);
-        }
+        setWalkInConflictError(
+          err.response?.data?.message || 'المريض لديه جلسة فحص نشطة بالفعل اليوم.'
+        );
       } else {
         alert(err.response?.data?.message || 'تعذر بدء جلسة الكشف');
       }
     } finally {
       setIsStartingEncounter(false);
     }
-  };
-
-  const handleSelectExistingPatient = (patient) => {
-    handleStartWalkIn({ patient_id: patient.id });
   };
 
   // ── 7. Medication Item Handlers ───────────────────────────────
@@ -303,83 +262,33 @@ export default function SoloWorkspaceView() {
         </div>
       )}
 
-      {/* ── Top Bar: Quick Actions & Live Patient Search ──────── */}
-      <div className="bg-white border border-slate-200/90 rounded-2xl p-4 shadow-xs flex flex-col md:flex-row items-center justify-between gap-4">
-        {/* Search Autocomplete */}
-        <div className="relative w-full md:w-96">
-          <div className="relative">
-            <UserSearch className="absolute right-3.5 top-3 h-4 w-4 text-slate-400" />
-            <input
-              type="text"
-              value={searchQuery}
-              onFocus={() => setIsSearchOpen(true)}
-              onChange={(e) => {
-                setSearchQuery(e.target.value);
-                setIsSearchOpen(true);
-              }}
-              placeholder="ابحث بالاسم، رقم الهاتف أو الملف الطبي..."
-              className="w-full pr-10 pl-4 py-2.5 text-xs border border-slate-200 rounded-xl focus:ring-2 focus:ring-clinic-500/20 focus:border-clinic-500 outline-none transition-all shadow-2xs"
-            />
+      {/* ── Top Bar: Quick Actions ──────── */}
+      <div className="bg-white border border-slate-200/90 rounded-2xl p-4 shadow-xs flex flex-col sm:flex-row items-center justify-between gap-4">
+        <div className="flex items-center gap-3">
+          <div className="w-10 h-10 rounded-xl bg-clinic-50 text-clinic-600 flex items-center justify-center font-bold">
+            <Stethoscope className="h-5 w-5" />
           </div>
-
-          {/* Autocomplete Dropdown */}
-          {isSearchOpen && searchQuery.trim().length > 1 && (
-            <div className="absolute top-full right-0 left-0 mt-2 bg-white border border-slate-200 rounded-2xl shadow-xl z-30 max-h-72 overflow-y-auto p-1.5 animate-fadeIn">
-              {isSearching ? (
-                <div className="p-4 text-center text-xs text-slate-400">جاري البحث...</div>
-              ) : searchResults.length === 0 ? (
-                <div className="p-4 text-center">
-                  <p className="text-xs text-slate-500 mb-2">لم يتم العثور على مريض بهذا الاسم</p>
-                  <Button
-                    size="sm"
-                    variant="primary"
-                    onClick={() => {
-                      setIsSearchOpen(false);
-                      setIsRegisterDrawerOpen(true);
-                    }}
-                    className="text-xs"
-                  >
-                    تسجيل سريع ومباشر
-                  </Button>
-                </div>
-              ) : (
-                searchResults.map((p) => (
-                  <button
-                    key={p.id}
-                    onClick={() => handleSelectExistingPatient(p)}
-                    className="w-full text-right p-3 hover:bg-slate-50 rounded-xl flex items-center justify-between transition-colors border-b border-slate-100 last:border-0"
-                  >
-                    <div>
-                      <p className="text-xs font-bold text-slate-800">{p.name}</p>
-                      <p className="text-[11px] text-slate-400 font-mono">
-                        {p.phone} • {p.gender === 'male' ? 'ذكر' : 'أنثى'} • {p.age ? `${p.age} سنة` : ''}
-                      </p>
-                    </div>
-                    <span className="text-[10px] font-mono font-bold bg-slate-100 text-slate-600 px-2 py-0.5 rounded-md">
-                      {p.medical_number}
-                    </span>
-                  </button>
-                ))
-              )}
-            </div>
-          )}
+          <div>
+            <h2 className="text-sm font-bold text-slate-800">العيادة الفردية (Solo Practice)</h2>
+            <p className="text-[11px] text-slate-400">إدارة الفحص السريري، الروشتات، والتحصيل الفوري</p>
+          </div>
         </div>
 
         {/* Action Buttons */}
-        <div className="flex items-center gap-2.5 w-full md:w-auto justify-end">
+        <div className="flex items-center gap-2.5 w-full sm:w-auto justify-end">
           <Button
-            variant="outline"
-            onClick={() => setIsRegisterDrawerOpen(true)}
-            className="text-xs gap-2 py-2"
+            variant="primary"
+            onClick={() => setIsWalkInModalOpen(true)}
+            className="text-xs gap-2 py-2 font-bold shadow-xs cursor-pointer"
           >
-            <UserPlus className="h-4 w-4 text-clinic-600" />
-            مريض جديد (Walk-in)
+            <UserPlus className="h-4 w-4" />
+            بدء كشف طبي (Walk-in)
           </Button>
 
           <Button
             variant="secondary"
             onClick={() => setIsTodayDrawerOpen(true)}
-            className="text-xs gap-2 py-2 relative"
+            className="text-xs gap-2 py-2 relative cursor-pointer"
           >
             <Calendar className="h-4 w-4" />
             كشوفات اليوم
@@ -419,11 +328,15 @@ export default function SoloWorkspaceView() {
           </div>
           <h2 className="text-lg font-bold text-slate-800 mb-1">جاهز لبدء كشف طبي جديد</h2>
           <p className="text-xs text-slate-400 max-w-md mx-auto mb-6">
-            ابحث عن مريض مسجل مسبقاً من حقل البحث بالأعلى، أو اضغط على زر مريض جديد لتسجيل بياناته وبدء الكشف فوراً.
+            انقر على الزر بالأسفل للبحث عن مريض سابق بالاسم أو الهاتف، أو تسجيل مريض جديد وبدء الكشف فوراً.
           </p>
-          <Button variant="primary" onClick={() => setIsRegisterDrawerOpen(true)} className="gap-2">
-            <UserPlus className="h-4 w-4" />
-            تسجيل مريض جديد والبدء
+          <Button
+            variant="primary"
+            onClick={() => setIsWalkInModalOpen(true)}
+            className="gap-2 text-sm py-3 px-6 shadow-md font-bold cursor-pointer"
+          >
+            <UserPlus className="h-4.5 w-4.5" />
+            بدء كشف طبي (Walk-in)
           </Button>
         </div>
       ) : (
@@ -747,11 +660,16 @@ export default function SoloWorkspaceView() {
       )}
 
       {/* ── Drawers & Modals ────────────────────────────────────── */}
-      <QuickPatientDrawer
-        isOpen={isRegisterDrawerOpen}
-        onClose={() => setIsRegisterDrawerOpen(false)}
-        onRegisterPatient={handleStartWalkIn}
-        isSubmitting={isStartingEncounter}
+      <SoloWalkInModal
+        isOpen={isWalkInModalOpen}
+        onClose={() => {
+          setIsWalkInModalOpen(false);
+          setWalkInConflictError(null);
+        }}
+        onSubmit={handleStartWalkIn}
+        isLoading={isStartingEncounter}
+        conflictError={walkInConflictError}
+        onClearConflict={() => setWalkInConflictError(null)}
       />
 
       <TodayEncountersDrawer
