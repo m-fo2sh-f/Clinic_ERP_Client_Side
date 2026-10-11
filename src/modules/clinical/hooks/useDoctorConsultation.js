@@ -133,6 +133,16 @@ export default function useDoctorConsultation() {
     setVitals((prev) => ({ ...prev, [field]: value }));
   }, []);
 
+  const updateAllVitals = useCallback((newVitals) => {
+    if (!newVitals || typeof newVitals !== 'object') return;
+    setVitals((prev) => ({ ...prev, ...newVitals }));
+  }, []);
+
+  const setAllClinicalNotes = useCallback((newNotes) => {
+    if (!newNotes || typeof newNotes !== 'object') return;
+    setClinicalNotes((prev) => ({ ...prev, ...newNotes }));
+  }, []);
+
   // ── Advice & Follow-up ──────────────────────────────────────
   const [generalAdvice, setGeneralAdvice] = useState('');
   const [followUpDate, setFollowUpDate] = useState('');
@@ -162,13 +172,18 @@ export default function useDoctorConsultation() {
     // Clinical notes
     clinicalNotes,
     updateClinicalNote,
+    setClinicalNotes,
+    setAllClinicalNotes,
 
     // Vitals
     vitals,
     updateVital,
+    setVitals,
+    updateAllVitals,
 
     // Diagnosis autocomplete
     finalDiagnoses,
+    setFinalDiagnoses,
     diagnosisInput,
     setDiagnosisInput,
     showDiagnosisDropdown,
@@ -181,6 +196,7 @@ export default function useDoctorConsultation() {
 
     // Medications
     medications,
+    setMedications,
     addMedication,
     updateMedication,
     removeMedication,

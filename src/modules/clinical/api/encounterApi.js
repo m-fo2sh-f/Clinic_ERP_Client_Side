@@ -8,14 +8,6 @@ export const quickStartEncounter = async (payload) => {
   return response.data;
 };
 
-/**
- * Save draft encounter state periodically (15s) or on debounce.
- * Accepts an AbortSignal to cancel pending requests on checkout.
- */
-export const saveDraftEncounter = async (encounterId, payload, signal = null) => {
-  const response = await api.patch(`/encounters/${encounterId}/draft`, payload, { signal });
-  return response.data;
-};
 
 /**
  * Finalize consultation: writes diagnoses, prescriptions, and processes payment.

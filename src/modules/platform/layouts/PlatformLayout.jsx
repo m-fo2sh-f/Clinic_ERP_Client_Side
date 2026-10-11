@@ -1,5 +1,5 @@
-import React, { useState } from 'react';
-import { NavLink, Link, useNavigate, useLocation } from 'react-router-dom';
+import React, { useState, useEffect } from 'react';
+import { NavLink, useNavigate, useLocation } from 'react-router-dom';
 import {
   ShieldCheck,
   LayoutDashboard,
@@ -14,14 +14,26 @@ import { useBranchContext } from '../../../context/BranchContext';
 
 export default function PlatformLayout({ children }) {
   const { user, logout } = useBranchContext();
-  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const [isProfileOpen, setIsProfileOpen] = useState(false);
   const navigate = useNavigate();
+  const location = useLocation();
 
   const handleLogout = async () => {
     await logout();
     navigate('/login');
   };
+
+  // Close sidebar on pressing Escape
+  useEffect(() => {
+    const handleKeyDown = (e) => {
+      if (e.key === 'Escape' && isSidebarOpen) {
+        setIsSidebarOpen(false);
+      }
+    };
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [isSidebarOpen]);
 
   const navItems = [
     {
@@ -39,114 +51,108 @@ export default function PlatformLayout({ children }) {
   ];
 
   return (
-    <div className="min-h-screen bg-slate-50 flex">
-      {/* Sidebar for Desktop */}
-      <aside className="hidden md:flex flex-col w-64 bg-slate-900 text-white shrink-0 shadow-lg relative z-20">
-        {/* Brand Logo */}
-        <div className="h-16 px-6 border-b border-slate-800 flex items-center gap-2.5">
-          <div className="bg-clinic-500 text-white p-1.5 rounded-lg">
-            <Activity className="h-6 w-6" />
-          </div>
-          <div>
-            <h1 className="text-base font-bold tracking-tight m-0 text-white">Healios SaaS</h1>
-            <p className="text-[10px] text-clinic-400 font-semibold uppercase tracking-wider">
-              Super Admin Platform
-            </p>
-          </div>
-        </div>
-
-        {/* Sidebar Menu Items */}
-        <nav className="flex-1 px-4 py-6 space-y-1.5">
-          {navItems.map((item) => (
-            <NavLink
-              key={item.to}
-              to={item.to}
-              end={item.end}
-              className={({ isActive }) =>
-                `flex items-center gap-3 px-4 py-3 rounded-lg text-sm font-semibold transition-all ${
-                  isActive
-                    ? 'bg-clinic-600 text-white shadow-md shadow-clinic-600/10'
-                    : 'text-slate-400 hover:bg-slate-800 hover:text-white'
-                }`
-              }
+    <div className="min-h-screen bg-slate-50 flex overflow-x-hidden">
+      {/* 
+        Collapsible Push Sidebar:
+        When open: Takes w-64 of physical layout space and pushes dashboard to the right.
+        When closed: Collapses to w-0, giving dashboard 100% full width.
+        No backdrop/overlay is used.
+      */}
+      <aside
+        className={`bg-slate-900 text-white shrink-0 shadow-xl flex flex-col transition-all duration-300 ease-in-out overflow-hidden z-20 ${
+          isSidebarOpen ? 'w-64 border-r border-slate-800' : 'w-0 border-r-0'
+        }`}
+        aria-hidden={!isSidebarOpen}
+      >
+        <div className="w-64 flex flex-col h-full min-h-screen">
+          {/* Header with Brand & Close Button */}
+          <div className="h-16 px-5 border-b border-slate-800 flex items-center justify-between shrink-0">
+            <div className="flex items-center gap-2.5">
+              <div className="bg-clinic-500 text-white p-1.5 rounded-lg shadow-sm">
+                <Activity className="h-5 w-5" />
+              </div>
+              <div>
+                <h1 className="text-base font-bold tracking-tight m-0 text-white leading-tight">Healios SaaS</h1>
+                <p className="text-[10px] text-clinic-400 font-semibold uppercase tracking-wider m-0">
+                  Super Admin Platform
+                </p>
+              </div>
+            </div>
+            <button
+              onClick={() => setIsSidebarOpen(false)}
+              className="p-1.5 rounded-lg text-slate-400 hover:text-white hover:bg-slate-800 transition-colors cursor-pointer"
+              title="إخفاء القائمة (Collapse)"
             >
-              <item.icon className="h-5 w-5 shrink-0" />
-              <span>{item.label}</span>
-            </NavLink>
-          ))}
-        </nav>
-
-        {/* Sidebar Footer Info */}
-        <div className="p-4 border-t border-slate-850 bg-slate-950/40 text-xs text-slate-500 space-y-2">
-          <div className="flex items-center gap-1.5 text-[10px] font-mono text-slate-400 bg-slate-800/50 p-2 rounded-md border border-slate-800">
-            <ShieldCheck className="h-3.5 w-3.5 text-clinic-400" />
-            <span className="truncate">Central Platform Root</span>
+              <X className="h-4.5 w-4.5" />
+            </button>
           </div>
-          <div className="text-center text-[10px] text-slate-500">
-            v1.2.0-beta.1 (Multi-tenant)
+
+          {/* Sidebar Menu Items */}
+          <nav className="flex-1 px-3.5 py-5 space-y-1.5 overflow-y-auto">
+            {navItems.map((item) => (
+              <NavLink
+                key={item.to}
+                to={item.to}
+                end={item.end}
+                className={({ isActive }) =>
+                  `flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-sm font-semibold transition-all ${
+                    isActive
+                      ? 'bg-clinic-600 text-white shadow-md shadow-clinic-600/20'
+                      : 'text-slate-400 hover:bg-slate-800 hover:text-white'
+                  }`
+                }
+              >
+                <item.icon className="h-5 w-5 shrink-0" />
+                <span>{item.label}</span>
+              </NavLink>
+            ))}
+          </nav>
+
+          {/* Sidebar Footer Info */}
+          <div className="p-4 border-t border-slate-850 bg-slate-950/40 text-xs text-slate-500 space-y-2 shrink-0">
+            <div className="flex items-center gap-1.5 text-[10px] font-mono text-slate-400 bg-slate-800/50 p-2 rounded-md border border-slate-800">
+              <ShieldCheck className="h-3.5 w-3.5 text-clinic-400" />
+              <span className="truncate">Central Platform Root</span>
+            </div>
+            <div className="text-center text-[10px] text-slate-500">
+              v1.2.0-beta.1 (Multi-tenant)
+            </div>
           </div>
         </div>
       </aside>
 
-      {/* Mobile Menu Panel */}
-      {isMobileMenuOpen && (
-        <div className="fixed inset-0 z-40 flex md:hidden">
-          <div
-            className="fixed inset-0 bg-slate-900/60 backdrop-blur-xs"
-            onClick={() => setIsMobileMenuOpen(false)}
-          />
-          <aside className="relative flex flex-col w-64 bg-slate-900 text-white shadow-xl">
-            <div className="h-16 px-6 border-b border-slate-800 flex items-center justify-between">
-              <div className="flex items-center gap-2">
-                <Activity className="h-5 w-5 text-clinic-400" />
-                <span className="font-bold text-white">Healios Platform</span>
-              </div>
-              <button
-                onClick={() => setIsMobileMenuOpen(false)}
-                className="text-slate-400 hover:text-white cursor-pointer"
-              >
-                <X className="h-5 w-5" />
-              </button>
-            </div>
-            <nav className="flex-1 px-4 py-6 space-y-1.5">
-              {navItems.map((item) => (
-                <NavLink
-                  key={item.to}
-                  to={item.to}
-                  end={item.end}
-                  className={({ isActive }) =>
-                    `flex items-center gap-3 px-4 py-3 rounded-lg text-sm font-semibold transition-all ${
-                      isActive
-                        ? 'bg-clinic-600 text-white'
-                        : 'text-slate-400 hover:bg-slate-800 hover:text-white'
-                    }`
-                  }
-                  onClick={() => setIsMobileMenuOpen(false)}
-                >
-                  <item.icon className="h-5 w-5 shrink-0" />
-                  <span>{item.label}</span>
-                </NavLink>
-              ))}
-            </nav>
-            <div className="p-4 border-t border-slate-800 text-[10px] font-mono text-slate-400 bg-slate-950/20">
-              Role: Super Admin Root
-            </div>
-          </aside>
-        </div>
-      )}
-
-      {/* Main Body */}
-      <div className="flex-1 flex flex-col min-w-0 overflow-hidden">
+      {/* Main Dashboard Area: Pushed to the right when sidebar expands */}
+      <div className="flex-1 flex flex-col min-w-0 transition-all duration-300 ease-in-out">
         {/* Header */}
-        <header className="h-16 bg-white border-b border-slate-200/80 px-4 sm:px-6 flex items-center justify-between sticky top-0 z-30">
-          <div className="flex items-center gap-3">
-            {/* Mobile menu trigger */}
+        <header className="h-16 bg-white border-b border-slate-200/80 px-4 sm:px-6 flex items-center justify-between sticky top-0 z-10 shadow-xs">
+          <div className="flex items-center gap-3 sm:gap-4">
+            {/* Sidebar Toggle Button */}
             <button
-              onClick={() => setIsMobileMenuOpen(true)}
-              className="md:hidden p-1.5 rounded-lg text-slate-500 hover:bg-slate-100 active:bg-slate-200 cursor-pointer"
+              onClick={() => setIsSidebarOpen((prev) => !prev)}
+              className={`p-2 rounded-xl transition-all flex items-center gap-2 cursor-pointer border shadow-xs ${
+                isSidebarOpen
+                  ? 'bg-clinic-50 text-clinic-700 border-clinic-200'
+                  : 'bg-slate-50/70 text-slate-700 hover:text-clinic-700 hover:bg-clinic-50/80 border-slate-200'
+              }`}
+              title={isSidebarOpen ? 'إخفاء القائمة الجانبية' : 'إظهار القائمة الجانبية'}
             >
-              <Menu className="h-5.5 w-5.5" />
+              <Menu className="h-5 w-5 text-clinic-600" />
+              <span className="text-xs font-bold hidden sm:inline">
+                {isSidebarOpen ? 'إخفاء القائمة' : 'القائمة'}
+              </span>
             </button>
+
+            {/* Brand Logo & Name (Shown when sidebar is collapsed) */}
+            {!isSidebarOpen && (
+              <div className="flex items-center gap-2 animate-in fade-in duration-200">
+                <div className="bg-clinic-500 text-white p-1.5 rounded-lg shadow-xs">
+                  <Activity className="h-4.5 w-4.5" />
+                </div>
+                <span className="font-extrabold text-sm text-slate-800 tracking-tight hidden md:inline">
+                  Healios Platform
+                </span>
+              </div>
+            )}
 
             {/* Platform Context Indicator */}
             <div className="hidden sm:flex items-center gap-2 text-xs font-semibold text-slate-550 bg-slate-100 border border-slate-200 rounded-lg px-3 py-1.5">
@@ -201,8 +207,8 @@ export default function PlatformLayout({ children }) {
           </div>
         </header>
 
-        {/* Content Container */}
-        <main className="flex-1 overflow-y-auto p-4 sm:p-6 lg:p-8 bg-slate-50">
+        {/* Content Container (Full width) */}
+        <main className="flex-1 overflow-y-auto p-4 sm:p-6 lg:p-8 bg-slate-50 w-full">
           <div className="max-w-7xl mx-auto space-y-6">
             {children}
           </div>

@@ -23,32 +23,55 @@ import { Card, CardHeader, CardTitle, CardContent } from '../../../components/ui
  */
 export default function PrescriptionSheet({
   branchName,
-  medications,
+  clinicName,
+  medications = [],
   onAddMedication,
   onUpdateMedication,
   onRemoveMedication,
-  generalAdvice,
+  generalAdvice = '',
   onGeneralAdviceChange,
-  followUpDate,
+  onUpdateAdvice,
+  followUpDate = '',
   onFollowUpDateChange,
+  onUpdateFollowUpDate,
   isPrescriptionSaved,
   isSubmitting,
+  isSaving,
   onCompleteExamination,
 }) {
   const handlePrint = () => window.print();
+
+  const effectiveBranchName = branchName || clinicName || 'Clinic';
+  const effectiveIsSubmitting = Boolean(isSubmitting || isSaving);
+
+  const handleAdviceChange = (value) => {
+    if (typeof onGeneralAdviceChange === 'function') {
+      onGeneralAdviceChange(value);
+    } else if (typeof onUpdateAdvice === 'function') {
+      onUpdateAdvice(value);
+    }
+  };
+
+  const handleFollowUpChange = (value) => {
+    if (typeof onFollowUpDateChange === 'function') {
+      onFollowUpDateChange(value);
+    } else if (typeof onUpdateFollowUpDate === 'function') {
+      onUpdateFollowUpDate(value);
+    }
+  };
 
   /**
    * Helper to set quick preset follow-up dates (e.g. +7, +14, +30 days)
    */
   const handleQuickFollowUp = (days) => {
     if (days === 0) {
-      onFollowUpDateChange('');
+      handleFollowUpChange('');
       return;
     }
     const d = new Date();
     d.setDate(d.getDate() + days);
     const dateStr = d.toISOString().split('T')[0];
-    onFollowUpDateChange(dateStr);
+    handleFollowUpChange(dateStr);
   };
 
   return (
@@ -77,7 +100,7 @@ export default function PrescriptionSheet({
           <div className="border-b-2 border-clinic-600 pb-4 flex justify-between items-center">
             <div>
               <h2 className="text-xl font-extrabold text-clinic-800 m-0">
-                {branchName}
+                {effectiveBranchName}
               </h2>
               <p className="text-xs text-slate-500 font-semibold mt-0.5 m-0">
                 Official Medical Prescription
@@ -174,7 +197,7 @@ export default function PrescriptionSheet({
             <textarea
               rows={2}
               value={generalAdvice}
-              onChange={(e) => onGeneralAdviceChange(e.target.value)}
+              onChange={(e) => handleAdviceChange(e.target.value)}
               className="w-full px-3.5 py-2.5 text-xs bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-clinic-500 no-print"
               placeholder="e.g. Rest, drink warm fluids, avoid heavy exertion..."
             />
@@ -233,7 +256,7 @@ export default function PrescriptionSheet({
               <input
                 type="date"
                 value={followUpDate || ''}
-                onChange={(e) => onFollowUpDateChange(e.target.value)}
+                onChange={(e) => handleFollowUpChange(e.target.value)}
                 className="px-3.5 py-2 text-xs border border-slate-200 rounded-xl bg-slate-50 font-bold text-slate-800 focus:ring-2 focus:ring-clinic-500 cursor-pointer"
               />
               {followUpDate && (
@@ -251,7 +274,7 @@ export default function PrescriptionSheet({
             variant="default"
             size="md"
             onClick={onCompleteExamination}
-            isLoading={isSubmitting}
+            isLoading={effectiveIsSubmitting}
             loadingText="Saving Examination..."
             disabled={isPrescriptionSaved}
             leftIcon={<FileCheck className="h-4 w-4" />}

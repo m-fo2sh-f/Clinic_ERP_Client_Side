@@ -1,4 +1,4 @@
-import React, { useState, useMemo, useCallback, useEffect } from 'react';
+import React, { useState, useMemo, useCallback, useEffect, useRef } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { useBranchContext } from '../../../context/BranchContext';
 import {
@@ -22,6 +22,15 @@ import EmptyDoctorState from '../components/EmptyDoctorState';
 import PatientHistoryModal from '../components/PatientHistoryModal';
 import DoctorBillableServices from '../components/DoctorBillableServices';
 import ErrorBoundary from '../../../components/ui/ErrorBoundary';
+import {
+  loadEncounterDraft,
+  saveEncounterDraft,
+  clearEncounterDraft,
+  pruneStaleEncounterDrafts,
+  normalizeVitals,
+  hasAnyVitalValue,
+  isDraftEmpty,
+} from '../services/encounterDraftStorage';
 
 export default function DoctorDashboard() {
   const { activeBranch, user } = useBranchContext();
@@ -91,59 +100,113 @@ export default function DoctorDashboard() {
 
   const activeEncounterId = activeEncounter?.id || activeQueueItem?.encounter_id;
 
+  // Prune expired or old session drafts on mount / encounter change
+  useEffect(() => {
+    pruneStaleEncounterDrafts(activeEncounterId);
+  }, [activeEncounterId]);
+
   // Populate active encounter data into consultation state if recovered + LocalStorage rehydrate
   useEffect(() => {
     if (!activeEncounterId) return;
-    const storageKey = `clinic_draft_${activeEncounterId}`;
 
-    // 1. Try local storage first if power was lost
-    try {
-      const saved = localStorage.getItem(storageKey);
-      if (saved) {
-        const parsed = JSON.parse(saved);
-        if (parsed.chiefComplaint && !consultation.clinicalNotes.chiefComplaint) {
-          consultation.updateClinicalNote('chiefComplaint', parsed.chiefComplaint);
-        }
-        if (parsed.examinationFindings && !consultation.clinicalNotes.examinationFindings) {
-          consultation.updateClinicalNote('examinationFindings', parsed.examinationFindings);
-        }
-      }
-    } catch (e) {
-      console.warn('Failed to parse local draft:', e);
+    // 1. Rehydrate from local draft if user refreshed or navigated back
+    const localDraft = loadEncounterDraft(activeEncounterId);
+
+    // A. Chief Complaint
+    const chiefComplaint =
+      localDraft?.chiefComplaint ||
+      activeEncounter?.chief_complaint ||
+      '';
+    if (chiefComplaint && !consultation.clinicalNotes.chiefComplaint) {
+      consultation.updateClinicalNote('chiefComplaint', chiefComplaint);
     }
 
-    // 2. Populate active encounter from backend if fields still empty
-    if (activeEncounter) {
-      if (activeEncounter.chief_complaint && !consultation.clinicalNotes.chiefComplaint) {
-        consultation.updateClinicalNote('chiefComplaint', activeEncounter.chief_complaint);
+    // B. Examination Findings
+    const examinationFindings =
+      localDraft?.examinationFindings ||
+      activeEncounter?.clinical_examination ||
+      '';
+    if (examinationFindings && !consultation.clinicalNotes.examinationFindings) {
+      consultation.updateClinicalNote('examinationFindings', examinationFindings);
+    }
+
+    // C. Vitals (restored from local draft or backend encounter)
+    const rawVitals = localDraft?.vitals || activeEncounter?.vitals;
+    if (rawVitals) {
+      const normalized = normalizeVitals(rawVitals);
+      if (hasAnyVitalValue(normalized)) {
+        consultation.updateAllVitals(normalized);
       }
-      if (activeEncounter.clinical_examination && !consultation.clinicalNotes.examinationFindings) {
-        consultation.updateClinicalNote('examinationFindings', activeEncounter.clinical_examination);
-      }
+    }
+
+    // D. Diagnoses
+    const draftDiagnoses =
+      localDraft?.diagnoses ||
+      (Array.isArray(activeEncounter?.diagnosis)
+        ? activeEncounter.diagnosis.map((d) => (typeof d === 'object' && d !== null ? d.description || d.name || d.label : d))
+        : []);
+    if (Array.isArray(draftDiagnoses) && draftDiagnoses.length > 0 && consultation.finalDiagnoses.length === 0) {
+      consultation.setFinalDiagnoses(draftDiagnoses);
+    }
+
+    // E. Medications
+    if (Array.isArray(localDraft?.medications) && localDraft.medications.length > 0 && consultation.medications.length === 0) {
+      consultation.setMedications(localDraft.medications);
+    }
+
+    // F. General Advice & Follow-up
+    if (localDraft?.generalAdvice && !consultation.generalAdvice) {
+      consultation.setGeneralAdvice(localDraft.generalAdvice);
+    }
+    if (localDraft?.followUpDate && !consultation.followUpDate) {
+      consultation.setFollowUpDate(localDraft.followUpDate);
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [activeEncounterId, activeEncounter]);
 
+  // Track encounters that have been completed or abandoned to prevent re-creating draft keys on reset
+  const finalizedEncountersRef = useRef(new Set());
+
   // Debounced auto-save to localStorage on form changes
   useEffect(() => {
-    if (!activeEncounterId) return;
-    const storageKey = `clinic_draft_${activeEncounterId}`;
+    // Guard against saving after examination completion or while mutation is in progress
+    if (
+      !activeEncounterId ||
+      finalizedEncountersRef.current.has(activeEncounterId) ||
+      completeConsultationMutation.isPending ||
+      consultation.isPrescriptionSaved
+    ) {
+      return;
+    }
+
+    const draftData = {
+      chiefComplaint: consultation.clinicalNotes.chiefComplaint,
+      examinationFindings: consultation.clinicalNotes.examinationFindings,
+      vitals: consultation.vitals,
+      diagnoses: consultation.finalDiagnoses,
+      medications: consultation.medications,
+      generalAdvice: consultation.generalAdvice,
+      followUpDate: consultation.followUpDate,
+    };
+
+    // If the form has been reset or has no data, wipe the draft record and never write an empty key
+    if (isDraftEmpty(draftData)) {
+      clearEncounterDraft(activeEncounterId);
+      return;
+    }
+
     const timer = setTimeout(() => {
-      try {
-        localStorage.setItem(
-          storageKey,
-          JSON.stringify({
-            chiefComplaint: consultation.clinicalNotes.chiefComplaint,
-            examinationFindings: consultation.clinicalNotes.examinationFindings,
-            vitals: consultation.vitals,
-            diagnoses: consultation.finalDiagnoses,
-            updatedAt: Date.now(),
-          })
-        );
-      } catch (e) {
-        console.warn('Failed to persist draft to localStorage:', e);
+      // Re-verify guard inside timeout to avoid racing completion
+      if (
+        finalizedEncountersRef.current.has(activeEncounterId) ||
+        completeConsultationMutation.isPending ||
+        consultation.isPrescriptionSaved
+      ) {
+        return;
       }
-    }, 1200);
+
+      saveEncounterDraft(activeEncounterId, draftData);
+    }, 800);
 
     return () => clearTimeout(timer);
   }, [
@@ -151,15 +214,24 @@ export default function DoctorDashboard() {
     consultation.clinicalNotes,
     consultation.vitals,
     consultation.finalDiagnoses,
+    consultation.medications,
+    consultation.generalAdvice,
+    consultation.followUpDate,
+    consultation.isPrescriptionSaved,
+    completeConsultationMutation.isPending,
   ]);
 
   const abandonMutation = useMutation({
     mutationFn: ({ encounterId, reason }) => abandonEncounter(encounterId, reason),
-    onSuccess: () => {
-      if (activeEncounterId) {
-        localStorage.removeItem(`clinic_draft_${activeEncounterId}`);
-      }
+    onSuccess: (_data, variables) => {
+      if (variables?.encounterId) finalizedEncountersRef.current.add(variables.encounterId);
+      if (activeEncounterId) finalizedEncountersRef.current.add(activeEncounterId);
+
+      clearEncounterDraft(variables?.encounterId);
+      clearEncounterDraft(activeEncounterId);
       consultation.resetConsultation();
+      clearEncounterDraft(variables?.encounterId);
+      clearEncounterDraft(activeEncounterId);
       queryClient.invalidateQueries({ queryKey: ['encounter', 'active'] });
       queryClient.invalidateQueries({ queryKey: ['liveQueue'] });
     },
@@ -192,9 +264,13 @@ export default function DoctorDashboard() {
   }, [patientHistory]);
 
   const onPatientCalled = useCallback(() => {
+    if (activeEncounterId) {
+      finalizedEncountersRef.current.add(activeEncounterId);
+      clearEncounterDraft(activeEncounterId);
+    }
     consultation.resetConsultation();
     queryClient.invalidateQueries({ queryKey: ['encounter', 'active'] });
-  }, [consultation, queryClient]);
+  }, [activeEncounterId, consultation, queryClient]);
 
   useQueueWebSocket(branchId, onPatientCalled);
 
@@ -206,12 +282,16 @@ export default function DoctorDashboard() {
       { branch_id: branchId, doctor_id: doctorId },
       {
         onSuccess: () => {
+          if (activeEncounterId) {
+            finalizedEncountersRef.current.add(activeEncounterId);
+            clearEncounterDraft(activeEncounterId);
+          }
           consultation.resetConsultation();
           queryClient.invalidateQueries({ queryKey: ['encounter', 'active'] });
         },
       }
     );
-  }, [branchId, doctorId, callNextMutation, isNextDisabled, consultation, queryClient]);
+  }, [branchId, doctorId, callNextMutation, isNextDisabled, activeEncounterId, consultation, queryClient]);
 
   const handleCompleteExamination = useCallback(() => {
     console.log('handleCompleteExamination', activeEncounter);
@@ -226,7 +306,7 @@ export default function DoctorDashboard() {
     }
 
     // Use sensible default for chief complaint instead of blocking
-    const chiefComplaint = consultation.clinicalNotes.chiefComplaint?.trim() || 'ÙƒØ´Ù ÙˆØ§Ø³ØªØ´Ø§Ø±Ø© Ø·Ø¨ÙŠØ©';
+    const chiefComplaint = consultation.clinicalNotes.chiefComplaint?.trim() || 'كشف واستشارة طبية';
 
     const payload = {
       encounterId,
@@ -268,22 +348,28 @@ export default function DoctorDashboard() {
 
     completeConsultationMutation.mutate(payload, {
       onSuccess: () => {
-        if (activeEncounterId) {
-          try {
-            localStorage.removeItem(`clinic_draft_${activeEncounterId}`);
-          } catch (e) {
-            console.warn('Failed to clear draft from localStorage:', e);
-          }
-        }
+        if (encounterId) finalizedEncountersRef.current.add(encounterId);
+        if (activeEncounterId) finalizedEncountersRef.current.add(activeEncounterId);
+
+        clearEncounterDraft(encounterId);
+        clearEncounterDraft(activeEncounterId);
+        pruneStaleEncounterDrafts();
+
         consultation.setIsPrescriptionSaved(true);
         setTimeout(() => {
+          clearEncounterDraft(encounterId);
+          clearEncounterDraft(activeEncounterId);
+
           consultation.resetConsultation();
+
+          clearEncounterDraft(encounterId);
+          clearEncounterDraft(activeEncounterId);
           queryClient.invalidateQueries({ queryKey: ['encounter', 'active'] });
           queryClient.invalidateQueries({ queryKey: ['liveQueue'] });
         }, 1500);
       },
       onError: (error) => {
-        const msg = error?.response?.data?.message || error?.message || 'Ø­Ø¯Ø« Ø®Ø·Ø£ Ø£Ø«Ù†Ø§Ø¡ Ø­ÙØ¸ Ø§Ù„ÙƒØ´Ù';
+        const msg = error?.response?.data?.message || error?.message || 'حدث خطأ أثناء حفظ الكشف';
         alert(msg);
       },
     });
@@ -386,14 +472,18 @@ export default function DoctorDashboard() {
                 onRemoveMedication={consultation.removeMedication}
                 onUpdateMedication={consultation.updateMedication}
                 generalAdvice={consultation.generalAdvice}
+                onGeneralAdviceChange={consultation.setGeneralAdvice}
                 onUpdateAdvice={consultation.setGeneralAdvice}
                 followUpDate={consultation.followUpDate}
+                onFollowUpDateChange={consultation.setFollowUpDate}
                 onUpdateFollowUpDate={consultation.setFollowUpDate}
                 isPrescriptionSaved={consultation.isPrescriptionSaved}
                 onCompleteExamination={handleCompleteExamination}
+                isSubmitting={completeConsultationMutation.isPending}
                 isSaving={completeConsultationMutation.isPending}
                 activePatient={activeQueueItem?.patient}
                 doctorName={user?.name || 'Dr.'}
+                branchName={branchName}
                 clinicName={branchName}
               />
             </ErrorBoundary>

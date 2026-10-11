@@ -22,6 +22,7 @@ import QuickPatientDrawer from '../components/QuickPatientDrawer';
 import PaymentCheckoutModal from '../components/PaymentCheckoutModal';
 import TodayEncountersDrawer from '../components/TodayEncountersDrawer';
 import useEncounterDraft from '../hooks/useEncounterDraft';
+import { clearEncounterDraft } from '../services/encounterDraftStorage';
 import {
   searchPatients,
   quickStartEncounter,
@@ -269,6 +270,7 @@ export default function SoloWorkspaceView() {
       };
 
       await completeEncounter(activeEncounter.id, payload);
+      clearEncounterDraft(activeEncounter.id);
       setIsCheckoutModalOpen(false);
       setActionNotice({ type: 'success', text: 'تم إنهاء الكشف وإصدار الفاتورة والروشتة بنجاح!' });
 

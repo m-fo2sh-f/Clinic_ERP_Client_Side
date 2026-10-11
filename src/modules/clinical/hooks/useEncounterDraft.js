@@ -1,8 +1,8 @@
 import { useState, useEffect, useRef, useCallback } from 'react';
-import { saveDraftEncounter } from '../api/encounterApi';
+import { saveEncounterDraft } from '../services/encounterDraftStorage';
 
 /**
- * Hook to manage 15-second auto-save drafts with AbortController cancellation on checkout.
+ * Hook to manage periodic local draft saving without server network calls.
  *
  * @param {string|null} encounterId Active encounter UUID
  * @param {Function} getFormData Function returning the latest clinical form data
@@ -13,59 +13,41 @@ export default function useEncounterDraft(encounterId, getFormData, isCompleted 
   const [lastSavedAt, setLastSavedAt] = useState(null);
   const [saveError, setSaveError] = useState(null);
 
-  const abortControllerRef = useRef(null);
   const timerRef = useRef(null);
   const lastPayloadHashRef = useRef('');
 
-  // Cancel any ongoing draft request (called before complete/checkout)
+  // Cancel any ongoing interval timer (called before complete/checkout)
   const cancelPendingDrafts = useCallback(() => {
-    if (abortControllerRef.current) {
-      abortControllerRef.current.abort();
-      abortControllerRef.current = null;
-    }
     if (timerRef.current) {
       clearInterval(timerRef.current);
       timerRef.current = null;
     }
   }, []);
 
-  const saveDraft = useCallback(async (customPayload = null) => {
+  const saveDraft = useCallback((customPayload = null) => {
     if (!encounterId || isCompleted) return;
 
     const payload = customPayload || getFormData();
     if (!payload) return;
 
-    // Fast deduplication check to avoid unnecessary network calls
+    // Fast deduplication check to avoid unnecessary storage writes
     const currentHash = JSON.stringify(payload);
     if (currentHash === lastPayloadHashRef.current) {
       return;
     }
 
-    // Abort previous in-flight save request if still running
-    if (abortControllerRef.current) {
-      abortControllerRef.current.abort();
-    }
-
-    const controller = new AbortController();
-    abortControllerRef.current = controller;
-
     setIsSaving(true);
     setSaveError(null);
 
     try {
-      await saveDraftEncounter(encounterId, payload, controller.signal);
+      saveEncounterDraft(encounterId, payload);
       lastPayloadHashRef.current = currentHash;
       setLastSavedAt(new Date());
     } catch (err) {
-      if (err.name !== 'CanceledError' && err.name !== 'AbortError') {
-        console.warn('Draft auto-save notice:', err.message);
-        setSaveError(err.response?.data?.message || 'Failed to auto-save draft');
-      }
+      console.warn('Draft local-save notice:', err.message);
+      setSaveError('Failed to save draft locally');
     } finally {
-      if (abortControllerRef.current === controller) {
-        abortControllerRef.current = null;
-        setIsSaving(false);
-      }
+      setIsSaving(false);
     }
   }, [encounterId, isCompleted, getFormData]);
 

@@ -10,8 +10,8 @@ import Button from '../../components/ui/Button';
 import { getRoleDefaultRoute } from '../../utils/roleUtils';
 
 export default function LoginPage() {
-  const [email, setEmail] = useState('doctor@healios.com');
-  const [password, setPassword] = useState(12345678);
+  const [email, setEmail] = useState('dr.ahmed@clinica.test');
+  const [password, setPassword] = useState('12345678');
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState('');
   const [pendingBranches, setPendingBranches] = useState([]);
@@ -130,6 +130,55 @@ export default function LoginPage() {
           >
             <span>Sign In</span>
           </Button>
+
+          {/* Quick Demo Credentials */}
+          <div className="pt-3 border-t border-slate-100">
+            <p className="text-[11px] font-bold text-slate-500 uppercase tracking-wider mb-2 text-center">
+              حسابات تجريبية سريعة (Demo Accounts)
+            </p>
+            <div className="grid grid-cols-2 gap-1.5 text-xs">
+              <button
+                type="button"
+                onClick={() => {
+                  setEmail('dr.ahmed@clinica.test');
+                  setPassword('12345678');
+                }}
+                className="px-2.5 py-1.5 rounded-lg border border-slate-200 bg-slate-50 hover:bg-clinic-50 hover:border-clinic-200 text-slate-700 hover:text-clinic-700 font-semibold transition-colors text-right cursor-pointer"
+              >
+                🩺 د. أحمد (طبيب العيادة)
+              </button>
+              <button
+                type="button"
+                onClick={() => {
+                  setEmail('reception.branch1@clinica.test');
+                  setPassword('12345678');
+                }}
+                className="px-2.5 py-1.5 rounded-lg border border-slate-200 bg-slate-50 hover:bg-clinic-50 hover:border-clinic-200 text-slate-700 hover:text-clinic-700 font-semibold transition-colors text-right cursor-pointer"
+              >
+                📋 استقبال المعادي
+              </button>
+              <button
+                type="button"
+                onClick={() => {
+                  setEmail('reception.branch2@clinica.test');
+                  setPassword('12345678');
+                }}
+                className="px-2.5 py-1.5 rounded-lg border border-slate-200 bg-slate-50 hover:bg-clinic-50 hover:border-clinic-200 text-slate-700 hover:text-clinic-700 font-semibold transition-colors text-right cursor-pointer"
+              >
+                📋 استقبال مدينة نصر
+              </button>
+              <button
+                type="button"
+                onClick={() => {
+                  setEmail('admin@platform.test');
+                  setPassword('12345678');
+                }}
+                className="px-2.5 py-1.5 rounded-lg border border-slate-200 bg-slate-50 hover:bg-purple-50 hover:border-purple-200 text-slate-700 hover:text-purple-700 font-semibold transition-colors text-right cursor-pointer"
+              >
+                👑 مدير المنصة (Platform)
+              </button>
+            </div>
+          </div>
         </form>
       </div>
 
