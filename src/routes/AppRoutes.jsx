@@ -4,7 +4,7 @@ import { Route, Routes, Navigate } from 'react-router-dom';
 import LoginPage from '../pages/auth/LoginPage';
 import ReceptionistDashboard from '../modules/queue/pages/ReceptionistDashboard';
 import DoctorDashboard from '../modules/clinical/pages/DoctorDashboard';
-import SoloWorkspaceView from '../modules/clinical/pages/SoloWorkspaceView';
+import { SoloClinicPage } from '../modules/solo-clinic';
 import PatientsPage from '../modules/patients/pages/PatientsPage';
 import ClinicSettingsPage from '../modules/clinic-settings/pages/ClinicSettingsPage';
 import WaitingRoomDisplay from '../modules/queue/pages/WaitingRoomDisplay';
@@ -62,7 +62,7 @@ function AppRoutes() {
 
   const DoctorRouteElement = () => {
     const { clinicMode } = useBranchContext();
-    return clinicMode === 'solo' ? <SoloWorkspaceView /> : <DoctorDashboard />;
+    return clinicMode === 'solo' ? <SoloClinicPage /> : <DoctorDashboard />;
   };
 
   return (

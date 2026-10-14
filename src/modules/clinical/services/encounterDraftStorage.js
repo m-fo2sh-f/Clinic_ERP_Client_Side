@@ -44,13 +44,30 @@ export const hasAnyVitalValue = (vitals) => {
 export const isDraftEmpty = (draftData) => {
   if (!draftData || typeof draftData !== 'object') return true;
 
-  const hasChiefComplaint = Boolean(draftData.chiefComplaint && draftData.chiefComplaint.trim());
-  const hasExamination = Boolean(draftData.examinationFindings && draftData.examinationFindings.trim());
+  const chiefComplaint = draftData.chiefComplaint || draftData.chief_complaint;
+  const hasChiefComplaint = Boolean(chiefComplaint && typeof chiefComplaint === 'string' && chiefComplaint.trim());
+
+  const examFindings = draftData.examinationFindings || draftData.clinical_examination;
+  const hasExamination = Boolean(examFindings && typeof examFindings === 'string' && examFindings.trim());
+
   const hasVitals = hasAnyVitalValue(draftData.vitals);
-  const hasDiagnoses = Array.isArray(draftData.diagnoses) && draftData.diagnoses.length > 0;
-  const hasMedications = Array.isArray(draftData.medications) && draftData.medications.some((m) => Boolean((m.drug_name || m.name)?.trim()));
-  const hasAdvice = Boolean(draftData.generalAdvice && draftData.generalAdvice.trim());
-  const hasFollowUp = Boolean(draftData.followUpDate);
+
+  const diagnosesList = draftData.diagnoses || draftData.diagnosis;
+  const hasDiagnoses = Array.isArray(diagnosesList) && diagnosesList.length > 0;
+
+  const hasMedications =
+    Array.isArray(draftData.medications) &&
+    draftData.medications.some((m) => Boolean((m.drug_name || m.name)?.trim()));
+
+  const hasServices = Array.isArray(draftData.services) && draftData.services.length > 0;
+
+  const privateNotes = draftData.privateNotes || draftData.private_notes;
+  const hasPrivateNotes = Boolean(privateNotes && typeof privateNotes === 'string' && privateNotes.trim());
+
+  const advice = draftData.generalAdvice || draftData.general_advice;
+  const hasAdvice = Boolean(advice && typeof advice === 'string' && advice.trim());
+
+  const hasFollowUp = Boolean(draftData.followUpDate || draftData.follow_up_date);
 
   return (
     !hasChiefComplaint &&
@@ -58,6 +75,8 @@ export const isDraftEmpty = (draftData) => {
     !hasVitals &&
     !hasDiagnoses &&
     !hasMedications &&
+    !hasServices &&
+    !hasPrivateNotes &&
     !hasAdvice &&
     !hasFollowUp
   );

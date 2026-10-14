@@ -92,7 +92,7 @@ export default function SoloWalkInModal({
       setShowDropdown(false);
       onClearConflict();
     }
-  }, [isOpen, reset]);
+  }, [isOpen, reset, onClearConflict]);
 
   const handleSelectPatient = (patient) => {
     setSelectedPatient(patient);

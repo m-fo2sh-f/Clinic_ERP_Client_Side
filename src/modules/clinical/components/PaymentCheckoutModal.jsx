@@ -1,4 +1,4 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useEffect } from 'react';
 import { X, CreditCard, Banknote, Split, CheckCircle2, AlertCircle } from 'lucide-react';
 import Button from '../../../components/ui/Button';
 
@@ -21,12 +21,22 @@ export default function PaymentCheckoutModal({
 
   // Calculate items total
   const { itemsList, subtotal } = useMemo(() => {
-    let sum = Number(consultationFee) || 0;
+    const consultMatch = availableServices.find(
+      (s) => (s.code || '').toUpperCase().includes('CONSULT') || (s.name || '').includes('كشف')
+    );
+    const effectiveConsultFee = Number(
+      consultMatch?.price ?? consultMatch?.default_price ?? consultationFee ?? 150
+    );
+    const consultName = consultMatch
+      ? `${consultMatch.name} (Consultation)`
+      : 'كشف استشاري (Consultation)';
+
+    let sum = effectiveConsultFee;
     const items = [
       {
         id: 'consultation',
-        name: 'كشف استشاري (Consultation)',
-        price: Number(consultationFee) || 0,
+        name: consultName,
+        price: effectiveConsultFee,
         quantity: 1,
       },
     ];
@@ -51,6 +61,13 @@ export default function PaymentCheckoutModal({
 
   const discountAmount = Math.max(0, Math.min(Number(discount) || 0, subtotal));
   const finalTotal = Math.max(0, subtotal - discountAmount);
+
+  // Pre-fill cash received with finalTotal by default when modal opens or total updates
+  useEffect(() => {
+    if (isOpen) {
+      setCashReceived(String(finalTotal));
+    }
+  }, [isOpen, finalTotal]);
 
   // Change calculation for cash payment
   const changeDue = useMemo(() => {
