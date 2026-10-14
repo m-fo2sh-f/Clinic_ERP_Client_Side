@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate, useLocation, Link } from 'react-router-dom';
 import {
   LayoutDashboard,
+  Stethoscope,
   Users,
   Settings,
   Activity,
@@ -16,7 +17,7 @@ import {
 } from 'lucide-react';
 import Select from '../components/ui/Select';
 import { useBranchContext } from '../context/BranchContext';
-import { getUserRoles, getRoleDefaultRoute } from '../utils/roleUtils';
+import { getUserRoles } from '../utils/roleUtils';
 
 export default function DashboardLayout({ children }) {
   const { branches, selectedBranchId, selectBranch, activeBranch, user, logout } = useBranchContext();
@@ -35,17 +36,33 @@ export default function DashboardLayout({ children }) {
     ? activeBranch.clinicSubdomain || `${activeBranch.name.toLowerCase().replace(/\s+/g, '')}.my-saas.test`
     : 'maadi.my-saas.test';
 
-  const isSolo = activeBranch?.clinic_mode === 'solo';
-  const dashboardPath = getRoleDefaultRoute(currentUser, activeBranch);
-  const userRolesDisplay = getUserRoles(currentUser).map((r) => r.replace('_', ' ')).join(', ') || 'User';
+  const userRoles = getUserRoles(currentUser);
+  const userRolesDisplay = userRoles.map((r) => r.replace('_', ' ')).join(', ') || 'User';
+
+  const canAccessReception = userRoles.length === 0 || userRoles.includes('receptionist') || userRoles.includes('clinic_owner') || userRoles.includes('tenant_admin');
+  const canAccessDoctor = userRoles.includes('doctor') || userRoles.includes('clinic_owner');
 
   const menuItems = [
-    {
-      name: isSolo ? 'Clinical Workspace' : 'Dashboard',
-      icon: LayoutDashboard,
-      href: dashboardPath,
-      active: location.pathname === '/dashboard' || location.pathname === '/doctor',
-    },
+    ...(canAccessReception
+      ? [
+          {
+            name: 'Dashboard',
+            icon: LayoutDashboard,
+            href: '/dashboard',
+            active: location.pathname === '/dashboard',
+          },
+        ]
+      : []),
+    ...(canAccessDoctor
+      ? [
+          {
+            name: 'Doctor Room',
+            icon: Stethoscope,
+            href: '/doctor',
+            active: location.pathname === '/doctor',
+          },
+        ]
+      : []),
     {
       name: 'Patients Directory',
       icon: Users,
@@ -137,12 +154,8 @@ export default function DashboardLayout({ children }) {
                 <Key className="h-3.5 w-3.5 text-clinic-400 shrink-0" />
                 <span className="truncate">{activeBranch?.name}</span>
               </div>
-              <span
-                className={`px-1.5 py-0.5 rounded text-[9px] font-bold uppercase ${
-                  isSolo ? 'bg-clinic-500/20 text-clinic-300' : 'bg-indigo-500/20 text-indigo-300'
-                }`}
-              >
-                {isSolo ? 'Solo' : 'Polyclinic'}
+              <span className="px-1.5 py-0.5 rounded text-[9px] font-bold uppercase bg-clinic-500/20 text-clinic-300">
+                Clinic
               </span>
             </div>
             <div className="text-center text-[10px] text-slate-500">

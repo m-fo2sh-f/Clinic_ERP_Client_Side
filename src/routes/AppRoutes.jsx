@@ -4,7 +4,6 @@ import { Route, Routes, Navigate } from 'react-router-dom';
 import LoginPage from '../pages/auth/LoginPage';
 import ReceptionistDashboard from '../modules/queue/pages/ReceptionistDashboard';
 import DoctorDashboard from '../modules/clinical/pages/DoctorDashboard';
-import { SoloClinicPage } from '../modules/solo-clinic';
 import PatientsPage from '../modules/patients/pages/PatientsPage';
 import ClinicSettingsPage from '../modules/clinic-settings/pages/ClinicSettingsPage';
 import WaitingRoomDisplay from '../modules/queue/pages/WaitingRoomDisplay';
@@ -60,11 +59,6 @@ function AppRoutes() {
     return <Navigate to={getRoleDefaultRoute(user, activeBranch)} replace />;
   };
 
-  const DoctorRouteElement = () => {
-    const { clinicMode } = useBranchContext();
-    return clinicMode === 'solo' ? <SoloClinicPage /> : <DoctorDashboard />;
-  };
-
   return (
     <div>
       <Routes>
@@ -118,13 +112,13 @@ function AppRoutes() {
           }
         />
 
-        {/* Doctor Dashboard / Solo Workspace - Protected */}
+        {/* Doctor Dashboard / Clinical Workspace - Protected */}
         <Route
           path="/doctor"
           element={
             <ProtectedRoute allowedRoles={['doctor', 'tenant_admin', 'clinic_owner']}>
               <DashboardLayout>
-                <DoctorRouteElement />
+                <DoctorDashboard />
               </DashboardLayout>
             </ProtectedRoute>
           }

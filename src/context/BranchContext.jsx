@@ -80,8 +80,7 @@ export const BranchProvider = ({ children }) => {
     }
   };
 
-  const activeBranch = branches.find(b => b.id === selectedBranchId) || branches[0] || { name: 'No Branch Selected', id: '', clinic_mode: 'solo' };
-  const clinicMode = activeBranch?.clinic_mode || 'solo';
+  const activeBranch = branches.find(b => b.id === selectedBranchId) || branches[0] || { name: 'No Branch Selected', id: '' };
   const vitalsConfig = Array.isArray(activeBranch?.vitals_config) && activeBranch.vitals_config.length > 0
     ? activeBranch.vitals_config
     : [
@@ -107,8 +106,6 @@ export const BranchProvider = ({ children }) => {
       setSelectedBranchId: selectBranch,
       selectBranch,
       activeBranch,
-      clinicMode,
-      clinic_mode: clinicMode,
       vitalsConfig,
       vitals_config: vitalsConfig,
       processLoginData,
