@@ -485,6 +485,10 @@ export default function DoctorDashboard() {
                 doctorName={user?.name || 'Dr.'}
                 branchName={branchName}
                 clinicName={branchName}
+                branchId={branchId}
+                vitals={consultation.vitals}
+                diagnoses={consultation.finalDiagnoses}
+                encounter={activeEncounter || activeQueueItem}
               />
             </ErrorBoundary>
 

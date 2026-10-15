@@ -1,29 +1,20 @@
-import React from 'react';
-import { Pill, Printer, Plus, Trash2, FileCheck, Loader2, Calendar } from 'lucide-react';
+import React, { useState, useEffect, useRef } from 'react';
+import { useReactToPrint } from 'react-to-print';
+import { Pill, Printer, Plus, Trash2, FileCheck, Calendar, Eye, X } from 'lucide-react';
 import Button from '../../../components/ui/Button';
 import { Card, CardHeader, CardTitle, CardContent } from '../../../components/ui/Card';
+import PrescriptionPrintWrapper from './PrescriptionPrintWrapper';
+import { getPrescriptionSettings, DEFAULT_PRESCRIPTION_SETTINGS } from '../../clinic-settings/api/prescriptionSettingsApi';
 
 /**
- * PrescriptionSheet — digital Rx table with add/remove medication rows,
- * general advice, follow-up date picker & presets, print, and Complete Examination actions.
- *
- * @param {Object}   props
- * @param {string}   props.branchName            – Branch name for Rx header
- * @param {Array}    props.medications            – Array of medication objects
- * @param {Function} props.onAddMedication        – Add empty medication row
- * @param {Function} props.onUpdateMedication     – (id, field, value) => void
- * @param {Function} props.onRemoveMedication     – (id) => void
- * @param {string}   props.generalAdvice          – General advice text
- * @param {Function} props.onGeneralAdviceChange  – (value) => void
- * @param {string}   props.followUpDate           – ISO date string
- * @param {Function} props.onFollowUpDateChange   – (value) => void
- * @param {boolean}  props.isPrescriptionSaved    – Whether the Rx has been saved
- * @param {boolean}  props.isSubmitting           – Whether the API call is in progress
- * @param {Function} props.onCompleteExamination  – Save / complete action
+ * PrescriptionSheet — Digital Rx prescription editor with live add/remove medications,
+ * general advice, follow-up presets, Complete Examination action,
+ * and seamless react-to-print integration with specialty templates.
  */
 export default function PrescriptionSheet({
   branchName,
   clinicName,
+  branchId,
   medications = [],
   onAddMedication,
   onUpdateMedication,
@@ -38,11 +29,85 @@ export default function PrescriptionSheet({
   isSubmitting,
   isSaving,
   onCompleteExamination,
+  activePatient,
+  doctorName = 'د. الطبيب المعالج',
+  vitals = {},
+  diagnoses = [],
+  encounter = {},
 }) {
-  const handlePrint = () => window.print();
+  const [settings, setSettings] = useState(DEFAULT_PRESCRIPTION_SETTINGS);
+  const [isPreviewOpen, setIsPreviewOpen] = useState(false);
 
-  const effectiveBranchName = branchName || clinicName || 'Clinic';
+  // Hidden print reference for react-to-print
+  const printComponentRef = useRef(null);
+  const hasAutoPrintedRef = useRef(false);
+
+  const effectiveBranchName = branchName || clinicName || settings?.clinic_name || 'Clinic';
+  const effectiveDoctorName = doctorName || settings?.doctor_name || 'Dr.';
   const effectiveIsSubmitting = Boolean(isSubmitting || isSaving);
+
+  // Load clinic template settings
+  useEffect(() => {
+    let isMounted = true;
+    const fetchSettings = async () => {
+      try {
+        const loaded = await getPrescriptionSettings(branchId);
+        if (isMounted && loaded) {
+          setSettings(loaded);
+        }
+      } catch (err) {
+        console.warn('Prescription settings fetch notice:', err?.message);
+      }
+    };
+    fetchSettings();
+    return () => {
+      isMounted = false;
+    };
+  }, [branchId]);
+
+  // Page style for react-to-print (A5 or A4)
+  const paperSize = settings.paper_size || 'A5';
+  const pageStyle = `
+    @page {
+      size: ${paperSize} portrait;
+      margin: 0;
+    }
+    @media print {
+      html, body {
+        margin: 0 !important;
+        padding: 0 !important;
+        background: #ffffff !important;
+        -webkit-print-color-adjust: exact !important;
+        print-color-adjust: exact !important;
+      }
+      .no-print {
+        display: none !important;
+      }
+      .print-page-root {
+        box-shadow: none !important;
+        border: none !important;
+      }
+    }
+  `;
+
+  const handlePrint = useReactToPrint({
+    contentRef: printComponentRef,
+    pageStyle,
+    documentTitle: `Prescription_${activePatient?.name || 'Patient'}`,
+  });
+
+  // Support auto_print: trigger print dialog automatically when examination is saved
+  useEffect(() => {
+    if (isPrescriptionSaved && settings?.auto_print && !hasAutoPrintedRef.current) {
+      hasAutoPrintedRef.current = true;
+      const timer = setTimeout(() => {
+        handlePrint();
+      }, 400);
+      return () => clearTimeout(timer);
+    } else if (!isPrescriptionSaved) {
+      hasAutoPrintedRef.current = false;
+    }
+  }, [isPrescriptionSaved, settings?.auto_print, handlePrint]);
 
   const handleAdviceChange = (value) => {
     if (typeof onGeneralAdviceChange === 'function') {
@@ -60,9 +125,6 @@ export default function PrescriptionSheet({
     }
   };
 
-  /**
-   * Helper to set quick preset follow-up dates (e.g. +7, +14, +30 days)
-   */
   const handleQuickFollowUp = (days) => {
     if (days === 0) {
       handleFollowUpChange('');
@@ -76,25 +138,40 @@ export default function PrescriptionSheet({
 
   return (
     <Card className="border-slate-200 shadow-sm bg-white rounded-2xl overflow-hidden">
-      <CardHeader className="p-5 border-b border-slate-100 bg-slate-50/50 flex flex-col sm:flex-row items-center justify-between">
+      <CardHeader className="p-5 border-b border-slate-100 bg-slate-50/50 flex flex-col sm:flex-row items-center justify-between gap-3">
         <CardTitle className="text-base font-bold text-slate-900 flex items-center gap-2 m-0">
           <Pill className="h-5 w-5 text-clinic-600" /> Digital Prescription Sheet (Rx)
         </CardTitle>
-        <Button
-          variant="outline"
-          size="sm"
-          onClick={handlePrint}
-          className="gap-1.5"
-        >
-          <Printer className="h-4 w-4" /> Print Prescription
-        </Button>
+
+        <div className="flex items-center gap-2 w-full sm:w-auto">
+          {/* Visual On-screen Preview */}
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => setIsPreviewOpen(true)}
+            className="gap-1.5"
+            title="Preview how prescription will print"
+          >
+            <Eye className="h-4 w-4" /> Preview Rx
+          </Button>
+
+          {/* Real React-To-Print Trigger */}
+          <Button
+            variant="default"
+            size="sm"
+            onClick={() => handlePrint()}
+            className="gap-1.5 bg-clinic-600 hover:bg-clinic-700 text-white"
+          >
+            <Printer className="h-4 w-4" /> Print Prescription
+          </Button>
+        </div>
       </CardHeader>
 
       <CardContent className="p-6 space-y-6">
-        {/* Printable Rx area */}
+        {/* On-screen Prescription Interactive Form */}
         <div
           id="printable-rx-sheet"
-          className="bg-white border-2 border-slate-200 rounded-2xl p-8 space-y-6"
+          className="bg-white border-2 border-slate-200 rounded-2xl p-6 sm:p-8 space-y-6"
         >
           {/* Rx header */}
           <div className="border-b-2 border-clinic-600 pb-4 flex justify-between items-center">
@@ -103,13 +180,31 @@ export default function PrescriptionSheet({
                 {effectiveBranchName}
               </h2>
               <p className="text-xs text-slate-500 font-semibold mt-0.5 m-0">
-                Official Medical Prescription
+                Official Medical Prescription — {effectiveDoctorName}
               </p>
             </div>
             <div className="text-right text-3xl font-black text-clinic-600">
               Rx
             </div>
           </div>
+
+          {/* Active Patient Summary Strip if available */}
+          {activePatient && (
+            <div className="bg-slate-50 border border-slate-200 rounded-xl px-4 py-2 text-xs flex items-center justify-between gap-4 flex-wrap text-slate-700">
+              <div>
+                <span className="text-slate-400 font-medium ml-1">Patient:</span>
+                <strong className="text-slate-900 font-bold">{activePatient.name || activePatient.full_name}</strong>
+              </div>
+              <div>
+                <span className="text-slate-400 font-medium ml-1">Age / Gender:</span>
+                <span className="font-semibold">{activePatient.age || '—'} / {activePatient.gender === 'female' ? 'Female' : 'Male'}</span>
+              </div>
+              <div>
+                <span className="text-slate-400 font-medium ml-1">Date:</span>
+                <span className="font-mono font-semibold">{new Date().toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric' })}</span>
+              </div>
+            </div>
+          )}
 
           {/* Medications */}
           <div className="space-y-4">
@@ -140,7 +235,7 @@ export default function PrescriptionSheet({
               >
                 <input
                   className="sm:col-span-1 px-3 py-1.5 text-xs bg-slate-50 border rounded-lg focus:ring-2 focus:ring-clinic-500 font-semibold"
-                  value={med.name}
+                  value={med.name || med.drug_name || ''}
                   onChange={(e) =>
                     onUpdateMedication(med.id, 'name', e.target.value)
                   }
@@ -148,7 +243,7 @@ export default function PrescriptionSheet({
                 />
                 <input
                   className="px-3 py-1.5 text-xs bg-slate-50 border rounded-lg focus:ring-2 focus:ring-clinic-500"
-                  value={med.dosage}
+                  value={med.dosage || med.dose || ''}
                   onChange={(e) =>
                     onUpdateMedication(med.id, 'dosage', e.target.value)
                   }
@@ -156,7 +251,7 @@ export default function PrescriptionSheet({
                 />
                 <input
                   className="px-3 py-1.5 text-xs bg-slate-50 border rounded-lg focus:ring-2 focus:ring-clinic-500"
-                  value={med.frequency}
+                  value={med.frequency || ''}
                   onChange={(e) =>
                     onUpdateMedication(med.id, 'frequency', e.target.value)
                   }
@@ -164,7 +259,7 @@ export default function PrescriptionSheet({
                 />
                 <input
                   className="px-3 py-1.5 text-xs bg-slate-50 border rounded-lg focus:ring-2 focus:ring-clinic-500"
-                  value={med.duration}
+                  value={med.duration || ''}
                   onChange={(e) =>
                     onUpdateMedication(med.id, 'duration', e.target.value)
                   }
@@ -172,13 +267,15 @@ export default function PrescriptionSheet({
                 />
                 <input
                   className="px-3 py-1.5 text-xs bg-slate-50 border rounded-lg focus:ring-2 focus:ring-clinic-500"
-                  value={med.instructions}
+                  value={med.instructions || med.instruction || ''}
                   onChange={(e) =>
                     onUpdateMedication(med.id, 'instructions', e.target.value)
                   }
-                  placeholder="Instructions"
+                  placeholder="Instructions (الجرعة بالعربي)"
+                  dir="rtl"
                 />
                 <button
+                  type="button"
                   onClick={() => onRemoveMedication(med.id)}
                   className="no-print text-red-500 hover:text-red-700 transition-colors self-center p-1.5 cursor-pointer"
                   title="Remove item"
@@ -192,21 +289,16 @@ export default function PrescriptionSheet({
           {/* General Advice */}
           <div className="pt-4 border-t space-y-2">
             <label className="block text-xs font-bold uppercase text-slate-700 m-0">
-              General Advice & Instructions
+              General Advice & Instructions (التعليمات الطبية)
             </label>
             <textarea
               rows={2}
               value={generalAdvice}
               onChange={(e) => handleAdviceChange(e.target.value)}
               className="w-full px-3.5 py-2.5 text-xs bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-clinic-500 no-print"
-              placeholder="e.g. Rest, drink warm fluids, avoid heavy exertion..."
+              placeholder="e.g. Rest, drink warm fluids, avoid heavy exertion, take with food..."
+              dir="rtl"
             />
-            {/* Print-only static version */}
-            {generalAdvice && (
-              <p className="hidden print:block text-xs text-slate-800 whitespace-pre-wrap m-0">
-                {generalAdvice}
-              </p>
-            )}
           </div>
 
           {/* Follow-up date with quick presets */}
@@ -214,7 +306,7 @@ export default function PrescriptionSheet({
             <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
               <label className="text-xs font-bold uppercase text-slate-700 m-0 flex items-center gap-1.5">
                 <Calendar className="h-4 w-4 text-clinic-600 shrink-0" />
-                <span>Follow-up Date</span>
+                <span>Follow-up Date (موعد الاستشارة القادمة)</span>
               </label>
 
               {/* Quick preset buttons */}
@@ -278,15 +370,99 @@ export default function PrescriptionSheet({
             loadingText="Saving Examination..."
             disabled={isPrescriptionSaved}
             leftIcon={<FileCheck className="h-4 w-4" />}
-            className={`px-6 ${isPrescriptionSaved
+            className={`px-6 ${
+              isPrescriptionSaved
                 ? 'bg-emerald-500 cursor-default'
                 : 'bg-emerald-600 hover:bg-emerald-700'
-              }`}
+            }`}
           >
             <span>{isPrescriptionSaved ? 'Examination Completed ✓' : 'Complete Examination & Save Rx'}</span>
           </Button>
         </div>
       </CardContent>
+
+      {/* OFF-SCREEN PRELOADED PRINT TARGET FOR react-to-print (CRITICAL RULE 5: off-screen in DOM, NOT display:none) */}
+      <div
+        style={{
+          position: 'fixed',
+          left: '-99999px',
+          top: '-99999px',
+          width: paperSize === 'A4' ? '210mm' : '148mm',
+          opacity: 0,
+          pointerEvents: 'none',
+        }}
+        aria-hidden="true"
+      >
+        <PrescriptionPrintWrapper
+          ref={printComponentRef}
+          settings={settings}
+          patient={activePatient}
+          doctor={{ name: effectiveDoctorName, title: settings?.doctor_title }}
+          branch={{ name: effectiveBranchName }}
+          encounter={encounter}
+          vitals={vitals}
+          diagnoses={diagnoses}
+          medications={medications}
+          advice={generalAdvice}
+          followUpDate={followUpDate}
+          isPreview={false}
+        />
+      </div>
+
+      {/* Visual Prescription Screen Preview Modal */}
+      {isPreviewOpen && (
+        <div
+          className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-xs animate-in fade-in"
+          dir="rtl"
+        >
+          <div className="bg-white rounded-3xl shadow-2xl border border-slate-200 w-full max-w-xl max-h-[92vh] flex flex-col overflow-hidden animate-in zoom-in-95">
+            <div className="bg-slate-900 text-white px-6 py-4 flex items-center justify-between">
+              <div className="flex items-center gap-2">
+                <Eye className="h-5 w-5 text-clinic-400" />
+                <h3 className="font-bold text-sm m-0">معاينة الروشتة المطبوعة ({paperSize})</h3>
+              </div>
+              <div className="flex items-center gap-3">
+                <Button
+                  variant="default"
+                  size="sm"
+                  onClick={() => {
+                    setIsPreviewOpen(false);
+                    handlePrint();
+                  }}
+                  className="bg-clinic-600 hover:bg-clinic-500 text-white gap-1.5"
+                >
+                  <Printer className="h-4 w-4" /> Print Now
+                </Button>
+                <button
+                  type="button"
+                  onClick={() => setIsPreviewOpen(false)}
+                  className="text-slate-400 hover:text-white p-1 cursor-pointer"
+                >
+                  <X className="h-5 w-5" />
+                </button>
+              </div>
+            </div>
+
+            <div className="flex-1 overflow-y-auto p-6 bg-slate-100 flex justify-center">
+              <div className="w-full max-w-md bg-white shadow-xl rounded-xl overflow-hidden border border-slate-300">
+                <PrescriptionPrintWrapper
+                  settings={settings}
+                  patient={activePatient}
+                  doctor={{ name: effectiveDoctorName, title: settings?.doctor_title }}
+                  branch={{ name: effectiveBranchName }}
+                  encounter={encounter}
+                  vitals={vitals}
+                  diagnoses={diagnoses}
+                  medications={medications}
+                  advice={generalAdvice}
+                  followUpDate={followUpDate}
+                  isPreview={true}
+                />
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
     </Card>
   );
 }

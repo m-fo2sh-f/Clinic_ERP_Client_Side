@@ -1,0 +1,65 @@
+/**
+ * Default sample dummy data for visual calibrator and test prints
+ */
+export const SAMPLE_PRESCRIPTION_DATA = {
+  patient: {
+    id: 101,
+    name: 'أحمد محمود إبراهيم',
+    full_name: 'أحمد محمود إبراهيم',
+    age: '38 سنة',
+    gender: 'male',
+    phone: '01098765432',
+  },
+  encounter: {
+    id: 501,
+    serial_no: 'RX-2026-9841',
+    prescription_code: 'RX-2026-9841',
+  },
+  vitals: {
+    bloodPressure: '125/80',
+    blood_pressure: '125/80',
+    heartRate: '74',
+    heart_rate: '74',
+    temperature: '37.1',
+    weight: '78',
+    height: '175',
+    spo2: '99',
+    randomBloodSugar: '110',
+    blood_sugar: '110',
+  },
+  diagnoses: ['ارتفاع ضغط الدم الأولي (Primary HTN)', 'عسر هضم وظيفي (Functional Dyspepsia)'],
+  medications: [
+    {
+      id: 1,
+      name: 'Concor 5 Plus',
+      drug_name: 'Concor 5 Plus (Bisoprolol/HCTZ)',
+      dosage: '5mg / 12.5mg',
+      dose: '5mg / 12.5mg',
+      frequency: 'Once Daily (1x1)',
+      duration: '30 Days',
+      instructions: 'قرص واحد يومياً صباحاً بعد وجبة الإفطار مع كوب ماء كامل.',
+    },
+    {
+      id: 2,
+      name: 'Controloc 40mg',
+      drug_name: 'Controloc 40mg (Pantoprazole)',
+      dosage: '40mg',
+      dose: '40mg',
+      frequency: 'Once Daily (1x1)',
+      duration: '14 Days',
+      instructions: 'قرص واحد يومياً قبل الإفطار بنصف ساعة.',
+    },
+    {
+      id: 3,
+      name: 'Cardiprin 100mg',
+      drug_name: 'Cardiprin 100mg (Aspirin EC)',
+      dosage: '100mg',
+      dose: '100mg',
+      frequency: 'Once Daily (1x1)',
+      duration: '30 Days',
+      instructions: 'قرص مضغ بعد وجبة الغداء.',
+    },
+  ],
+  advice: 'الالتزام بحمية غذائية قليلة الملح والدهون، الإكثار من شرب الماء والمشي 30 دقيقة يومياً، وتجنب المنبهات والمسكنات بدون استشارة.',
+  followUpDate: new Date(Date.now() + 14 * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
+};

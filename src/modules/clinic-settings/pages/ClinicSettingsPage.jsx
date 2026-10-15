@@ -1,27 +1,25 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import {
   Settings,
   Receipt,
   Plus,
   Edit3,
-  Trash2,
   CheckCircle2,
-  AlertCircle,
   Loader2,
   Search,
-  Sparkles,
-  Tag,
-  DollarSign,
   X,
+  Printer,
 } from 'lucide-react';
 import { useBranchContext } from '../../../context/BranchContext';
 import financialApi from '../../../services/financialApi';
+import PrescriptionSettingsTab from '../components/PrescriptionSettingsTab';
 
 export default function ClinicSettingsPage() {
   const { activeBranch } = useBranchContext();
   const branchId = activeBranch?.id;
   const branchName = activeBranch?.name || 'Main Branch';
 
+  const [activeTab, setActiveTab] = useState('prescription'); // 'prescription' | 'services'
   const [services, setServices] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState('');
@@ -35,7 +33,7 @@ export default function ClinicSettingsPage() {
   const [isSaving, setIsSaving] = useState(false);
   const [feedbackMsg, setFeedbackMsg] = useState('');
 
-  const loadServices = async () => {
+  const loadServices = useCallback(async () => {
     if (!branchId) return;
     try {
       setIsLoading(true);
@@ -46,11 +44,11 @@ export default function ClinicSettingsPage() {
     } finally {
       setIsLoading(false);
     }
-  };
+  }, [branchId]);
 
   useEffect(() => {
     loadServices();
-  }, [branchId]);
+  }, [loadServices]);
 
   const handleOpenAdd = () => {
     setEditingService(null);
@@ -110,13 +108,14 @@ export default function ClinicSettingsPage() {
     }
   };
 
-  const filteredServices = services.filter((svc) =>
-    svc.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-    (svc.code && svc.code.toLowerCase().includes(searchQuery.toLowerCase()))
+  const filteredServices = services.filter(
+    (svc) =>
+      svc.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      (svc.code && svc.code.toLowerCase().includes(searchQuery.toLowerCase()))
   );
 
   return (
-    <div className="space-y-6 max-w-6xl mx-auto" dir="ltr">
+    <div className="space-y-6 max-w-6xl mx-auto" dir="rtl">
       {/* Top Banner */}
       <div className="bg-white px-6 py-5 rounded-2xl border border-slate-200/80 shadow-xs flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
         <div className="flex items-center gap-3">
@@ -124,103 +123,143 @@ export default function ClinicSettingsPage() {
             <Settings className="h-6 w-6" />
           </div>
           <div>
-            <h2 className="text-lg font-bold text-slate-900 m-0">Clinic Settings & Medical Services Catalog</h2>
+            <h2 className="text-lg font-bold text-slate-900 m-0">إعدادات العيادة والطباعة (Clinic Settings)</h2>
             <p className="text-xs text-slate-500 mt-1 m-0">
-              Manage names, codes, and pricing for medical procedures for <strong className="text-clinic-600">{branchName}</strong>
+              إدارة إعدادات وقوالب الروشتات، معايرة الطابعات، وكتالوج الخدمات لفرع <strong className="text-clinic-600">{branchName}</strong>
             </p>
           </div>
         </div>
 
-        <button
-          onClick={handleOpenAdd}
-          className="bg-clinic-600 hover:bg-clinic-700 text-white font-bold py-2.5 px-4 rounded-xl text-xs flex items-center gap-2 transition-all shadow-xs cursor-pointer"
-        >
-          <Plus className="h-4 w-4" />
-          <span>Add New Service / Procedure</span>
-        </button>
+        {/* Tab Switcher Buttons */}
+        <div className="flex items-center gap-2 bg-slate-100/90 p-1 rounded-xl border border-slate-200/80 w-full sm:w-auto">
+          <button
+            type="button"
+            onClick={() => setActiveTab('prescription')}
+            className={`px-4 py-2 rounded-lg text-xs font-bold transition-all flex items-center gap-1.5 cursor-pointer ${
+              activeTab === 'prescription'
+                ? 'bg-white text-clinic-700 shadow-xs'
+                : 'text-slate-600 hover:text-slate-900'
+            }`}
+          >
+            <Printer className="h-4 w-4" />
+            <span>قوالب الروشتة والطباعة</span>
+          </button>
+
+          <button
+            type="button"
+            onClick={() => setActiveTab('services')}
+            className={`px-4 py-2 rounded-lg text-xs font-bold transition-all flex items-center gap-1.5 cursor-pointer ${
+              activeTab === 'services'
+                ? 'bg-white text-clinic-700 shadow-xs'
+                : 'text-slate-600 hover:text-slate-900'
+            }`}
+          >
+            <Receipt className="h-4 w-4" />
+            <span>كتالوج الخدمات والأسعار</span>
+          </button>
+        </div>
       </div>
 
-      {/* Services Catalog Card */}
-      <div className="bg-white rounded-2xl border border-slate-200/80 shadow-xs overflow-hidden">
-        <div className="p-5 border-b border-slate-100 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
-          <div className="flex items-center gap-2">
-            <Receipt className="h-4 w-4 text-clinic-600" />
-            <h3 className="font-bold text-sm text-slate-900 m-0">Approved Services & Pricing</h3>
-            <span className="text-xs bg-slate-100 font-mono text-slate-600 px-2 py-0.5 rounded-full font-bold">
-              {services.length} services
-            </span>
+      {/* TAB CONTENT 1: Prescription & Printing Settings */}
+      {activeTab === 'prescription' && (
+        <PrescriptionSettingsTab />
+      )}
+
+      {/* TAB CONTENT 2: Medical Services & Pricing */}
+      {activeTab === 'services' && (
+        <div className="space-y-4" dir="ltr">
+          <div className="flex justify-end">
+            <button
+              onClick={handleOpenAdd}
+              className="bg-clinic-600 hover:bg-clinic-700 text-white font-bold py-2.5 px-4 rounded-xl text-xs flex items-center gap-2 transition-all shadow-xs cursor-pointer"
+            >
+              <Plus className="h-4 w-4" />
+              <span>Add New Service / Procedure</span>
+            </button>
           </div>
 
-          <div className="relative w-full sm:w-64">
-            <Search className="h-4 w-4 text-slate-400 absolute left-3 top-2.5" />
-            <input
-              type="text"
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              placeholder="Search by name or code..."
-              className="w-full pl-9 pr-3 py-1.5 bg-slate-50 border border-slate-200 rounded-xl text-xs font-medium focus:bg-white focus:ring-1 focus:ring-clinic-500"
-            />
+          <div className="bg-white rounded-2xl border border-slate-200/80 shadow-xs overflow-hidden">
+            <div className="p-5 border-b border-slate-100 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
+              <div className="flex items-center gap-2">
+                <Receipt className="h-4 w-4 text-clinic-600" />
+                <h3 className="font-bold text-sm text-slate-900 m-0">Approved Services & Pricing</h3>
+                <span className="text-xs bg-slate-100 font-mono text-slate-600 px-2 py-0.5 rounded-full font-bold">
+                  {services.length} services
+                </span>
+              </div>
+
+              <div className="relative w-full sm:w-64">
+                <Search className="h-4 w-4 text-slate-400 absolute left-3 top-2.5" />
+                <input
+                  type="text"
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                  placeholder="Search by name or code..."
+                  className="w-full pl-9 pr-3 py-1.5 bg-slate-50 border border-slate-200 rounded-xl text-xs font-medium focus:bg-white focus:ring-1 focus:ring-clinic-500"
+                />
+              </div>
+            </div>
+
+            {isLoading ? (
+              <div className="py-16 flex items-center justify-center gap-2 text-xs text-slate-500">
+                <Loader2 className="h-5 w-5 animate-spin text-clinic-600" />
+                <span>Loading services catalog...</span>
+              </div>
+            ) : filteredServices.length === 0 ? (
+              <div className="py-16 text-center text-xs text-slate-400">
+                No services matching your search.
+              </div>
+            ) : (
+              <div className="divide-y divide-slate-100">
+                {filteredServices.map((svc) => (
+                  <div
+                    key={svc.id}
+                    className="p-4 flex items-center justify-between hover:bg-slate-50/60 transition-colors flex-wrap gap-3"
+                  >
+                    <div className="flex items-center gap-3">
+                      <div className="h-10 w-10 rounded-xl bg-slate-100 border border-slate-200 flex items-center justify-center font-mono font-bold text-slate-600 text-xs shrink-0">
+                        {svc.code ? svc.code.substring(0, 3) : 'SVC'}
+                      </div>
+                      <div>
+                        <h4 className="font-bold text-sm text-slate-900 m-0 flex items-center gap-2">
+                          {svc.name}
+                          {(svc.code === 'CONSULTATION' || svc.code === 'CHECK_UP') && (
+                            <span className="bg-clinic-50 text-clinic-700 text-[10px] px-2 py-0.5 rounded font-bold">
+                              Consultation
+                            </span>
+                          )}
+                        </h4>
+                        {svc.code && (
+                          <span className="text-[11px] text-slate-400 font-mono mt-0.5 block">
+                            Code: {svc.code}
+                          </span>
+                        )}
+                      </div>
+                    </div>
+
+                    <div className="flex items-center gap-4">
+                      <div className="text-right bg-emerald-50/70 border border-emerald-200/80 px-3.5 py-1.5 rounded-xl">
+                        <span className="text-[10px] text-emerald-700 font-semibold block">Current Price</span>
+                        <strong className="text-base font-bold font-mono text-emerald-800">
+                          {Number(svc.price).toFixed(2)} EGP
+                        </strong>
+                      </div>
+
+                      <button
+                        onClick={() => handleOpenEdit(svc)}
+                        className="p-2 text-slate-500 hover:text-clinic-600 hover:bg-clinic-50 border border-slate-200 hover:border-clinic-300 rounded-xl transition-all cursor-pointer"
+                        title="Edit service details"
+                      >
+                        <Edit3 className="h-4 w-4" />
+                      </button>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
           </div>
         </div>
-
-        {isLoading ? (
-          <div className="py-16 flex items-center justify-center gap-2 text-xs text-slate-500">
-            <Loader2 className="h-5 w-5 animate-spin text-clinic-600" />
-            <span>Loading services catalog...</span>
-          </div>
-        ) : filteredServices.length === 0 ? (
-          <div className="py-16 text-center text-xs text-slate-400">
-            No services matching your search.
-          </div>
-        ) : (
-          <div className="divide-y divide-slate-100">
-            {filteredServices.map((svc) => (
-              <div
-                key={svc.id}
-                className="p-4 flex items-center justify-between hover:bg-slate-50/60 transition-colors flex-wrap gap-3"
-              >
-                <div className="flex items-center gap-3">
-                  <div className="h-10 w-10 rounded-xl bg-slate-100 border border-slate-200 flex items-center justify-center font-mono font-bold text-slate-600 text-xs shrink-0">
-                    {svc.code ? svc.code.substring(0, 3) : 'SVC'}
-                  </div>
-                  <div>
-                    <h4 className="font-bold text-sm text-slate-900 m-0 flex items-center gap-2">
-                      {svc.name}
-                      {(svc.code === 'CONSULTATION' || svc.code === 'CHECK_UP') && (
-                        <span className="bg-clinic-50 text-clinic-700 text-[10px] px-2 py-0.5 rounded font-bold">
-                          Consultation
-                        </span>
-                      )}
-                    </h4>
-                    {svc.code && (
-                      <span className="text-[11px] text-slate-400 font-mono mt-0.5 block">
-                        Code: {svc.code}
-                      </span>
-                    )}
-                  </div>
-                </div>
-
-                <div className="flex items-center gap-4">
-                  <div className="text-right bg-emerald-50/70 border border-emerald-200/80 px-3.5 py-1.5 rounded-xl">
-                    <span className="text-[10px] text-emerald-700 font-semibold block">Current Price</span>
-                    <strong className="text-base font-bold font-mono text-emerald-800">
-                      {Number(svc.price).toFixed(2)} EGP
-                    </strong>
-                  </div>
-
-                  <button
-                    onClick={() => handleOpenEdit(svc)}
-                    className="p-2 text-slate-500 hover:text-clinic-600 hover:bg-clinic-50 border border-slate-200 hover:border-clinic-300 rounded-xl transition-all cursor-pointer"
-                    title="Edit service details"
-                  >
-                    <Edit3 className="h-4 w-4" />
-                  </button>
-                </div>
-              </div>
-            ))}
-          </div>
-        )}
-      </div>
+      )}
 
       {/* EDIT / CREATE SERVICE MODAL */}
       {isEditModalOpen && (
