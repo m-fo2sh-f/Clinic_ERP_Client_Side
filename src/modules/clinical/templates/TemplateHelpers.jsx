@@ -183,12 +183,45 @@ export function PatientInfoBar({
   encounter = {},
   showSerial = true,
   date,
+  transparentBg = false,
 }) {
   const patientName = patient?.name || patient?.full_name || 'مريض افتراضي';
   const age = patient?.age || (patient?.birth_date ? `${new Date().getFullYear() - new Date(patient.birth_date).getFullYear()} سنة` : '32 سنة');
   const gender = patient?.gender === 'female' ? 'أنثى' : 'ذكر';
   const serialNo = encounter?.serial_no || encounter?.prescription_code || `RX-${new Date().getFullYear()}-0482`;
   const formattedDate = date || new Date().toLocaleDateString('ar-EG', { year: 'numeric', month: 'numeric', day: 'numeric' });
+
+  if (transparentBg) {
+    return (
+      <section className="bg-transparent border-b border-black/20 pb-2 mb-3 text-xs text-black" dir="rtl">
+        <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 items-center text-black">
+          <div className="flex items-center gap-1.5">
+            <span className="text-black/70 font-semibold text-[11px]">المريض:</span>
+            <strong className="font-extrabold text-black truncate">{patientName}</strong>
+          </div>
+
+          <div className="flex items-center gap-1.5">
+            <span className="text-black/70 font-semibold text-[11px]">السن / النوع:</span>
+            <span className="font-bold text-black">{age} / {gender}</span>
+          </div>
+
+          <div className="flex items-center gap-1.5">
+            <span className="text-black/70 font-semibold text-[11px]">التاريخ:</span>
+            <span className="font-mono font-bold text-black">{formattedDate}</span>
+          </div>
+
+          {showSerial && (
+            <div className="flex items-center gap-1.5 justify-end" dir="ltr">
+              <span className="text-black/70 font-semibold text-[10px]">No:</span>
+              <span className="font-mono font-bold text-black text-[11px]">
+                {serialNo}
+              </span>
+            </div>
+          )}
+        </div>
+      </section>
+    );
+  }
 
   return (
     <section className="bg-slate-50/90 border border-slate-200/90 rounded-xl px-3 py-2 mb-3 text-xs" dir="rtl">

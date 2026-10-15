@@ -83,6 +83,7 @@ export default function PreprintedLetterheadTemplate({
                     patient={patient}
                     encounter={encounter}
                     showSerial={showSerial}
+                    transparentBg={true}
                   />
 
                   {/* Modular Prescription Body (Columns or Stacked, strict two-line medications) */}

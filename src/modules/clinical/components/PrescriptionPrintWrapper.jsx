@@ -39,9 +39,11 @@ const PrescriptionPrintWrapper = forwardRef(function PrescriptionPrintWrapper(
   const paperSize = settings?.paper_size || 'A5';
 
   // Dynamic dimensions based on standard ISO paper sizes
-  const dimensions = paperSize === 'A4'
-    ? { width: '210mm', minHeight: '297mm' }
-    : { width: '148mm', minHeight: '210mm' };
+  const dimensions = paperSize === 'A3'
+    ? { width: '297mm', minHeight: '420mm', height: '420mm' }
+    : paperSize === 'A4'
+      ? { width: '210mm', minHeight: '297mm', height: '297mm' }
+      : { width: '148mm', minHeight: '210mm', height: '210mm' };
 
   // Select target template component (EgyptianClinicTemplate is default authentic model)
   let TemplateComponent = EgyptianClinicTemplate;
@@ -94,8 +96,9 @@ const PrescriptionPrintWrapper = forwardRef(function PrescriptionPrintWrapper(
           : 'print-page-root'
       } ${className}`}
       style={{
-        width: dimensions.width,
-        minHeight: dimensions.minHeight,
+        width: isPreview ? dimensions.width : '100%',
+        minHeight: isPreview ? dimensions.minHeight : '100%',
+        height: isPreview ? dimensions.height : '100%',
         filter: combinedFilter,
         WebkitFilter: combinedFilter,
         pageBreakAfter: 'avoid',

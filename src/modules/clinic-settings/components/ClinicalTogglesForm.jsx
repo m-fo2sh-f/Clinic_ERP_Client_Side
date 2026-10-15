@@ -105,23 +105,23 @@ export default function ClinicalTogglesForm({
           </span>
         </div>
 
-        <div className="flex items-center gap-2" dir="ltr">
+        <div className="flex items-center gap-2 flex-wrap" dir="ltr">
           <button
             type="button"
             onClick={() => handleSelectPaper('A5')}
-            className={`px-4 py-2 rounded-xl text-xs font-bold transition-all flex items-center gap-1.5 cursor-pointer ${
-              values.paper_size !== 'A4'
+            className={`px-3.5 py-2 rounded-xl text-xs font-bold transition-all flex items-center gap-1.5 cursor-pointer ${
+              (values.paper_size === 'A5' || !values.paper_size)
                 ? 'bg-clinic-600 text-white shadow-xs'
                 : 'bg-white text-slate-700 border border-slate-200 hover:bg-slate-100'
             }`}
           >
-            {values.paper_size !== 'A4' && <Check className="h-3.5 w-3.5" />}
+            {(values.paper_size === 'A5' || !values.paper_size) && <Check className="h-3.5 w-3.5" />}
             <span>A5 (148 x 210 mm) - موصى به</span>
           </button>
           <button
             type="button"
             onClick={() => handleSelectPaper('A4')}
-            className={`px-4 py-2 rounded-xl text-xs font-bold transition-all flex items-center gap-1.5 cursor-pointer ${
+            className={`px-3.5 py-2 rounded-xl text-xs font-bold transition-all flex items-center gap-1.5 cursor-pointer ${
               values.paper_size === 'A4'
                 ? 'bg-clinic-600 text-white shadow-xs'
                 : 'bg-white text-slate-700 border border-slate-200 hover:bg-slate-100'
@@ -129,6 +129,18 @@ export default function ClinicalTogglesForm({
           >
             {values.paper_size === 'A4' && <Check className="h-3.5 w-3.5" />}
             <span>A4 (210 x 297 mm)</span>
+          </button>
+          <button
+            type="button"
+            onClick={() => handleSelectPaper('A3')}
+            className={`px-3.5 py-2 rounded-xl text-xs font-bold transition-all flex items-center gap-1.5 cursor-pointer ${
+              values.paper_size === 'A3'
+                ? 'bg-clinic-600 text-white shadow-xs'
+                : 'bg-white text-slate-700 border border-slate-200 hover:bg-slate-100'
+            }`}
+          >
+            {values.paper_size === 'A3' && <Check className="h-3.5 w-3.5" />}
+            <span>A3 (297 x 420 mm)</span>
           </button>
         </div>
       </div>

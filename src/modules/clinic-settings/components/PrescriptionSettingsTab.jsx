@@ -49,12 +49,14 @@ export default function PrescriptionSettingsTab() {
   const pageStyle = `
     @page {
       size: ${paperSize} portrait;
-      margin: 0;
+      margin: 0 !important;
     }
     @media print {
       html, body {
         margin: 0 !important;
         padding: 0 !important;
+        width: 100% !important;
+        height: 100% !important;
         background: #ffffff !important;
         -webkit-print-color-adjust: exact !important;
         print-color-adjust: exact !important;
@@ -62,6 +64,11 @@ export default function PrescriptionSettingsTab() {
       .print-page-root {
         box-shadow: none !important;
         border: none !important;
+        width: 100% !important;
+        min-height: 100vh !important;
+        height: 100vh !important;
+        margin: 0 !important;
+        padding: 0 !important;
       }
     }
   `;
@@ -223,7 +230,8 @@ export default function PrescriptionSettingsTab() {
           position: 'fixed',
           left: '-99999px',
           top: '-99999px',
-          width: paperSize === 'A4' ? '210mm' : '148mm',
+          width: paperSize === 'A3' ? '297mm' : paperSize === 'A4' ? '210mm' : '148mm',
+          height: paperSize === 'A3' ? '420mm' : paperSize === 'A4' ? '297mm' : '210mm',
           opacity: 0,
           pointerEvents: 'none',
         }}
