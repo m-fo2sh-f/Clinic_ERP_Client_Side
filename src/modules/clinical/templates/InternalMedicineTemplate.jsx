@@ -1,11 +1,8 @@
 import React from 'react';
+import PrescriptionBody from '../components/PrescriptionBody';
 import {
   PrescriptionHeader,
   PatientInfoBar,
-  VitalsBar,
-  DiagnosisBox,
-  MedicationsList,
-  AdviceAndFollowUp,
   DoctorSignatureFooter,
 } from './TemplateHelpers';
 
@@ -64,26 +61,17 @@ export default function InternalMedicineTemplate({
           showSerial={showSerial}
         />
 
-        {/* Prominent Vitals Bar */}
-        {showVitals && (
-          <VitalsBar vitals={vitals} primaryColor={primaryColor} />
-        )}
-
-        {/* Diagnosis Callout */}
-        {showDiagnosis && (
-          <DiagnosisBox diagnoses={diagnoses} primaryColor={primaryColor} />
-        )}
-
-        {/* Rx Prescribed Medications List (Bi-directional RTL/LTR) */}
-        <MedicationsList
+        {/* Modular Prescription Body (Columns or Stacked, strict two-line medications) */}
+        <PrescriptionBody
           medications={medications}
-          primaryColor={primaryColor}
-        />
-
-        {/* General Advice & Follow-Up Date */}
-        <AdviceAndFollowUp
-          generalAdvice={advice}
+          vitals={vitals}
+          diagnoses={diagnoses}
+          advice={advice}
           followUpDate={followUpDate}
+          layout={settings?.body_layout || 'columns'}
+          showVitals={showVitals}
+          showDiagnosis={showDiagnosis}
+          fontSize={settings?.font_size || 'md'}
           primaryColor={primaryColor}
         />
       </div>

@@ -1,10 +1,7 @@
 import React from 'react';
+import PrescriptionBody from '../components/PrescriptionBody';
 import {
   PatientInfoBar,
-  VitalsBar,
-  DiagnosisBox,
-  MedicationsList,
-  AdviceAndFollowUp,
   DoctorSignatureFooter,
 } from './TemplateHelpers';
 
@@ -81,20 +78,6 @@ export default function PreprintedLetterheadTemplate({
             >
               <div className="flex flex-col justify-between min-h-[14cm]">
                 <div className="space-y-3">
-                  {/* Rx Symbol Header marker for preprinted pads */}
-                  <div className="flex items-center justify-between pb-1 border-b border-slate-200">
-                    <span
-                      className="text-3xl font-black font-serif tracking-tight leading-none"
-                      style={{ color: primaryColor }}
-                      dir="ltr"
-                    >
-                      ℞
-                    </span>
-                    <span className="text-[11px] font-bold text-slate-500 font-mono">
-                      Official Medical Prescription
-                    </span>
-                  </div>
-
                   {/* Patient Demographics Bar */}
                   <PatientInfoBar
                     patient={patient}
@@ -102,27 +85,17 @@ export default function PreprintedLetterheadTemplate({
                     showSerial={showSerial}
                   />
 
-                  {/* Vitals Bar */}
-                  {showVitals && (
-                    <VitalsBar vitals={vitals} primaryColor={primaryColor} />
-                  )}
-
-                  {/* Clinical Diagnoses */}
-                  {showDiagnosis && (
-                    <DiagnosisBox diagnoses={diagnoses} primaryColor={primaryColor} />
-                  )}
-
-                  {/* Prescribed Medications Table (Bi-directional RTL/LTR) */}
-                  <MedicationsList
+                  {/* Modular Prescription Body (Columns or Stacked, strict two-line medications) */}
+                  <PrescriptionBody
                     medications={medications}
-                    primaryColor={primaryColor}
-                  />
-
-                  {/* General Advice & Follow-Up Date */}
-                  <AdviceAndFollowUp
-                    generalAdvice={advice}
+                    vitals={vitals}
+                    diagnoses={diagnoses}
+                    advice={advice}
                     followUpDate={followUpDate}
-                    primaryColor={primaryColor}
+                    layout={settings?.body_layout || 'columns'}
+                    showVitals={showVitals}
+                    showDiagnosis={showDiagnosis}
+                    fontSize={settings?.font_size || 'md'}
                   />
                 </div>
 

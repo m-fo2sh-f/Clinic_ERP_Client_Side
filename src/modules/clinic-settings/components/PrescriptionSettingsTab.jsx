@@ -251,13 +251,13 @@ export default function PrescriptionSettingsTab() {
           className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-xs animate-in fade-in"
           dir="rtl"
         >
-          <div className="bg-white rounded-3xl shadow-2xl border border-slate-200 w-full max-w-2xl max-h-[92vh] flex flex-col overflow-hidden animate-in zoom-in-95">
+          <div className="bg-white rounded-3xl shadow-2xl border border-slate-200 w-full max-w-3xl max-h-[95vh] flex flex-col overflow-hidden animate-in zoom-in-95">
             {/* Modal Header */}
-            <div className="bg-slate-900 text-white px-6 py-4 flex items-center justify-between">
+            <div className="bg-slate-900 text-white px-6 py-4 flex items-center justify-between shrink-0">
               <div className="flex items-center gap-2">
                 <Eye className="h-5 w-5 text-clinic-400" />
                 <h3 className="font-bold text-sm m-0">
-                  معاينة مباشرة للروشتة على الشاشة ({paperSize} Preview)
+                  معاينة مباشرة للروشتة على الشاشة ({paperSize} Preview) — مطابقة للطباعة 100%
                 </h3>
               </div>
               <div className="flex items-center gap-3">
@@ -279,28 +279,21 @@ export default function PrescriptionSettingsTab() {
               </div>
             </div>
 
-            {/* Modal Canvas View */}
-            <div className="flex-1 overflow-y-auto p-6 bg-slate-100/70 flex justify-center">
-              <div
-                className="w-full max-w-md bg-white shadow-xl rounded-xl overflow-hidden border border-slate-300"
-                style={{
-                  minHeight: paperSize === 'A4' ? '560px' : '480px',
-                }}
-              >
-                <PrescriptionPrintWrapper
-                  settings={settings}
-                  patient={SAMPLE_PRESCRIPTION_DATA.patient}
-                  doctor={{ name: settings.doctor_name, title: settings.doctor_title }}
-                  branch={{ name: settings.clinic_name }}
-                  encounter={SAMPLE_PRESCRIPTION_DATA.encounter}
-                  vitals={SAMPLE_PRESCRIPTION_DATA.vitals}
-                  diagnoses={SAMPLE_PRESCRIPTION_DATA.diagnoses}
-                  medications={SAMPLE_PRESCRIPTION_DATA.medications}
-                  advice={SAMPLE_PRESCRIPTION_DATA.advice}
-                  followUpDate={SAMPLE_PRESCRIPTION_DATA.followUpDate}
-                  isPreview={true}
-                />
-              </div>
+            {/* Modal Canvas View with Natural Paper Display */}
+            <div className="flex-1 overflow-y-auto p-8 bg-slate-300/80 flex justify-center items-start">
+              <PrescriptionPrintWrapper
+                settings={settings}
+                patient={SAMPLE_PRESCRIPTION_DATA.patient}
+                doctor={{ name: settings.doctor_name, title: settings.doctor_title }}
+                branch={{ name: settings.clinic_name }}
+                encounter={SAMPLE_PRESCRIPTION_DATA.encounter}
+                vitals={SAMPLE_PRESCRIPTION_DATA.vitals}
+                diagnoses={SAMPLE_PRESCRIPTION_DATA.diagnoses}
+                medications={SAMPLE_PRESCRIPTION_DATA.medications}
+                advice={SAMPLE_PRESCRIPTION_DATA.advice}
+                followUpDate={SAMPLE_PRESCRIPTION_DATA.followUpDate}
+                isPreview={true}
+              />
             </div>
           </div>
         </div>

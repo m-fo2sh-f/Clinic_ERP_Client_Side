@@ -18,6 +18,7 @@ import {
 import { fileToBase64 } from '../api/prescriptionSettingsApi';
 
 const COLOR_PRESETS = [
+  { name: 'Egyptian Burgundy (موصى به)', hex: '#991b1b' },
   { name: 'Sky Clinic', hex: '#0284c7' },
   { name: 'Medical Emerald', hex: '#059669' },
   { name: 'Royal Navy', hex: '#0f172a' },
@@ -83,6 +84,14 @@ export default function PrescriptionTemplateGallery({
   };
 
   const builtinTemplates = [
+    {
+      id: 'egyptian_clinic',
+      title: 'النموذج المصري الأصيل (Egyptian Clinic Standard)',
+      desc: 'تصميم مطابق للروشتات المصرية الحقيقية: هيدر ثلاثي بالدرجات العلمية واللوجو، شريط مريض متكامل، جسم مقسم للأدوية باللغتين والعلامات الحيوية، وفوتر خدمات وتواصل.',
+      icon: Heart,
+      accent: 'border-red-300 bg-red-50/40',
+      badge: 'النموذج المصري المعتمد',
+    },
     {
       id: 'internal_medicine',
       title: 'أمراض الباطنة والقلب (Internal Medicine)',

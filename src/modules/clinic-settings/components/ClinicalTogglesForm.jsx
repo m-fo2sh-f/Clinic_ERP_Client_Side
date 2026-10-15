@@ -133,6 +133,79 @@ export default function ClinicalTogglesForm({
         </div>
       </div>
 
+      {/* Body Layout Selector (20/80 columns vs stacked) */}
+      <div className="bg-slate-50/80 p-4 rounded-xl border border-slate-200 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+        <div>
+          <span className="text-xs font-bold text-slate-800 block">نمط تقسيم محتوى الروشتة (Body Layout):</span>
+          <span className="text-[11px] text-slate-500">
+            اختر ما إذا كانت العلامات الحيوية تُعرض في عمود جانبي (20%) والأدوية في العمود الأكبر (80%)، أو مكدسة أفقياً بالأعلى.
+          </span>
+        </div>
+
+        <div className="flex items-center gap-2" dir="ltr">
+          <button
+            type="button"
+            onClick={() => onChange?.({ ...values, body_layout: 'columns' })}
+            className={`px-4 py-2 rounded-xl text-xs font-bold transition-all flex items-center gap-1.5 cursor-pointer ${
+              values.body_layout !== 'stacked'
+                ? 'bg-clinic-600 text-white shadow-xs'
+                : 'bg-white text-slate-700 border border-slate-200 hover:bg-slate-100'
+            }`}
+          >
+            {values.body_layout !== 'stacked' && <Check className="h-3.5 w-3.5" />}
+            <span>عمودين 20% / 80% (موصى به)</span>
+          </button>
+          <button
+            type="button"
+            onClick={() => onChange?.({ ...values, body_layout: 'stacked' })}
+            className={`px-4 py-2 rounded-xl text-xs font-bold transition-all flex items-center gap-1.5 cursor-pointer ${
+              values.body_layout === 'stacked'
+                ? 'bg-clinic-600 text-white shadow-xs'
+                : 'bg-white text-slate-700 border border-slate-200 hover:bg-slate-100'
+            }`}
+          >
+            {values.body_layout === 'stacked' && <Check className="h-3.5 w-3.5" />}
+            <span>مكدس رأسياً (Stacked)</span>
+          </button>
+        </div>
+      </div>
+
+      {/* Medication Font Size Selector */}
+      <div className="bg-slate-50/80 p-4 rounded-xl border border-slate-200 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+        <div>
+          <span className="text-xs font-bold text-slate-800 block">حجم خط طباعة الأدوية والجرعات (Font Size):</span>
+          <span className="text-[11px] text-slate-500">
+            حدد حجم الخط المناسب لكتابة أسماء الأدوية والجرعات بالروشتة بما يناسب مساحة الورقة.
+          </span>
+        </div>
+
+        <div className="flex items-center gap-1.5 flex-wrap" dir="ltr">
+          {[
+            { id: 'sm', label: 'صغير (Small)' },
+            { id: 'md', label: 'متوسط (Medium - موصى به)' },
+            { id: 'lg', label: 'كبير (Large)' },
+            { id: 'xl', label: 'كبير جداً (XL)' },
+          ].map((sizeOpt) => {
+            const isSelected = (values.font_size || 'md') === sizeOpt.id;
+            return (
+              <button
+                key={sizeOpt.id}
+                type="button"
+                onClick={() => onChange?.({ ...values, font_size: sizeOpt.id })}
+                className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-all flex items-center gap-1 cursor-pointer ${
+                  isSelected
+                    ? 'bg-clinic-600 text-white shadow-xs'
+                    : 'bg-white text-slate-700 border border-slate-200 hover:bg-slate-100'
+                }`}
+              >
+                {isSelected && <Check className="h-3 w-3" />}
+                <span>{sizeOpt.label}</span>
+              </button>
+            );
+          })}
+        </div>
+      </div>
+
       {/* Grid of Toggle Switches */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         {toggles.map((item) => {

@@ -1,4 +1,5 @@
 import React, { forwardRef } from 'react';
+import EgyptianClinicTemplate from '../templates/EgyptianClinicTemplate';
 import InternalMedicineTemplate from '../templates/InternalMedicineTemplate';
 import OphthalmologyTemplate from '../templates/OphthalmologyTemplate';
 import DermatologyTemplate from '../templates/DermatologyTemplate';
@@ -34,7 +35,7 @@ const PrescriptionPrintWrapper = forwardRef(function PrescriptionPrintWrapper(
   ref
 ) {
   const mode = settings?.mode || 'builtin';
-  const templateId = settings?.template_id || 'internal_medicine';
+  const templateId = settings?.template_id || 'egyptian_clinic';
   const paperSize = settings?.paper_size || 'A5';
 
   // Dynamic dimensions based on standard ISO paper sizes
@@ -42,8 +43,8 @@ const PrescriptionPrintWrapper = forwardRef(function PrescriptionPrintWrapper(
     ? { width: '210mm', minHeight: '297mm' }
     : { width: '148mm', minHeight: '210mm' };
 
-  // Select target template component
-  let TemplateComponent = InternalMedicineTemplate;
+  // Select target template component (EgyptianClinicTemplate is default authentic model)
+  let TemplateComponent = EgyptianClinicTemplate;
 
   if (mode === 'letterhead') {
     TemplateComponent = PreprintedLetterheadTemplate;
@@ -60,9 +61,13 @@ const PrescriptionPrintWrapper = forwardRef(function PrescriptionPrintWrapper(
       case 'pediatrics':
         TemplateComponent = PediatricsTemplate;
         break;
+      case 'internal_classic':
+        TemplateComponent = InternalMedicineTemplate;
+        break;
+      case 'egyptian_clinic':
       case 'internal_medicine':
       default:
-        TemplateComponent = InternalMedicineTemplate;
+        TemplateComponent = EgyptianClinicTemplate;
         break;
     }
   }
@@ -83,13 +88,14 @@ const PrescriptionPrintWrapper = forwardRef(function PrescriptionPrintWrapper(
     <div
       ref={ref}
       id="prescription-print-document"
-      className={`prescription-sheet-wrapper bg-white text-slate-900 overflow-hidden box-border ${
+      className={`prescription-sheet-wrapper bg-white text-slate-900 box-border flex flex-col ${
         isPreview
-          ? 'w-full max-w-full shadow-lg rounded-2xl border border-slate-200'
+          ? 'shadow-2xl rounded-sm border border-slate-300 mx-auto shrink-0'
           : 'print-page-root'
       } ${className}`}
       style={{
-        ...(!isPreview ? dimensions : {}),
+        width: dimensions.width,
+        minHeight: dimensions.minHeight,
         filter: combinedFilter,
         WebkitFilter: combinedFilter,
         pageBreakAfter: 'avoid',

@@ -4,6 +4,7 @@ import { Pill, Printer, Plus, Trash2, FileCheck, Calendar, Eye, X } from 'lucide
 import Button from '../../../components/ui/Button';
 import { Card, CardHeader, CardTitle, CardContent } from '../../../components/ui/Card';
 import PrescriptionPrintWrapper from './PrescriptionPrintWrapper';
+import CompleteExaminationModal from './CompleteExaminationModal';
 import { getPrescriptionSettings, DEFAULT_PRESCRIPTION_SETTINGS } from '../../clinic-settings/api/prescriptionSettingsApi';
 
 /**
@@ -37,6 +38,7 @@ export default function PrescriptionSheet({
 }) {
   const [settings, setSettings] = useState(DEFAULT_PRESCRIPTION_SETTINGS);
   const [isPreviewOpen, setIsPreviewOpen] = useState(false);
+  const [isCompleteModalOpen, setIsCompleteModalOpen] = useState(false);
 
   // Hidden print reference for react-to-print
   const printComponentRef = useRef(null);
@@ -136,6 +138,21 @@ export default function PrescriptionSheet({
     handleFollowUpChange(dateStr);
   };
 
+  const handleSaveAndPrint = () => {
+    setIsCompleteModalOpen(false);
+    handlePrint();
+    if (typeof onCompleteExamination === 'function') {
+      onCompleteExamination();
+    }
+  };
+
+  const handleSaveOnly = () => {
+    setIsCompleteModalOpen(false);
+    if (typeof onCompleteExamination === 'function') {
+      onCompleteExamination();
+    }
+  };
+
   return (
     <Card className="border-slate-200 shadow-sm bg-white rounded-2xl overflow-hidden">
       <CardHeader className="p-5 border-b border-slate-100 bg-slate-50/50 flex flex-col sm:flex-row items-center justify-between gap-3">
@@ -143,7 +160,30 @@ export default function PrescriptionSheet({
           <Pill className="h-5 w-5 text-clinic-600" /> Digital Prescription Sheet (Rx)
         </CardTitle>
 
-        <div className="flex items-center gap-2 w-full sm:w-auto">
+        <div className="flex items-center gap-2 w-full sm:w-auto flex-wrap">
+          {/* Quick Medication Font Size Selector */}
+          <div className="flex items-center gap-1 bg-white border border-slate-200 rounded-xl p-1 text-xs" title="حجم خط الأدوية في الروشتة المطبوعة">
+            <span className="text-[11px] font-bold text-slate-500 px-1 select-none">حجم الخط:</span>
+            {[
+              { id: 'sm', label: 'صغير' },
+              { id: 'md', label: 'متوسط' },
+              { id: 'lg', label: 'كبير' },
+            ].map((sz) => (
+              <button
+                key={sz.id}
+                type="button"
+                onClick={() => setSettings((prev) => ({ ...prev, font_size: sz.id }))}
+                className={`px-2.5 py-1 rounded-lg text-xs font-bold transition-all cursor-pointer ${
+                  (settings?.font_size || 'md') === sz.id
+                    ? 'bg-clinic-600 text-white shadow-xs'
+                    : 'text-slate-600 hover:bg-slate-100'
+                }`}
+              >
+                {sz.label}
+              </button>
+            ))}
+          </div>
+
           {/* Visual On-screen Preview */}
           <Button
             variant="outline"
@@ -365,7 +405,11 @@ export default function PrescriptionSheet({
           <Button
             variant="default"
             size="md"
-            onClick={onCompleteExamination}
+            onClick={() => {
+              if (!isPrescriptionSaved) {
+                setIsCompleteModalOpen(true);
+              }
+            }}
             isLoading={effectiveIsSubmitting}
             loadingText="Saving Examination..."
             disabled={isPrescriptionSaved}
@@ -415,11 +459,11 @@ export default function PrescriptionSheet({
           className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-xs animate-in fade-in"
           dir="rtl"
         >
-          <div className="bg-white rounded-3xl shadow-2xl border border-slate-200 w-full max-w-xl max-h-[92vh] flex flex-col overflow-hidden animate-in zoom-in-95">
-            <div className="bg-slate-900 text-white px-6 py-4 flex items-center justify-between">
+          <div className="bg-white rounded-3xl shadow-2xl border border-slate-200 w-full max-w-3xl max-h-[95vh] flex flex-col overflow-hidden animate-in zoom-in-95">
+            <div className="bg-slate-900 text-white px-6 py-4 flex items-center justify-between shrink-0">
               <div className="flex items-center gap-2">
                 <Eye className="h-5 w-5 text-clinic-400" />
-                <h3 className="font-bold text-sm m-0">معاينة الروشتة المطبوعة ({paperSize})</h3>
+                <h3 className="font-bold text-sm m-0">معاينة الروشتة المطبوعة ({paperSize}) — مطابقة للطباعة 100%</h3>
               </div>
               <div className="flex items-center gap-3">
                 <Button
@@ -443,26 +487,36 @@ export default function PrescriptionSheet({
               </div>
             </div>
 
-            <div className="flex-1 overflow-y-auto p-6 bg-slate-100 flex justify-center">
-              <div className="w-full max-w-md bg-white shadow-xl rounded-xl overflow-hidden border border-slate-300">
-                <PrescriptionPrintWrapper
-                  settings={settings}
-                  patient={activePatient}
-                  doctor={{ name: effectiveDoctorName, title: settings?.doctor_title }}
-                  branch={{ name: effectiveBranchName }}
-                  encounter={encounter}
-                  vitals={vitals}
-                  diagnoses={diagnoses}
-                  medications={medications}
-                  advice={generalAdvice}
-                  followUpDate={followUpDate}
-                  isPreview={true}
-                />
-              </div>
+            {/* Natural Page Scrolling Container without Clipping */}
+            <div className="flex-1 overflow-y-auto p-8 bg-slate-300/80 flex justify-center items-start">
+              <PrescriptionPrintWrapper
+                settings={settings}
+                patient={activePatient}
+                doctor={{ name: effectiveDoctorName, title: settings?.doctor_title }}
+                branch={{ name: effectiveBranchName }}
+                encounter={encounter}
+                vitals={vitals}
+                diagnoses={diagnoses}
+                medications={medications}
+                advice={generalAdvice}
+                followUpDate={followUpDate}
+                isPreview={true}
+              />
             </div>
           </div>
         </div>
       )}
+
+      {/* Complete Examination Choice Modal */}
+      <CompleteExaminationModal
+        isOpen={isCompleteModalOpen}
+        onClose={() => setIsCompleteModalOpen(false)}
+        onSaveAndPrint={handleSaveAndPrint}
+        onSaveOnly={handleSaveOnly}
+        isLoading={effectiveIsSubmitting}
+        patientName={activePatient?.name || activePatient?.full_name}
+        medicationsCount={medications.length}
+      />
     </Card>
   );
 }

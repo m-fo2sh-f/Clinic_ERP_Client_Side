@@ -5,7 +5,9 @@ import api, { getTenantStorageKey } from '../../../services/api';
  */
 export const DEFAULT_PRESCRIPTION_SETTINGS = {
   mode: 'builtin', // 'letterhead' | 'builtin' | 'custom_image'
-  template_id: 'internal_medicine', // 'internal_medicine' | 'ophthalmology' | 'dermatology' | 'pediatrics'
+  template_id: 'egyptian_clinic', // 'egyptian_clinic' | 'internal_medicine' | 'ophthalmology' | 'dermatology' | 'pediatrics'
+  body_layout: 'columns', // 'columns' (20% vitals, 80% meds) | 'stacked' (top vitals, bottom meds)
+  font_size: 'md', // 'sm' | 'md' | 'lg' | 'xl'
   paper_size: 'A5', // 'A5' | 'A4'
   top_margin_cm: 3.5,
   bottom_margin_cm: 2.5,
@@ -18,12 +20,27 @@ export const DEFAULT_PRESCRIPTION_SETTINGS = {
   laser_contrast_opt: false,
   grayscale_mode: false,
   auto_print: false,
-  primary_color: '#0284c7', // Sky / clinic brand blue
-  clinic_name: 'عيادة النور التخصصية',
-  doctor_name: 'د. محمد أحمد',
-  doctor_title: 'استشاري الباطنة والقلب والأوعية الدموية',
-  clinic_address: 'شارع التحرير، برج الأطباء، الدور الرابع',
-  clinic_phone: '01012345678 - 0223456789',
+  primary_color: '#991b1b', // Classic Egyptian prescription red/burgundy
+  clinic_name: 'المركز الطبي لأمراض القلب والباطنة',
+  doctor_name: 'دكتور / وحيد سليمان الحنفي',
+  doctor_title: 'استشاري الأمراض الباطنة والقلب',
+  clinic_address: 'طنطا — ميدان المشحمة — شارع الجلاء — برج الأطباء',
+  clinic_phone: '0402388422 — 01026758170',
+  header_data: {
+    degrees: 'زميل كلية الأطباء الملكية بلندن • دكتوراه أمراض القلب',
+    sub_specialties: 'باطنة عامة — أمراض القلب — سكر وضغط — رسم قلب وإيكو',
+    second_doctor: {
+      name: 'دكتور / محمد وحيد سليمان',
+      title: 'ماجستير أمراض القلب والأوعية الدموية',
+      degrees: 'زمالة كهرومغناطيسية القلب ومنظمات ضربات القلب',
+    },
+  },
+  footer_data: {
+    services: 'فحص القلب الفوري بجهاز الإيكو — رسم القلب الكهربائي — سونار على البطن والحوض — جهاز استنشاق بالموجات الصوتية',
+    clinic_phones: '0402388422 — 01026758170',
+    doctor_phones: '01227117011 — 01025591123',
+    address: 'طنطا — ميدان المشحمة — شارع الجلاء — برج الأطباء',
+  },
   logo_url: '',
   custom_bg_image_url: '',
 };
