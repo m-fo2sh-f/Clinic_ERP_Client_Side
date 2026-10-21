@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { useReactToPrint } from 'react-to-print';
-import { Pill, Printer, Plus, Trash2, FileCheck, Calendar, Eye, X } from 'lucide-react';
+import { Pill, Printer, Plus, Trash2, FileCheck, Calendar, Eye, X, History } from 'lucide-react';
 import Button from '../../../components/ui/Button';
 import { Card, CardHeader, CardTitle, CardContent } from '../../../components/ui/Card';
 import PrescriptionPrintWrapper from './PrescriptionPrintWrapper';
@@ -35,6 +35,7 @@ export default function PrescriptionSheet({
   vitals = {},
   diagnoses = [],
   encounter = {},
+  onOpenHistory,
 }) {
   const [settings, setSettings] = useState(DEFAULT_PRESCRIPTION_SETTINGS);
   const [isPreviewOpen, setIsPreviewOpen] = useState(false);
@@ -255,18 +256,33 @@ export default function PrescriptionSheet({
 
           {/* Medications */}
           <div className="space-y-4">
-            <div className="flex justify-between items-center">
+            <div className="flex justify-between items-center flex-wrap gap-2">
               <h3 className="text-xs font-bold uppercase text-slate-700 m-0">
-                Prescribed Medications
+                Prescribed Medications (الأدوية المصروفة)
               </h3>
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={onAddMedication}
-                className="no-print text-xs gap-1"
-              >
-                <Plus className="h-3.5 w-3.5" /> Add Medication
-              </Button>
+              <div className="flex items-center gap-2">
+                {typeof onOpenHistory === 'function' && (
+                  <Button
+                    type="button"
+                    variant="outline"
+                    size="sm"
+                    onClick={onOpenHistory}
+                    className="no-print text-xs gap-1.5 text-clinic-700 bg-clinic-50/80 hover:bg-clinic-100 border-clinic-200 cursor-pointer font-bold"
+                    title="استعراض الأدوية المصروفة للمريض في الكشوفات السابقة مع إمكانية إعادة صرفها بضغطة زر"
+                  >
+                    <History className="h-3.5 w-3.5 text-clinic-600" />
+                    <span>أدوية الكشوفات السابقة</span>
+                  </Button>
+                )}
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={onAddMedication}
+                  className="no-print text-xs gap-1"
+                >
+                  <Plus className="h-3.5 w-3.5" /> Add Medication
+                </Button>
+              </div>
             </div>
 
             {medications.length === 0 && (

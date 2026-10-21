@@ -14,7 +14,8 @@ import {
   BadgeCheck,
   ChevronRight,
   Sparkles,
-  ShieldCheck
+  ShieldCheck,
+  Pill,
 } from 'lucide-react';
 import { useBranchContext } from '../../../context/BranchContext';
 import { usePatientsQuery, usePatientDetailQuery } from '../hooks/usePatients';
@@ -23,21 +24,30 @@ import Badge from '../../../components/ui/Badge';
 import { Card, CardHeader, CardTitle, CardContent } from '../../../components/ui/Card';
 import { Dialog, DialogHeader, DialogTitle, DialogDescription, DialogClose } from '../../../components/ui/Dialog';
 import { formatClinicalText } from '../../../utils/clinicalFormat';
+import PatientHistoryModal from '../../clinical/components/PatientHistoryModal';
+import { getUserRoles } from '../../../utils/roleUtils';
 
 export default function PatientsPage() {
-  const { activeBranch } = useBranchContext();
+  const { activeBranch, user } = useBranchContext();
   const branchId = activeBranch?.id;
   const branchName = activeBranch?.name || 'Active Branch';
 
+  const userRoles = getUserRoles(user);
+  const isClinicalStaff = userRoles.includes('doctor') || userRoles.includes('clinic_owner');
+
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedPatientId, setSelectedPatientId] = useState(null);
+  const [historyPatientId, setHistoryPatientId] = useState(null);
   const [modalTab, setModalTab] = useState('encounters');
 
   // Fetch patient directory
   const { data: patients = [], isLoading, isError } = usePatientsQuery(branchId, searchQuery);
 
-  // Fetch detailed record for selected patient
+  // Fetch detailed record for selected patient (Dialog)
   const { data: patientDetail, isLoading: isDetailLoading } = usePatientDetailQuery(selectedPatientId);
+
+  // Fetch complete medical history for selected patient (History Modal)
+  const { data: historyPatientDetail, isLoading: isHistoryLoading } = usePatientDetailQuery(historyPatientId);
 
   // Calculated totals
   const totalCompletedVisits = useMemo(() => {
@@ -202,16 +212,30 @@ export default function PatientsPage() {
                       </td>
 
                       <td className="py-4 px-6 text-right">
-                        <Button
-                          variant="outline"
-                          size="sm"
-                          onClick={() => setSelectedPatientId(patient.id)}
-                          className="font-semibold text-xs gap-1.5 hover:bg-clinic-50 hover:text-clinic-700 hover:border-clinic-300"
-                        >
-                          <Stethoscope className="h-3.5 w-3.5" />
-                          <span>Medical Profile</span>
-                          <ChevronRight className="h-3.5 w-3.5" />
-                        </Button>
+                        <div className="flex items-center justify-end gap-2 flex-wrap">
+                          {isClinicalStaff && (
+                            <Button
+                              variant="outline"
+                              size="sm"
+                              onClick={() => setHistoryPatientId(patient.id)}
+                              className="font-bold text-xs gap-1.5 text-clinic-700 bg-clinic-50/80 hover:bg-clinic-600 hover:text-white border-clinic-200 cursor-pointer"
+                              title="فتح السجل الطبي والكشوفات السابقة والأدوية"
+                            >
+                              <Stethoscope className="h-3.5 w-3.5" />
+                              <span>الملف الطبي</span>
+                            </Button>
+                          )}
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={() => setSelectedPatientId(patient.id)}
+                            className="font-semibold text-xs gap-1.5 hover:bg-slate-100 text-slate-700 cursor-pointer"
+                          >
+                            <FileText className="h-3.5 w-3.5" />
+                            <span>التفاصيل</span>
+                            <ChevronRight className="h-3.5 w-3.5" />
+                          </Button>
+                        </div>
                       </td>
                     </tr>
                   ))}
@@ -388,6 +412,31 @@ export default function PatientsPage() {
                               </p>
                             )}
 
+                            {/* Prescribed Medications if clinical staff */}
+                            {isClinicalStaff && enc.prescription?.items?.length > 0 && (
+                              <div className="bg-clinic-50/50 p-2.5 rounded-lg border border-clinic-150 space-y-1.5">
+                                <span className="text-[11px] font-bold text-clinic-800 flex items-center gap-1.5">
+                                  <Pill className="h-3 w-3 text-clinic-600 shrink-0" />
+                                  الأدوية الموصوفة ({enc.prescription.items.length}):
+                                </span>
+                                <div className="space-y-1">
+                                  {enc.prescription.items.map((item, idx) => (
+                                    <div
+                                      key={item.id || idx}
+                                      className="text-[11px] text-slate-700 flex flex-wrap items-center justify-between gap-1 bg-white px-2 py-1 rounded border border-slate-100"
+                                    >
+                                      <span className="font-semibold text-clinic-900 font-sans" dir="ltr">
+                                        {item.drug_name || item.name}
+                                      </span>
+                                      <span className="text-slate-500 text-[10px]">
+                                        {[item.dose || item.dosage, item.frequency, item.duration].filter(Boolean).join(' • ')}
+                                      </span>
+                                    </div>
+                                  ))}
+                                </div>
+                              </div>
+                            )}
+
                             {/* Linked Invoice status if present */}
                             {enc.invoice && (
                               <div className="flex items-center justify-between text-[11px] bg-slate-100/70 px-2.5 py-1.5 rounded-lg border border-slate-200/60">
@@ -460,6 +509,18 @@ export default function PatientsPage() {
           </div>
         ) : null}
       </Dialog>
+
+      {/* ─── CLINICAL HISTORY & MEDICATIONS MODAL (READ-ONLY) ─── */}
+      {isClinicalStaff && (
+        <PatientHistoryModal
+          isOpen={!!historyPatientId}
+          onClose={() => setHistoryPatientId(null)}
+          patientHistory={historyPatientDetail}
+          isLoading={isHistoryLoading}
+          isActiveEncounter={false}
+          onCopyMedication={null}
+        />
+      )}
     </div>
   );
 }

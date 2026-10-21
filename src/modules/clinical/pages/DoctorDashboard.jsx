@@ -385,6 +385,45 @@ export default function DoctorDashboard() {
     queryClient,
   ]);
 
+  // â”€â”€ Re-prescribe medication handlers with duplicate guard â”€â”€
+  const handleCopyMedication = useCallback(
+    (med) => {
+      if (!med) return;
+      const targetName = (med.drug_name || med.name || '').trim();
+      if (!targetName) return;
+
+      // Duplicate guard: prevent re-adding if already in current prescription
+      const alreadyExists = consultation.medications.some((curr) => {
+        const currName = (curr.drug_name || curr.name || '').trim().toLowerCase();
+        return currName === targetName.toLowerCase();
+      });
+
+      if (alreadyExists) return;
+
+      // Strict field mapping to consultation format
+      consultation.addMedication({
+        name: targetName,
+        drug_name: targetName,
+        drug_id: med.drug_id || null,
+        dose: med.dose || med.dosage || '',
+        dosage: med.dose || med.dosage || '',
+        frequency: med.frequency || '',
+        duration: med.duration || '',
+        instruction: med.instruction || med.instructions || med.notes || '',
+        instructions: med.instruction || med.instructions || med.notes || '',
+      });
+    },
+    [consultation]
+  );
+
+  const handleCopyAllMedications = useCallback(
+    (items) => {
+      if (!Array.isArray(items)) return;
+      items.forEach((item) => handleCopyMedication(item));
+    },
+    [handleCopyMedication]
+  );
+
   return (
     <div className="min-h-screen bg-slate-50/50 pb-16">
       <DoctorHeader
@@ -421,6 +460,11 @@ export default function DoctorDashboard() {
         onClose={() => setIsHistoryOpen(false)}
         patientHistory={patientHistory}
         isLoading={historyLoading}
+        onCopyMedication={handleCopyMedication}
+        onCopyAllMedications={handleCopyAllMedications}
+        currentMedications={consultation.medications}
+        activeEncounterId={activeEncounterId}
+        isActiveEncounter={Boolean(activeEncounter || activeQueueItem)}
       />
 
       <main className="max-w-7xl mx-auto px-4 sm:px-6 pt-6 no-print">
@@ -489,6 +533,7 @@ export default function DoctorDashboard() {
                 vitals={consultation.vitals}
                 diagnoses={consultation.finalDiagnoses}
                 encounter={activeEncounter || activeQueueItem}
+                onOpenHistory={() => setIsHistoryOpen(true)}
               />
             </ErrorBoundary>
 

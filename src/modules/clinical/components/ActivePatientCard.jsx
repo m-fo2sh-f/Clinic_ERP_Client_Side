@@ -201,10 +201,10 @@ export default function ActivePatientCard({
                 variant="outline"
                 size="sm"
                 onClick={onOpenHistory}
-                className="bg-white/15 hover:bg-white/25 border-white/30 text-white font-bold gap-1.5 text-xs backdrop-blur-md shadow-xs cursor-pointer"
+                className="bg-white/20 hover:bg-white/30 border-white/40 text-white font-bold gap-2 text-xs backdrop-blur-md shadow-xs cursor-pointer"
               >
-                <History className="h-4 w-4" />
-                <span>Medical History & Prescriptions</span>
+                <History className="h-4 w-4 text-emerald-300" />
+                <span>السجل الطبي والكشوفات السابقة</span>
               </Button>
 
               {/* Edit Demographics Trigger */}
@@ -215,7 +215,7 @@ export default function ActivePatientCard({
                 className="bg-white/10 hover:bg-white/20 border-white/30 text-white font-bold gap-1.5 text-xs backdrop-blur-md cursor-pointer"
               >
                 <Edit3 className="h-4 w-4" />
-                <span>Edit Medical Profile</span>
+                <span>تعديل الملف الطبي</span>
               </Button>
             </div>
           </div>

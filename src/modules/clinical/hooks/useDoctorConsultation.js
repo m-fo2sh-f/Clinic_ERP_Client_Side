@@ -94,16 +94,18 @@ export default function useDoctorConsultation() {
   // ── Medications ──────────────────────────────────────────────
   const [medications, setMedications] = useState([]);
 
-  const addMedication = useCallback(() => {
+  const addMedication = useCallback((initialData = null) => {
     const newMed = {
-      id: Date.now(),
-      name: '',
-      dose: '',
-      dosage: '',
-      frequency: '',
-      duration: '',
-      instruction: '',
-      instructions: '',
+      id: Date.now() + Math.random(),
+      name: initialData?.name || initialData?.drug_name || '',
+      drug_name: initialData?.drug_name || initialData?.name || '',
+      drug_id: initialData?.drug_id || null,
+      dose: initialData?.dose || initialData?.dosage || '',
+      dosage: initialData?.dosage || initialData?.dose || '',
+      frequency: initialData?.frequency || '',
+      duration: initialData?.duration || '',
+      instruction: initialData?.instruction || initialData?.instructions || initialData?.notes || '',
+      instructions: initialData?.instructions || initialData?.instruction || initialData?.notes || '',
     };
     setMedications((prev) => [...prev, newMed]);
   }, []);
