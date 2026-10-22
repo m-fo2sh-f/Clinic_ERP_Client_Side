@@ -95,24 +95,45 @@ export default function useDoctorConsultation() {
   const [medications, setMedications] = useState([]);
 
   const addMedication = useCallback((initialData = null) => {
+    const tradeName = initialData?.name || initialData?.drug_name || initialData?.trade_name || '';
+    const dosage = initialData?.dosage || initialData?.default_dosage || '';
+
     const newMed = {
-      id: Date.now() + Math.random(),
-      name: initialData?.name || initialData?.drug_name || '',
-      drug_name: initialData?.drug_name || initialData?.name || '',
+      id: initialData?.id || Date.now() + Math.random(),
+      name: tradeName,
+      drug_name: tradeName,
       drug_id: initialData?.drug_id || null,
-      dose: initialData?.dose || initialData?.dosage || '',
-      dosage: initialData?.dosage || initialData?.dose || '',
-      frequency: initialData?.frequency || '',
-      duration: initialData?.duration || '',
-      instruction: initialData?.instruction || initialData?.instructions || initialData?.notes || '',
-      instructions: initialData?.instructions || initialData?.instruction || initialData?.notes || '',
+      dosage: dosage,
+      form: initialData?.form || '',
+      strength: initialData?.strength || '',
+      active_ingredient: initialData?.active_ingredient || '',
+      default_dosage: initialData?.default_dosage || '',
     };
     setMedications((prev) => [...prev, newMed]);
   }, []);
 
   const updateMedication = useCallback((id, field, value) => {
     setMedications((prev) =>
-      prev.map((med) => (med.id === id ? { ...med, [field]: value } : med))
+      prev.map((med) => {
+        if (med.id !== id) return med;
+
+        if (field === 'dosage' || field === 'dose' || field === 'instruction') {
+          return {
+            ...med,
+            dosage: value,
+          };
+        }
+
+        if (field === 'name' || field === 'drug_name') {
+          return {
+            ...med,
+            name: value,
+            drug_name: value,
+          };
+        }
+
+        return { ...med, [field]: value };
+      })
     );
   }, []);
 

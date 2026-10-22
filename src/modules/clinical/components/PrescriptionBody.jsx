@@ -185,18 +185,10 @@ export default function PrescriptionBody({
       <div className={fontClasses.spacing}>
         {medications.map((med, index) => {
           const drugName = med?.drug_name || med?.name || 'Unnamed Medication';
-          const dose = med?.dose || med?.dosage || '';
-          const frequency = med?.frequency || '';
-          const duration = med?.duration || '';
-          const instructions = med?.instruction || med?.instructions || '';
-
-          // Construct packaging/form tag (e.g. علبة / شريط / 5 Vials)
-          const extraSpecs = [dose, frequency, duration ? `For ${duration}` : '']
-            .filter(Boolean)
-            .join(' — ');
+          const unifiedDosage = med?.dosage || '';
 
           // Construct Arabic dosage line
-          const arabicInstructionLine = instructions || frequency || dose || 'حسب إرشادات الطبيب المعالج';
+          const arabicInstructionLine = unifiedDosage || 'حسب إرشادات الطبيب المعالج';
 
           return (
             <div key={med.id || index} className="pt-1.5 first:pt-0">
@@ -210,11 +202,6 @@ export default function PrescriptionBody({
                     <span className={`font-sans tracking-tight text-black ${fontClasses.drugTitle}`}>
                       {drugName}
                     </span>
-                    {extraSpecs && (
-                      <span className="ml-2 font-mono text-[11px] font-medium text-black/70">
-                        ({extraSpecs})
-                      </span>
-                    )}
                   </div>
                 </div>
               </div>

@@ -1,11 +1,16 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { useReactToPrint } from 'react-to-print';
-import { Pill, Printer, Plus, Trash2, FileCheck, Calendar, Eye, X, History } from 'lucide-react';
+import { Pill, Printer, Plus, Trash2, FileCheck, Calendar, Eye, X, History, Star } from 'lucide-react';
 import Button from '../../../components/ui/Button';
 import { Card, CardHeader, CardTitle, CardContent } from '../../../components/ui/Card';
 import PrescriptionPrintWrapper from './PrescriptionPrintWrapper';
 import CompleteExaminationModal from './CompleteExaminationModal';
 import { getPrescriptionSettings, DEFAULT_PRESCRIPTION_SETTINGS } from '../../clinic-settings/api/prescriptionSettingsApi';
+import {
+  DrugSearchCombobox,
+  QuickDosageChips,
+  DoctorDrugsModal,
+} from '../../medications';
 
 /**
  * PrescriptionSheet — Digital Rx prescription editor with live add/remove medications,
@@ -40,6 +45,7 @@ export default function PrescriptionSheet({
   const [settings, setSettings] = useState(DEFAULT_PRESCRIPTION_SETTINGS);
   const [isPreviewOpen, setIsPreviewOpen] = useState(false);
   const [isCompleteModalOpen, setIsCompleteModalOpen] = useState(false);
+  const [isCatalogModalOpen, setIsCatalogModalOpen] = useState(false);
 
   // Hidden print reference for react-to-print
   const printComponentRef = useRef(null);
@@ -261,6 +267,18 @@ export default function PrescriptionSheet({
                 Prescribed Medications (الأدوية المصروفة)
               </h3>
               <div className="flex items-center gap-2">
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="sm"
+                  onClick={() => setIsCatalogModalOpen(true)}
+                  className="no-print text-xs gap-1.5 text-amber-800 bg-amber-50/80 hover:bg-amber-100 border-amber-200 cursor-pointer font-bold"
+                  title="إدارة وتعديل جدول أدوية الطبيب الخاصة والجرعات الافتراضية"
+                >
+                  <Star className="h-3.5 w-3.5 text-amber-500 fill-amber-400" />
+                  <span>أدويتي وقائمتي السريعة</span>
+                </Button>
+
                 {typeof onOpenHistory === 'function' && (
                   <Button
                     type="button"
@@ -291,62 +309,76 @@ export default function PrescriptionSheet({
               </p>
             )}
 
-            {medications.map((med) => (
-              <div
-                key={med.id}
-                className="grid grid-cols-1 sm:grid-cols-6 gap-3 items-start"
-              >
-                <input
-                  className="sm:col-span-1 px-3 py-1.5 text-xs bg-slate-50 border rounded-lg focus:ring-2 focus:ring-clinic-500 font-semibold"
-                  value={med.name || med.drug_name || ''}
-                  onChange={(e) =>
-                    onUpdateMedication(med.id, 'name', e.target.value)
-                  }
-                  placeholder="Medication Name"
-                />
-                <input
-                  className="px-3 py-1.5 text-xs bg-slate-50 border rounded-lg focus:ring-2 focus:ring-clinic-500"
-                  value={med.dosage || med.dose || ''}
-                  onChange={(e) =>
-                    onUpdateMedication(med.id, 'dosage', e.target.value)
-                  }
-                  placeholder="Dose"
-                />
-                <input
-                  className="px-3 py-1.5 text-xs bg-slate-50 border rounded-lg focus:ring-2 focus:ring-clinic-500"
-                  value={med.frequency || ''}
-                  onChange={(e) =>
-                    onUpdateMedication(med.id, 'frequency', e.target.value)
-                  }
-                  placeholder="Frequency"
-                />
-                <input
-                  className="px-3 py-1.5 text-xs bg-slate-50 border rounded-lg focus:ring-2 focus:ring-clinic-500"
-                  value={med.duration || ''}
-                  onChange={(e) =>
-                    onUpdateMedication(med.id, 'duration', e.target.value)
-                  }
-                  placeholder="Duration"
-                />
-                <input
-                  className="px-3 py-1.5 text-xs bg-slate-50 border rounded-lg focus:ring-2 focus:ring-clinic-500"
-                  value={med.instructions || med.instruction || ''}
-                  onChange={(e) =>
-                    onUpdateMedication(med.id, 'instructions', e.target.value)
-                  }
-                  placeholder="Instructions (الجرعة بالعربي)"
-                  dir="rtl"
-                />
-                <button
-                  type="button"
-                  onClick={() => onRemoveMedication(med.id)}
-                  className="no-print text-red-500 hover:text-red-700 transition-colors self-center p-1.5 cursor-pointer"
-                  title="Remove item"
+            {medications.map((med, index) => {
+              const dosageInputRef = React.createRef();
+
+              return (
+                <div
+                  key={med.id}
+                  className="bg-slate-50/70 border border-slate-200/90 rounded-xl p-3.5 space-y-2.5 transition-all hover:border-slate-300 hover:bg-white"
                 >
-                  <Trash2 className="h-4 w-4" />
-                </button>
-              </div>
-            ))}
+                  <div className="flex items-center justify-between gap-2">
+                    <span className="font-mono font-bold text-xs text-slate-500 bg-white px-2 py-0.5 rounded border border-slate-200">
+                      #{index + 1}
+                    </span>
+                    <button
+                      type="button"
+                      onClick={() => onRemoveMedication(med.id)}
+                      className="no-print text-slate-400 hover:text-red-600 transition-colors p-1 cursor-pointer"
+                      title="حذف هذا الصنف من الروشتة"
+                    >
+                      <Trash2 className="h-4 w-4" />
+                    </button>
+                  </div>
+
+                  <div className="grid grid-cols-1 md:grid-cols-12 gap-3 items-start">
+                    {/* Field 1: Combobox Drug Name (5 cols) */}
+                    <div className="md:col-span-5">
+                      <label className="block text-[11px] font-bold text-slate-700 mb-1">
+                        اسم الدواء (Drug Name) *
+                      </label>
+                      <DrugSearchCombobox
+                        value={med.name || med.drug_name || ''}
+                        onChange={(val) => onUpdateMedication(med.id, 'name', val)}
+                        onSelectDrug={(drug) => {
+                          const trade = drug.trade_name || drug.trade_name_en || '';
+                          onUpdateMedication(med.id, 'name', trade);
+                          if (drug.form) onUpdateMedication(med.id, 'form', drug.form);
+                          if (drug.active_ingredient) onUpdateMedication(med.id, 'active_ingredient', drug.active_ingredient);
+                          if (drug.default_dosage) {
+                            onUpdateMedication(med.id, 'dosage', drug.default_dosage);
+                          }
+                        }}
+                        dosageInputRef={dosageInputRef}
+                        placeholder="ابحث باسم الدواء..."
+                      />
+                    </div>
+
+                    {/* Field 2: Unified Dosage & Instructions (7 cols) */}
+                    <div className="md:col-span-7 space-y-1.5" dir="rtl">
+                      <label className="block text-[11px] font-bold text-slate-700 mb-1">
+                        الجرعة والتعليمات (Dosage & Instructions) *
+                      </label>
+                      <input
+                        ref={dosageInputRef}
+                        type="text"
+                        className="w-full px-3 py-2 text-xs bg-white border border-slate-300 rounded-lg focus:ring-2 focus:ring-clinic-500 text-slate-900 font-medium placeholder:text-slate-400"
+                        value={med.dosage || ''}
+                        onChange={(e) => onUpdateMedication(med.id, 'dosage', e.target.value)}
+                        placeholder="اكتب الجرعة مباشرة (مثال: قرص مرتين يومياً بعد الأكل) أو اختر من المقترحات أدناه"
+                      />
+
+                      {/* Quick Dosage Chips for this drug */}
+                      <QuickDosageChips
+                        selectedDrug={med}
+                        currentDosage={med.dosage || ''}
+                        onSelectDosage={(chip) => onUpdateMedication(med.id, 'dosage', chip)}
+                      />
+                    </div>
+                  </div>
+                </div>
+              );
+            })}
           </div>
 
           {/* General Advice */}
@@ -540,6 +572,12 @@ export default function PrescriptionSheet({
         isLoading={effectiveIsSubmitting}
         patientName={activePatient?.name || activePatient?.full_name}
         medicationsCount={medications.length}
+      />
+
+      {/* Doctor Personal Prescribing Catalog Modal */}
+      <DoctorDrugsModal
+        isOpen={isCatalogModalOpen}
+        onClose={() => setIsCatalogModalOpen(false)}
       />
     </Card>
   );

@@ -100,16 +100,13 @@ export default function PatientHistoryModal({
     const normalizedDrug = {
       drug_name: drug.drug_name || drug.name || '',
       drug_id: drug.drug_id || null,
-      dose: drug.dose || drug.dosage || '',
-      frequency: drug.frequency || '',
-      duration: drug.duration || '',
-      instruction: drug.instruction || drug.instructions || drug.notes || '',
+      dosage: drug.dosage || '',
     };
 
     onCopyMedication(normalizedDrug);
 
     // تفعيل تأثير مرئي لحظي عند النسخ
-    const key = `${drug.id || drug.drug_name}-${drug.dose}`;
+    const key = `${drug.id || drug.drug_name}-${drug.dosage}`;
     setCopiedDrugKey(key);
     setTimeout(() => setCopiedDrugKey(null), 1800);
   };
@@ -126,10 +123,7 @@ export default function PatientHistoryModal({
         candidateItems.map((d) => ({
           drug_name: d.drug_name || d.name || '',
           drug_id: d.drug_id || null,
-          dose: d.dose || d.dosage || '',
-          frequency: d.frequency || '',
-          duration: d.duration || '',
-          instruction: d.instruction || d.instructions || d.notes || '',
+          dosage: d.dosage || '',
         }))
       );
     } else {
@@ -399,10 +393,7 @@ export default function PatientHistoryModal({
                               <thead>
                                 <tr className="bg-slate-100/80 text-slate-700 border-b border-slate-200 text-[11px]">
                                   <th className="p-2.5 font-bold">اسم الدواء (Medication)</th>
-                                  <th className="p-2.5 font-bold">الجرعة (Dose)</th>
-                                  <th className="p-2.5 font-bold">التكرار (Frequency)</th>
-                                  <th className="p-2.5 font-bold">المدة (Duration)</th>
-                                  <th className="p-2.5 font-bold">التعليمات والإرشادات</th>
+                                  <th className="p-2.5 font-bold">الجرعة وطريقة الاستخدام (Dosage & Instructions)</th>
                                   {canRePrescribe && <th className="p-2.5 font-bold text-center">إعادة الصرف</th>}
                                 </tr>
                               </thead>
@@ -410,7 +401,7 @@ export default function PatientHistoryModal({
                                 {rxItems.map((item, itemIdx) => {
                                   const drugName = item.drug_name || item.name || 'دواء غير محدد';
                                   const isAlreadyInRx = isMedicationInCurrentRx(item);
-                                  const itemKey = `${item.id || drugName}-${item.dose || itemIdx}`;
+                                  const itemKey = `${item.id || drugName}-${item.dosage || itemIdx}`;
                                   const isJustCopied = copiedDrugKey === itemKey;
 
                                   return (
@@ -418,17 +409,8 @@ export default function PatientHistoryModal({
                                       <td className="p-2.5 font-bold text-slate-900" dir="ltr">
                                         <div className="text-right font-sans font-bold text-slate-900">{drugName}</div>
                                       </td>
-                                      <td className="p-2.5 text-slate-700 font-medium">
-                                        {item.dose || item.dosage || '-'}
-                                      </td>
-                                      <td className="p-2.5 text-slate-700">
-                                        {item.frequency || '-'}
-                                      </td>
-                                      <td className="p-2.5 text-slate-700">
-                                        {item.duration || '-'}
-                                      </td>
-                                      <td className="p-2.5 text-slate-600">
-                                        {item.instruction || item.instructions || item.notes || '-'}
+                                      <td className="p-2.5 text-slate-800 font-medium">
+                                        {item.dosage || '-'}
                                       </td>
 
                                       {/* زر إعادة الصرف مع حماية التكرار */}

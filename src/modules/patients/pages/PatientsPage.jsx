@@ -19,6 +19,7 @@ import {
 } from 'lucide-react';
 import { useBranchContext } from '../../../context/BranchContext';
 import { usePatientsQuery, usePatientDetailQuery } from '../hooks/usePatients';
+import { useDebounce } from '../../../hooks/useDebounce';
 import Button from '../../../components/ui/Button';
 import Badge from '../../../components/ui/Badge';
 import { Card, CardHeader, CardTitle, CardContent } from '../../../components/ui/Card';
@@ -36,12 +37,13 @@ export default function PatientsPage() {
   const isClinicalStaff = userRoles.includes('doctor') || userRoles.includes('clinic_owner');
 
   const [searchQuery, setSearchQuery] = useState('');
+  const debouncedSearch = useDebounce(searchQuery, 350);
   const [selectedPatientId, setSelectedPatientId] = useState(null);
   const [historyPatientId, setHistoryPatientId] = useState(null);
   const [modalTab, setModalTab] = useState('encounters');
 
-  // Fetch patient directory
-  const { data: patients = [], isLoading, isError } = usePatientsQuery(branchId, searchQuery);
+  // Fetch patient directory with 350ms keyboard idle debounce
+  const { data: patients = [], isLoading, isError } = usePatientsQuery(branchId, debouncedSearch);
 
   // Fetch detailed record for selected patient (Dialog)
   const { data: patientDetail, isLoading: isDetailLoading } = usePatientDetailQuery(selectedPatientId);
@@ -429,7 +431,7 @@ export default function PatientsPage() {
                                         {item.drug_name || item.name}
                                       </span>
                                       <span className="text-slate-500 text-[10px]">
-                                        {[item.dose || item.dosage, item.frequency, item.duration].filter(Boolean).join(' • ')}
+                                        {item.dosage || '-'}
                                       </span>
                                     </div>
                                   ))}

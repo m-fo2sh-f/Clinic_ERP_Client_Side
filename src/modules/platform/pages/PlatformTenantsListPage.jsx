@@ -21,23 +21,20 @@ import ImpersonateConfirmModal from '../components/ImpersonateConfirmModal';
 import CreateClinicModal from '../components/CreateClinicModal';
 import { Card, CardHeader, CardTitle, CardContent, CardFooter } from '../../../components/ui/Card';
 import Button from '../../../components/ui/Button';
+import { useDebounce } from '../../../hooks/useDebounce';
 
 export default function PlatformTenantsListPage() {
   const [page, setPage] = useState(1);
   const [search, setSearch] = useState('');
-  const [debouncedSearch, setDebouncedSearch] = useState('');
+  const debouncedSearch = useDebounce(search, 350);
   const [status, setStatus] = useState('all');
   const [impersonateTenant, setImpersonateTenant] = useState(null);
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
 
-  // Debounce search input by 300ms
+  // Reset page to 1 when debounced search changes
   useEffect(() => {
-    const timer = setTimeout(() => {
-      setDebouncedSearch(search);
-      setPage(1);
-    }, 300);
-    return () => clearTimeout(timer);
-  }, [search]);
+    setPage(1);
+  }, [debouncedSearch]);
 
   const { data, isLoading } = usePlatformTenants({
     page,

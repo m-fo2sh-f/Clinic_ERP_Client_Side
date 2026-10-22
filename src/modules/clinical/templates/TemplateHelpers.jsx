@@ -377,14 +377,11 @@ export function MedicationsList({
       <div className="space-y-2 divide-y divide-slate-100">
         {medications.map((med, index) => {
           const drugName = med?.drug_name || med?.name || 'Unnamed Medication';
-          const dose = med?.dose || med?.dosage || '';
-          const frequency = med?.frequency || '';
-          const duration = med?.duration || '';
-          const instructions = med?.instruction || med?.instructions || '';
+          const unifiedDosage = med?.dosage || '';
 
           return (
             <div key={med.id || index} className="pt-2 first:pt-0">
-              {/* LTR Row: Rx numbering + Drug Name + Dose + Frequency */}
+              {/* LTR Row: Rx numbering + Drug Name */}
               <div className="flex items-start justify-between gap-3 text-left" dir="ltr">
                 <div className="flex items-baseline gap-2">
                   <span
@@ -397,34 +394,15 @@ export function MedicationsList({
                     <span className="font-sans font-extrabold text-sm text-slate-900 tracking-wide">
                       {drugName}
                     </span>
-                    {dose && (
-                      <span className="ml-2 font-mono text-xs font-bold text-slate-700 bg-slate-100 px-2 py-0.5 rounded">
-                        {dose}
-                      </span>
-                    )}
                   </div>
-                </div>
-
-                {/* Frequency & Duration (LTR) */}
-                <div className="text-right shrink-0">
-                  {frequency && (
-                    <span className="font-sans font-bold text-xs text-slate-800 block">
-                      {frequency}
-                    </span>
-                  )}
-                  {duration && (
-                    <span className="text-[10px] text-slate-500 font-medium block">
-                      Duration: {duration}
-                    </span>
-                  )}
                 </div>
               </div>
 
               {/* Arabic Usage Instructions (RTL) */}
-              {instructions && (
+              {unifiedDosage && (
                 <div className="mt-1 pr-6 text-right" dir="rtl">
                   <p className="text-xs font-bold text-slate-700 m-0 leading-relaxed bg-slate-50/60 p-1.5 rounded-lg border-r-2" style={{ borderRightColor: primaryColor }}>
-                    {instructions}
+                    {unifiedDosage}
                   </p>
                 </div>
               )}

@@ -334,12 +334,9 @@ export default function DoctorDashboard() {
       medications: consultation.medications
         .filter((med) => (med.drug_name || med.name)?.trim())
         .map((med, index) => ({
-          drug_name: med.drug_name || med.name,
+          drug_name: (med.drug_name || med.name).trim(),
           drug_id: med.drug_id || null,
-          dose: med.dose || med.dosage || '',
-          frequency: med.frequency || '',
-          duration: med.duration || '',
-          instruction: med.instruction || med.instructions || null,
+          dosage: (med.dosage || '').trim(),
           sort_order: index,
         })),
       general_advice: consultation.generalAdvice || null,
@@ -405,12 +402,7 @@ export default function DoctorDashboard() {
         name: targetName,
         drug_name: targetName,
         drug_id: med.drug_id || null,
-        dose: med.dose || med.dosage || '',
-        dosage: med.dose || med.dosage || '',
-        frequency: med.frequency || '',
-        duration: med.duration || '',
-        instruction: med.instruction || med.instructions || med.notes || '',
-        instructions: med.instruction || med.instructions || med.notes || '',
+        dosage: med.dosage || med.default_dosage || '',
       });
     },
     [consultation]

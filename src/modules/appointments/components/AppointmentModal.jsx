@@ -7,6 +7,7 @@ import Select from '../../../components/ui/Select';
 import { useSearchPatientsQuery } from '../../patients/hooks/usePatients';
 import { useBranchDoctorsQuery } from '../hooks/useAppointments';
 import { useBranchContext } from '../../../context/BranchContext';
+import { useDebounce } from '../../../hooks/useDebounce';
 
 export default function AppointmentModal({
   isOpen,
@@ -23,7 +24,6 @@ export default function AppointmentModal({
   const [strategy, setStrategy] = useState('UPDATE_CURRENT'); // 'UPDATE_CURRENT' | 'REASSIGN_EXISTING'
   const [isInlineAddingNew, setIsInlineAddingNew] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
-  const [debouncedSearch, setDebouncedSearch] = useState('');
   const [showDropdown, setShowDropdown] = useState(false);
   const [selectedPatient, setSelectedPatient] = useState(null);
 
@@ -42,14 +42,9 @@ export default function AppointmentModal({
 
   const watchedPhone = watch('patientPhone');
 
-  // Debounce main search query or phone input for family auto-suggest
-  useEffect(() => {
-    const timer = setTimeout(() => {
-      const activeSearch = searchQuery || watchedPhone || '';
-      setDebouncedSearch(activeSearch);
-    }, 300);
-    return () => clearTimeout(timer);
-  }, [searchQuery, watchedPhone]);
+  // Debounce main search query or phone input on 350ms keyboard idle
+  const activeSearch = searchQuery || watchedPhone || '';
+  const debouncedSearch = useDebounce(activeSearch, 500);
 
   // Server-side search query
   const { data: searchedPatients = [], isLoading: isSearching } = useSearchPatientsQuery(debouncedSearch);
@@ -76,7 +71,6 @@ export default function AppointmentModal({
         apptTime: ''
       });
       setSearchQuery('');
-      setDebouncedSearch('');
       setSelectedPatient(null);
       setShowDropdown(false);
     }
@@ -178,11 +172,10 @@ export default function AppointmentModal({
                 setValue('patientName', defaultValues?.patientName || '');
                 setValue('patientPhone', defaultValues?.patientPhone || '');
               }}
-              className={`flex-1 py-2.5 px-3 rounded-lg flex items-center justify-center gap-2 transition-all cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed ${
-                strategy === 'UPDATE_CURRENT'
-                  ? 'bg-white text-clinic-700 shadow-xs border border-slate-200/60 font-bold'
-                  : 'text-slate-600 hover:text-slate-800'
-              }`}
+              className={`flex-1 py-2.5 px-3 rounded-lg flex items-center justify-center gap-2 transition-all cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed ${strategy === 'UPDATE_CURRENT'
+                ? 'bg-white text-clinic-700 shadow-xs border border-slate-200/60 font-bold'
+                : 'text-slate-600 hover:text-slate-800'
+                }`}
             >
               <Edit2 className="h-4 w-4" />
               <span>Correct Current Patient</span>
@@ -195,11 +188,10 @@ export default function AppointmentModal({
                 setStrategy('REASSIGN_EXISTING');
                 setIsInlineAddingNew(false);
               }}
-              className={`flex-1 py-2.5 px-3 rounded-lg flex items-center justify-center gap-2 transition-all cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed ${
-                strategy === 'REASSIGN_EXISTING'
-                  ? 'bg-white text-clinic-700 shadow-xs border border-slate-200/60 font-bold'
-                  : 'text-slate-600 hover:text-slate-800'
-              }`}
+              className={`flex-1 py-2.5 px-3 rounded-lg flex items-center justify-center gap-2 transition-all cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed ${strategy === 'REASSIGN_EXISTING'
+                ? 'bg-white text-clinic-700 shadow-xs border border-slate-200/60 font-bold'
+                : 'text-slate-600 hover:text-slate-800'
+                }`}
             >
               <RefreshCw className="h-4 w-4" />
               <span>Reassign Appointment</span>
@@ -402,11 +394,10 @@ export default function AppointmentModal({
                       type="button"
                       disabled={isLoading}
                       onClick={() => handleSelectPatientFromSearch(member)}
-                      className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold border transition-all cursor-pointer shadow-2xs disabled:opacity-50 disabled:cursor-not-allowed ${
-                        selectedPatient?.id === member.id
-                          ? 'bg-blue-600 text-white border-blue-700 shadow-xs'
-                          : 'bg-white text-slate-800 border-blue-200/90 hover:bg-blue-100/70 hover:border-blue-300'
-                      }`}
+                      className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold border transition-all cursor-pointer shadow-2xs disabled:opacity-50 disabled:cursor-not-allowed ${selectedPatient?.id === member.id
+                        ? 'bg-blue-600 text-white border-blue-700 shadow-xs'
+                        : 'bg-white text-slate-800 border-blue-200/90 hover:bg-blue-100/70 hover:border-blue-300'
+                        }`}
                     >
                       <span>👤 {member.name}</span>
                       {member.medical_number && (
@@ -524,8 +515,8 @@ export default function AppointmentModal({
               mode === 'walk_in'
                 ? 'Checking In...'
                 : mode === 'create'
-                ? 'Booking Appointment...'
-                : 'Saving Details...'
+                  ? 'Booking Appointment...'
+                  : 'Saving Details...'
             }
             leftIcon={
               mode === 'walk_in' ? (
@@ -542,12 +533,12 @@ export default function AppointmentModal({
               {mode === 'walk_in'
                 ? 'Confirm Walk-In Check-In'
                 : mode === 'create'
-                ? 'Book Appointment'
-                : strategy === 'UPDATE_CURRENT'
-                ? 'Save Corrected Details'
-                : isInlineAddingNew
-                ? 'Create & Reassign to New Patient'
-                : 'Reassign to Selected Patient'}
+                  ? 'Book Appointment'
+                  : strategy === 'UPDATE_CURRENT'
+                    ? 'Save Corrected Details'
+                    : isInlineAddingNew
+                      ? 'Create & Reassign to New Patient'
+                      : 'Reassign to Selected Patient'}
             </span>
           </Button>
         </DialogFooter>
