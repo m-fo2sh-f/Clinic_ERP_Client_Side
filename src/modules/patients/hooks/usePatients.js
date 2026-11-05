@@ -37,16 +37,17 @@ export const usePatientsQuery = (branchId, search = '') => {
 export const useSearchPatientsQuery = (searchTerm) => {
   return useQuery({
     queryKey: ['patients', 'search', searchTerm],
-    queryFn: async () => {
+    queryFn: async ({ signal }) => {
       if (!searchTerm || searchTerm.trim().length < 2) return [];
 
       const response = await api.get('/patients/search', {
-        params: { q: searchTerm.trim() }
+        params: { q: searchTerm.trim() },
+        signal,
       });
       return response.data?.data || [];
     },
     enabled: !!searchTerm && searchTerm.trim().length >= 2,
-    staleTime: 1000 * 60 * 2,
+    staleTime: 1000 * 10,
   });
 };
 

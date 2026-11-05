@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useMemo } from 'react';
 import { PlusCircle, Calendar, UserCheck, Clock, UserPlus } from 'lucide-react';
 import Button from '../../../components/ui/Button';
 import dayjs from 'dayjs';
@@ -16,6 +16,19 @@ export default function QuickActions({ stats = { total: 0, checkedIn: 0, remaini
 
   const createAppointmentMutation = useCreateAppointmentMutation();
   const walkInMutation = useWalkInMutation();
+
+  const defaultWalkInValues = useMemo(() => ({
+    patientName: '',
+    patientPhone: '',
+    apptType: 'check_up'
+  }), []);
+
+  const defaultAppointmentValues = useMemo(() => ({
+    patientName: '',
+    patientPhone: '',
+    apptType: 'check_up',
+    apptTime: dayjs().format('YYYY-MM-DD HH:mm:ss')
+  }), [isModalOpen]);
 
   const onSubmitAppointment = (data, selectedPatientIdFromModal) => {
     const payload = {
@@ -149,12 +162,7 @@ export default function QuickActions({ stats = { total: 0, checkedIn: 0, remaini
         isOpen={isModalOpen}
         onClose={() => setIsModalOpen(false)}
         mode="create"
-        defaultValues={{
-          patientName: '',
-          patientPhone: '',
-          apptType: 'check_up',
-          apptTime: dayjs().format('YYYY-MM-DD HH:mm:ss')
-        }}
+        defaultValues={defaultAppointmentValues}
         onSubmit={onSubmitAppointment}
         isLoading={createAppointmentMutation.isPending}
       />
@@ -164,11 +172,7 @@ export default function QuickActions({ stats = { total: 0, checkedIn: 0, remaini
         isOpen={isWalkInOpen}
         onClose={() => setIsWalkInOpen(false)}
         mode="walk_in"
-        defaultValues={{
-          patientName: '',
-          patientPhone: '',
-          apptType: 'check_up'
-        }}
+        defaultValues={defaultWalkInValues}
         onSubmit={onSubmitWalkIn}
         isLoading={walkInMutation.isPending}
       />

@@ -14,6 +14,8 @@ import {
   Menu,
   X,
   Key,
+  Printer,
+  Receipt,
 } from 'lucide-react';
 import Select from '../components/ui/Select';
 import { useBranchContext } from '../context/BranchContext';
@@ -23,6 +25,8 @@ export default function DashboardLayout({ children }) {
   const { branches, selectedBranchId, selectBranch, activeBranch, user, logout } = useBranchContext();
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const [isProfileOpen, setIsProfileOpen] = useState(false);
+  const [isSettingsOpen, setIsSettingsOpen] = useState(false);
+  const [isTopSettingsOpen, setIsTopSettingsOpen] = useState(false);
   const navigate = useNavigate();
   const location = useLocation();
 
@@ -41,6 +45,36 @@ export default function DashboardLayout({ children }) {
 
   const canAccessReception = userRoles.length === 0 || userRoles.includes('receptionist') || userRoles.includes('clinic_owner') || userRoles.includes('tenant_admin');
   const canAccessDoctor = userRoles.includes('doctor') || userRoles.includes('clinic_owner');
+  const isOwnerOrAdmin = userRoles.includes('clinic_owner') || userRoles.includes('tenant_admin') || userRoles.includes('super_admin');
+  const isDoctor = userRoles.includes('doctor');
+
+  // RBAC checks for Settings dropdown
+  const canAccessSettings = isOwnerOrAdmin || isDoctor;
+  const canAccessPrescription = isOwnerOrAdmin || isDoctor;
+  const canAccessServices = isOwnerOrAdmin || isDoctor;
+
+  const settingsSubItems = [
+    ...(canAccessPrescription
+      ? [
+          {
+            name: 'قالب وإعدادات الروشتة',
+            href: '/settings/prescription',
+            icon: Printer,
+            active: location.pathname === '/settings/prescription',
+          },
+        ]
+      : []),
+    ...(canAccessServices
+      ? [
+          {
+            name: 'خدمات العيادة والتسعير',
+            href: '/settings/services',
+            icon: Receipt,
+            active: location.pathname === '/settings/services',
+          },
+        ]
+      : []),
+  ];
 
   const menuItems = [
     ...(canAccessReception
@@ -68,12 +102,6 @@ export default function DashboardLayout({ children }) {
       icon: Users,
       href: '/patients',
       active: location.pathname === '/patients',
-    },
-    {
-      name: 'Services & Pricing',
-      icon: Settings,
-      href: '/settings',
-      active: location.pathname === '/settings',
     },
   ];
 
@@ -145,6 +173,54 @@ export default function DashboardLayout({ children }) {
                 <span>{item.name}</span>
               </Link>
             ))}
+
+            {/* Collapsible Settings Dropdown for Authorized Roles */}
+            {canAccessSettings && settingsSubItems.length > 0 && (
+              <div className="pt-1">
+                <button
+                  type="button"
+                  onClick={() => setIsSettingsOpen((prev) => !prev)}
+                  className={`w-full flex items-center justify-between px-3.5 py-2.5 rounded-xl text-sm font-semibold transition-all cursor-pointer ${
+                    location.pathname.startsWith('/settings')
+                      ? 'bg-slate-800 text-white border border-slate-700/60'
+                      : 'text-slate-400 hover:bg-slate-800 hover:text-white'
+                  }`}
+                  aria-expanded={isSettingsOpen}
+                >
+                  <div className="flex items-center gap-3">
+                    <Settings className="h-5 w-5 shrink-0 text-clinic-400" />
+                    <span>الإعدادات</span>
+                  </div>
+                  <ChevronDown
+                    className={`h-4 w-4 transition-transform duration-200 text-slate-400 ${
+                      isSettingsOpen ? 'rotate-180 text-white' : ''
+                    }`}
+                  />
+                </button>
+
+                {isSettingsOpen && (
+                  <div className="mt-1 space-y-1 mr-3 pr-3 border-r-2 border-slate-800 animate-in fade-in slide-in-from-top-1 duration-150">
+                    {settingsSubItems.map((sub) => {
+                      const SubIcon = sub.icon;
+                      return (
+                        <Link
+                          key={sub.href}
+                          to={sub.href}
+                          className={`flex items-center gap-2.5 px-3 py-2 rounded-lg text-xs font-medium transition-all ${
+                            sub.active
+                              ? 'bg-clinic-600 text-white font-bold shadow-xs'
+                              : 'text-slate-400 hover:bg-slate-800 hover:text-slate-100'
+                          }`}
+                        >
+                          <SubIcon className="h-4 w-4 shrink-0 text-clinic-400" />
+                          <span>{sub.name}</span>
+                        </Link>
+                      );
+                    })}
+                  </div>
+                )}
+              </div>
+            )}
           </nav>
 
           {/* Sidebar Footer Info */}
@@ -209,7 +285,65 @@ export default function DashboardLayout({ children }) {
           </div>
 
           {/* Right Controls: Branch Switcher & User Profile */}
-          <div className="flex items-center gap-3 sm:gap-4">
+          <div className="flex items-center gap-2.5 sm:gap-4">
+            {/* Quick Settings Dropdown in Top Navbar */}
+            {canAccessSettings && settingsSubItems.length > 0 && (
+              <div className="relative">
+                <button
+                  type="button"
+                  onClick={() => setIsTopSettingsOpen((prev) => !prev)}
+                  className={`flex items-center gap-1.5 px-2.5 sm:px-3 py-1.5 rounded-xl text-xs font-bold border transition-all cursor-pointer shadow-2xs ${
+                    location.pathname.startsWith('/settings') || isTopSettingsOpen
+                      ? 'bg-clinic-50 text-clinic-700 border-clinic-300'
+                      : 'bg-slate-50/70 text-slate-700 hover:bg-white hover:text-clinic-700 border-slate-200'
+                  }`}
+                  title="إعدادات العيادة والروشتة"
+                >
+                  <Settings className="h-4 w-4 text-clinic-600" />
+                  <span className="hidden sm:inline">الإعدادات</span>
+                  <ChevronDown
+                    className={`h-3 w-3 text-slate-400 transition-transform duration-150 ${
+                      isTopSettingsOpen ? 'rotate-180 text-clinic-600' : ''
+                    }`}
+                  />
+                </button>
+
+                {isTopSettingsOpen && (
+                  <>
+                    <div className="fixed inset-0 z-40" onClick={() => setIsTopSettingsOpen(false)} />
+                    <div
+                      className="absolute right-0 mt-2 w-56 bg-white border border-slate-200 rounded-xl shadow-xl z-50 p-2 animate-in fade-in slide-in-from-top-2 duration-150"
+                      dir="rtl"
+                    >
+                      <div className="px-2.5 py-1 text-[11px] font-bold text-slate-400 border-b border-slate-100 mb-1">
+                        إعدادات العيادة
+                      </div>
+                      <div className="space-y-1">
+                        {settingsSubItems.map((sub) => {
+                          const SubIcon = sub.icon;
+                          return (
+                            <Link
+                              key={sub.href}
+                              to={sub.href}
+                              onClick={() => setIsTopSettingsOpen(false)}
+                              className={`flex items-center gap-2.5 px-2.5 py-2 rounded-lg text-xs font-semibold transition-all ${
+                                sub.active
+                                  ? 'bg-clinic-50 text-clinic-700 font-bold'
+                                  : 'text-slate-600 hover:bg-slate-50 hover:text-slate-900'
+                              }`}
+                            >
+                              <SubIcon className={`h-4 w-4 ${sub.active ? 'text-clinic-600' : 'text-slate-400'}`} />
+                              <span>{sub.name}</span>
+                            </Link>
+                          );
+                        })}
+                      </div>
+                    </div>
+                  </>
+                )}
+              </div>
+            )}
+
             {/* Branch Switcher Select Header */}
             <div className="w-40 sm:w-52">
               <Select

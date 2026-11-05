@@ -24,10 +24,10 @@ export default function CustomImageTemplate({
   advice = '',
   followUpDate = '',
 }) {
-  const topMargin = Number(settings?.top_margin_cm) || 3.5;
-  const bottomMargin = Number(settings?.bottom_margin_cm) || 2.5;
-  const leftMargin = Number(settings?.left_margin_cm) || 1.5;
-  const rightMargin = Number(settings?.right_margin_cm) || 1.5;
+  const topMargin = Number(settings?.margins?.top_cm ?? settings?.top_margin_cm ?? 4.5);
+  const bottomMargin = Number(settings?.margins?.bottom_cm ?? settings?.bottom_margin_cm ?? 3.0);
+  const leftMargin = Number(settings?.margins?.left_cm ?? settings?.left_margin_cm ?? 1.5);
+  const rightMargin = Number(settings?.margins?.right_cm ?? settings?.right_margin_cm ?? 1.5);
 
   const primaryColor = settings?.primary_color || '#0284c7';
   const showDiagnosis = settings?.show_diagnosis !== false;
@@ -35,7 +35,12 @@ export default function CustomImageTemplate({
   const showQr = settings?.show_qr !== false;
   const showSerial = settings?.show_serial !== false;
 
-  const customBgUrl = settings?.custom_bg_image_url;
+  const customBgUrl =
+    settings?.image_url ||
+    settings?.custom_image_url ||
+    settings?.background_image ||
+    settings?.custom_bg_image_url ||
+    settings?.direct_storage_url;
   const laserOpt = Boolean(settings?.laser_contrast_opt);
   const grayscaleMode = Boolean(settings?.grayscale_mode);
 
@@ -76,6 +81,8 @@ export default function CustomImageTemplate({
             width: '100%',
             height: '100%',
             objectFit: 'fill',
+            printColorAdjust: 'exact',
+            WebkitPrintColorAdjust: 'exact',
           }}
         />
       ) : (

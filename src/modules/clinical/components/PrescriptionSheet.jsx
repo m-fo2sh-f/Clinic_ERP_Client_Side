@@ -5,7 +5,8 @@ import Button from '../../../components/ui/Button';
 import { Card, CardHeader, CardTitle, CardContent } from '../../../components/ui/Card';
 import PrescriptionPrintWrapper from './PrescriptionPrintWrapper';
 import CompleteExaminationModal from './CompleteExaminationModal';
-import { getPrescriptionSettings, DEFAULT_PRESCRIPTION_SETTINGS } from '../../clinic-settings/api/prescriptionSettingsApi';
+import usePrescriptionTemplate from '../../clinic-settings/hooks/usePrescriptionTemplate';
+import { DEFAULT_PRESCRIPTION_SETTINGS } from '../../clinic-settings/constants/prescriptionConstants';
 import {
   DrugSearchCombobox,
   QuickDosageChips,
@@ -42,7 +43,16 @@ export default function PrescriptionSheet({
   encounter = {},
   onOpenHistory,
 }) {
-  const [settings, setSettings] = useState(DEFAULT_PRESCRIPTION_SETTINGS);
+  const { settings: templateSettings } = usePrescriptionTemplate(branchId);
+  const [fontSizeOverride, setFontSizeOverride] = useState(null);
+
+  // Resolve active settings from TanStack Query cache with fallback to DEFAULT_PRESCRIPTION_SETTINGS
+  const settings = {
+    ...DEFAULT_PRESCRIPTION_SETTINGS,
+    ...(templateSettings || {}),
+    ...(fontSizeOverride ? { font_size: fontSizeOverride } : {}),
+  };
+
   const [isPreviewOpen, setIsPreviewOpen] = useState(false);
   const [isCompleteModalOpen, setIsCompleteModalOpen] = useState(false);
   const [isCatalogModalOpen, setIsCatalogModalOpen] = useState(false);
@@ -54,25 +64,6 @@ export default function PrescriptionSheet({
   const effectiveBranchName = branchName || clinicName || settings?.clinic_name || 'Clinic';
   const effectiveDoctorName = doctorName || settings?.doctor_name || 'Dr.';
   const effectiveIsSubmitting = Boolean(isSubmitting || isSaving);
-
-  // Load clinic template settings
-  useEffect(() => {
-    let isMounted = true;
-    const fetchSettings = async () => {
-      try {
-        const loaded = await getPrescriptionSettings(branchId);
-        if (isMounted && loaded) {
-          setSettings(loaded);
-        }
-      } catch (err) {
-        console.warn('Prescription settings fetch notice:', err?.message);
-      }
-    };
-    fetchSettings();
-    return () => {
-      isMounted = false;
-    };
-  }, [branchId]);
 
   // Page style for react-to-print (A5 or A4)
   const paperSize = settings.paper_size || 'A5';
@@ -186,7 +177,7 @@ export default function PrescriptionSheet({
               <button
                 key={sz.id}
                 type="button"
-                onClick={() => setSettings((prev) => ({ ...prev, font_size: sz.id }))}
+                onClick={() => setFontSizeOverride(sz.id)}
                 className={`px-2.5 py-1 rounded-lg text-xs font-bold transition-all cursor-pointer ${
                   (settings?.font_size || 'md') === sz.id
                     ? 'bg-clinic-600 text-white shadow-xs'

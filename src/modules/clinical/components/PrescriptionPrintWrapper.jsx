@@ -64,10 +64,10 @@ const PrescriptionPrintWrapper = forwardRef(function PrescriptionPrintWrapper(
         TemplateComponent = PediatricsTemplate;
         break;
       case 'internal_classic':
+      case 'internal_medicine':
         TemplateComponent = InternalMedicineTemplate;
         break;
       case 'egyptian_clinic':
-      case 'internal_medicine':
       default:
         TemplateComponent = EgyptianClinicTemplate;
         break;
@@ -90,7 +90,7 @@ const PrescriptionPrintWrapper = forwardRef(function PrescriptionPrintWrapper(
     <div
       ref={ref}
       id="prescription-print-document"
-      className={`prescription-sheet-wrapper bg-white text-slate-900 box-border flex flex-col ${
+      className={`prescription-sheet-wrapper relative bg-white text-slate-900 box-border flex flex-col ${
         isPreview
           ? 'shadow-2xl rounded-sm border border-slate-300 mx-auto shrink-0'
           : 'print-page-root'

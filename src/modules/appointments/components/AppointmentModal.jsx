@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { useForm } from 'react-hook-form';
 import { Search, PlusCircle, ArrowRight, Edit2, Loader2, UserPlus, RefreshCw, UserCheck, ShieldCheck, Info, Users, User } from 'lucide-react';
 import Button from '../../../components/ui/Button';
@@ -26,6 +26,9 @@ export default function AppointmentModal({
   const [searchQuery, setSearchQuery] = useState('');
   const [showDropdown, setShowDropdown] = useState(false);
   const [selectedPatient, setSelectedPatient] = useState(null);
+  const [activeSearchSource, setActiveSearchSource] = useState('searchBar'); // 'searchBar' | 'phoneField'
+
+  const wasOpenRef = useRef(false);
 
   const { register, handleSubmit, setValue, watch, reset, formState: { errors } } = useForm({
     defaultValues: defaultValues || {
@@ -42,22 +45,28 @@ export default function AppointmentModal({
 
   const watchedPhone = watch('patientPhone');
 
-  // Debounce main search query or phone input on 350ms keyboard idle
-  const activeSearch = searchQuery || watchedPhone || '';
-  const debouncedSearch = useDebounce(activeSearch, 500);
+  // Debounce main search query or phone input on 300ms keyboard idle
+  const activeSearch = (activeSearchSource === 'phoneField' ? watchedPhone : searchQuery)
+    || searchQuery
+    || watchedPhone
+    || '';
+  const debouncedSearch = useDebounce(activeSearch, 300);
 
   // Server-side search query
   const { data: searchedPatients = [], isLoading: isSearching } = useSearchPatientsQuery(debouncedSearch);
 
-  // Filter family members registered under the entered phone number
+  // Filter family members registered under the entered phone number (threshold: 3+ digits)
   const cleanWatchedPhone = watchedPhone ? watchedPhone.replace(/[^\d]/g, '') : '';
-  const familyMembers = (cleanWatchedPhone.length >= 7 && searchedPatients.length > 0)
-    ? searchedPatients.filter(p => p.phone && p.phone.replace(/[^\d]/g, '').includes(cleanWatchedPhone))
+  const familyMembers = (cleanWatchedPhone.length >= 3 && searchedPatients.length > 0)
+    ? searchedPatients.filter(p => {
+        const cleanPPhone = (p.phone || '').replace(/[^\d]/g, '');
+        return cleanPPhone.includes(cleanWatchedPhone) || cleanWatchedPhone.includes(cleanPPhone);
+      })
     : [];
 
-  // Reset modal state when opened
+  // Reset modal state ONLY when modal transitions from closed to open
   useEffect(() => {
-    if (isOpen) {
+    if (isOpen && !wasOpenRef.current) {
       setStrategy('UPDATE_CURRENT');
       setIsInlineAddingNew(false);
       reset(defaultValues || {
@@ -73,7 +82,9 @@ export default function AppointmentModal({
       setSearchQuery('');
       setSelectedPatient(null);
       setShowDropdown(false);
+      setActiveSearchSource('searchBar');
     }
+    wasOpenRef.current = isOpen;
   }, [isOpen, defaultValues, reset]);
 
   const handleSelectPatientFromSearch = (patient) => {
@@ -245,11 +256,13 @@ export default function AppointmentModal({
                   className="w-full pl-9 pr-9 py-2 border border-slate-200 rounded-lg text-sm bg-slate-50/50 focus:bg-white focus:outline-none focus:ring-1 focus:ring-clinic-500 focus:border-clinic-500 transition-all disabled:opacity-60 disabled:cursor-not-allowed"
                   value={searchQuery}
                   onChange={(e) => {
+                    setActiveSearchSource('searchBar');
                     setShowDropdown(true);
                     setSearchQuery(e.target.value);
                     if (selectedPatient) setSelectedPatient(null);
                   }}
                   onFocus={() => {
+                    setActiveSearchSource('searchBar');
                     if (searchQuery.trim().length >= 1) setShowDropdown(true);
                   }}
                 />
@@ -371,7 +384,13 @@ export default function AppointmentModal({
                   disabled={isLoading}
                   placeholder="e.g. 01000000000"
                   className={`w-full px-3 py-2 border ${errors.patientPhone ? 'border-red-500 focus:ring-red-500' : 'border-slate-200 focus:ring-clinic-500'} rounded-lg text-sm focus:outline-none focus:ring-1 transition-all disabled:opacity-60 disabled:cursor-not-allowed`}
-                  {...register('patientPhone', { required: 'Phone is required' })}
+                  {...register('patientPhone', {
+                    required: 'Phone is required',
+                    onChange: () => {
+                      setActiveSearchSource('phoneField');
+                      if (selectedPatient) setSelectedPatient(null);
+                    }
+                  })}
                 />
                 {errors.patientPhone && <span className="text-[10px] text-red-500 mt-1">{errors.patientPhone.message}</span>}
               </div>

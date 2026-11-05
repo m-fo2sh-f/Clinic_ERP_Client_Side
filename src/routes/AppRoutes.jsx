@@ -5,7 +5,7 @@ import LoginPage from '../pages/auth/LoginPage';
 import ReceptionistDashboard from '../modules/queue/pages/ReceptionistDashboard';
 import DoctorDashboard from '../modules/clinical/pages/DoctorDashboard';
 import PatientsPage from '../modules/patients/pages/PatientsPage';
-import ClinicSettingsPage from '../modules/clinic-settings/pages/ClinicSettingsPage';
+import { ClinicSettingsLayout, PrescriptionSettingsPage, ClinicServicesPage } from '../modules/clinic-settings';
 import WaitingRoomDisplay from '../modules/queue/pages/WaitingRoomDisplay';
 import DashboardLayout from '../layouts/DashboardLayout';
 import { ProtectedRoute, getRoleDefaultRoute } from './ProtectedRoute';
@@ -136,17 +136,21 @@ function AppRoutes() {
           }
         />
 
-        {/* Clinic Settings (Services, Pricing) - Protected */}
+        {/* Clinic Settings (Services, Prescription Engine) - Protected */}
         <Route
           path="/settings"
           element={
             <ProtectedRoute allowedRoles={['doctor', 'clinic_owner', 'tenant_admin']}>
               <DashboardLayout>
-                <ClinicSettingsPage />
+                <ClinicSettingsLayout />
               </DashboardLayout>
             </ProtectedRoute>
           }
-        />
+        >
+          <Route index element={<Navigate to="prescription" replace />} />
+          <Route path="prescription" element={<PrescriptionSettingsPage />} />
+          <Route path="services" element={<ClinicServicesPage />} />
+        </Route>
 
         {/* Standalone TV display */}
         <Route path="/waiting-room" element={<WaitingRoomDisplay />} />

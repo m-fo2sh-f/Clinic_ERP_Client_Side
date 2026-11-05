@@ -26,10 +26,10 @@ export default function PreprintedLetterheadTemplate({
   advice = '',
   followUpDate = '',
 }) {
-  const topMargin = Number(settings?.top_margin_cm) || 3.5;
-  const bottomMargin = Number(settings?.bottom_margin_cm) || 2.5;
-  const leftMargin = Number(settings?.left_margin_cm) || 1.5;
-  const rightMargin = Number(settings?.right_margin_cm) || 1.5;
+  const topMargin = Number(settings?.margins?.top_cm ?? settings?.top_margin_cm ?? 4.5);
+  const bottomMargin = Number(settings?.margins?.bottom_cm ?? settings?.bottom_margin_cm ?? 3.0);
+  const leftMargin = Number(settings?.margins?.left_cm ?? settings?.left_margin_cm ?? 1.5);
+  const rightMargin = Number(settings?.margins?.right_cm ?? settings?.right_margin_cm ?? 1.5);
 
   const primaryColor = settings?.primary_color || '#0284c7';
   const showDiagnosis = settings?.show_diagnosis !== false;
