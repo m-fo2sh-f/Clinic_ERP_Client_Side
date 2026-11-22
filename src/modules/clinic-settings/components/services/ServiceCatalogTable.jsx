@@ -72,7 +72,7 @@ export default function ServiceCatalogTable({
                     {svc.name}
                   </td>
                   <td className="py-3 px-4 font-mono font-bold text-emerald-700">
-                    {Number(svc.price).toLocaleString('ar-EG')} ج.م
+                    EG {Number(svc.price)}
                   </td>
                   {!isReadOnly && (
                     <td className="py-3 px-4 text-left">

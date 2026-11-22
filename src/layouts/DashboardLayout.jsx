@@ -51,51 +51,62 @@ export default function DashboardLayout({ children }) {
   // RBAC checks for Settings dropdown
   const canAccessSettings = isOwnerOrAdmin || isDoctor;
   const canAccessPrescription = isOwnerOrAdmin || isDoctor;
+  const canAccessVitals = isOwnerOrAdmin || isDoctor;
   const canAccessServices = isOwnerOrAdmin || isDoctor;
 
   const settingsSubItems = [
     ...(canAccessPrescription
       ? [
-          {
-            name: 'قالب وإعدادات الروشتة',
-            href: '/settings/prescription',
-            icon: Printer,
-            active: location.pathname === '/settings/prescription',
-          },
-        ]
+        {
+          name: 'Prespiration Layout',
+          href: '/settings/prescription',
+          icon: Printer,
+          active: location.pathname === '/settings/prescription',
+        },
+      ]
       : []),
     ...(canAccessServices
       ? [
-          {
-            name: 'خدمات العيادة والتسعير',
-            href: '/settings/services',
-            icon: Receipt,
-            active: location.pathname === '/settings/services',
-          },
-        ]
+        {
+          name: 'Clinic Services',
+          href: '/settings/services',
+          icon: Receipt,
+          active: location.pathname === '/settings/services',
+        },
+      ]
+      : []),
+    ...(canAccessVitals
+      ? [
+        {
+          name: 'Vitals',
+          href: '/settings/vitals',
+          icon: LayoutDashboard,
+          active: location.pathname === '/settings/vitals',
+        },
+      ]
       : []),
   ];
 
   const menuItems = [
     ...(canAccessReception
       ? [
-          {
-            name: 'Dashboard',
-            icon: LayoutDashboard,
-            href: '/dashboard',
-            active: location.pathname === '/dashboard',
-          },
-        ]
+        {
+          name: 'Dashboard',
+          icon: LayoutDashboard,
+          href: '/dashboard',
+          active: location.pathname === '/dashboard',
+        },
+      ]
       : []),
     ...(canAccessDoctor
       ? [
-          {
-            name: 'Doctor Room',
-            icon: Stethoscope,
-            href: '/doctor',
-            active: location.pathname === '/doctor',
-          },
-        ]
+        {
+          name: 'Doctor Room',
+          icon: Stethoscope,
+          href: '/doctor',
+          active: location.pathname === '/doctor',
+        },
+      ]
       : []),
     {
       name: 'Patients Directory',
@@ -130,9 +141,8 @@ export default function DashboardLayout({ children }) {
         No backdrop/overlay is used, so the dashboard remains fully visible and active!
       */}
       <aside
-        className={`bg-slate-900 text-white shrink-0 shadow-xl flex flex-col transition-all duration-300 ease-in-out overflow-hidden z-20 ${
-          isSidebarOpen ? 'w-64 border-r border-slate-800' : 'w-0 border-r-0'
-        }`}
+        className={`bg-slate-900 text-white shrink-0 shadow-xl flex flex-col transition-all duration-300 ease-in-out overflow-hidden z-20 ${isSidebarOpen ? 'w-64 border-r border-slate-800' : 'w-0 border-r-0'
+          }`}
         aria-hidden={!isSidebarOpen}
       >
         {/* Fixed-width inner wrapper (w-64) keeps menu text & layout stable during expand/collapse */}
@@ -163,11 +173,10 @@ export default function DashboardLayout({ children }) {
               <Link
                 key={item.name}
                 to={item.href}
-                className={`flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-sm font-semibold transition-all ${
-                  item.active
-                    ? 'bg-clinic-600 text-white shadow-md shadow-clinic-600/20'
-                    : 'text-slate-400 hover:bg-slate-800 hover:text-white'
-                }`}
+                className={`flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-sm font-semibold transition-all ${item.active
+                  ? 'bg-clinic-600 text-white shadow-md shadow-clinic-600/20'
+                  : 'text-slate-400 hover:bg-slate-800 hover:text-white'
+                  }`}
               >
                 <item.icon className="h-5 w-5 shrink-0" />
                 <span>{item.name}</span>
@@ -180,11 +189,10 @@ export default function DashboardLayout({ children }) {
                 <button
                   type="button"
                   onClick={() => setIsSettingsOpen((prev) => !prev)}
-                  className={`w-full flex items-center justify-between px-3.5 py-2.5 rounded-xl text-sm font-semibold transition-all cursor-pointer ${
-                    location.pathname.startsWith('/settings')
-                      ? 'bg-slate-800 text-white border border-slate-700/60'
-                      : 'text-slate-400 hover:bg-slate-800 hover:text-white'
-                  }`}
+                  className={`w-full flex items-center justify-between px-3.5 py-2.5 rounded-xl text-sm font-semibold transition-all cursor-pointer ${location.pathname.startsWith('/settings')
+                    ? 'bg-slate-800 text-white border border-slate-700/60'
+                    : 'text-slate-400 hover:bg-slate-800 hover:text-white'
+                    }`}
                   aria-expanded={isSettingsOpen}
                 >
                   <div className="flex items-center gap-3">
@@ -192,9 +200,8 @@ export default function DashboardLayout({ children }) {
                     <span>الإعدادات</span>
                   </div>
                   <ChevronDown
-                    className={`h-4 w-4 transition-transform duration-200 text-slate-400 ${
-                      isSettingsOpen ? 'rotate-180 text-white' : ''
-                    }`}
+                    className={`h-4 w-4 transition-transform duration-200 text-slate-400 ${isSettingsOpen ? 'rotate-180 text-white' : ''
+                      }`}
                   />
                 </button>
 
@@ -206,11 +213,10 @@ export default function DashboardLayout({ children }) {
                         <Link
                           key={sub.href}
                           to={sub.href}
-                          className={`flex items-center gap-2.5 px-3 py-2 rounded-lg text-xs font-medium transition-all ${
-                            sub.active
-                              ? 'bg-clinic-600 text-white font-bold shadow-xs'
-                              : 'text-slate-400 hover:bg-slate-800 hover:text-slate-100'
-                          }`}
+                          className={`flex items-center gap-2.5 px-3 py-2 rounded-lg text-xs font-medium transition-all ${sub.active
+                            ? 'bg-clinic-600 text-white font-bold shadow-xs'
+                            : 'text-slate-400 hover:bg-slate-800 hover:text-slate-100'
+                            }`}
                         >
                           <SubIcon className="h-4 w-4 shrink-0 text-clinic-400" />
                           <span>{sub.name}</span>
@@ -249,11 +255,10 @@ export default function DashboardLayout({ children }) {
             {/* Toggle Button for Push Sidebar */}
             <button
               onClick={() => setIsSidebarOpen((prev) => !prev)}
-              className={`p-2 rounded-xl transition-all flex items-center gap-2 cursor-pointer border shadow-xs ${
-                isSidebarOpen
-                  ? 'bg-clinic-50 text-clinic-700 border-clinic-200'
-                  : 'bg-slate-50/70 text-slate-700 hover:text-clinic-700 hover:bg-clinic-50/80 border-slate-200'
-              }`}
+              className={`p-2 rounded-xl transition-all flex items-center gap-2 cursor-pointer border shadow-xs ${isSidebarOpen
+                ? 'bg-clinic-50 text-clinic-700 border-clinic-200'
+                : 'bg-slate-50/70 text-slate-700 hover:text-clinic-700 hover:bg-clinic-50/80 border-slate-200'
+                }`}
               title={isSidebarOpen ? 'إخفاء القائمة الجانبية (Collapse)' : 'إظهار القائمة الجانبية (Expand)'}
             >
               <Menu className="h-5 w-5 text-clinic-600" />
@@ -292,19 +297,17 @@ export default function DashboardLayout({ children }) {
                 <button
                   type="button"
                   onClick={() => setIsTopSettingsOpen((prev) => !prev)}
-                  className={`flex items-center gap-1.5 px-2.5 sm:px-3 py-1.5 rounded-xl text-xs font-bold border transition-all cursor-pointer shadow-2xs ${
-                    location.pathname.startsWith('/settings') || isTopSettingsOpen
-                      ? 'bg-clinic-50 text-clinic-700 border-clinic-300'
-                      : 'bg-slate-50/70 text-slate-700 hover:bg-white hover:text-clinic-700 border-slate-200'
-                  }`}
+                  className={`flex items-center gap-1.5 px-2.5 sm:px-3 py-1.5 rounded-xl text-xs font-bold border transition-all cursor-pointer shadow-2xs ${location.pathname.startsWith('/settings') || isTopSettingsOpen
+                    ? 'bg-clinic-50 text-clinic-700 border-clinic-300'
+                    : 'bg-slate-50/70 text-slate-700 hover:bg-white hover:text-clinic-700 border-slate-200'
+                    }`}
                   title="إعدادات العيادة والروشتة"
                 >
                   <Settings className="h-4 w-4 text-clinic-600" />
                   <span className="hidden sm:inline">الإعدادات</span>
                   <ChevronDown
-                    className={`h-3 w-3 text-slate-400 transition-transform duration-150 ${
-                      isTopSettingsOpen ? 'rotate-180 text-clinic-600' : ''
-                    }`}
+                    className={`h-3 w-3 text-slate-400 transition-transform duration-150 ${isTopSettingsOpen ? 'rotate-180 text-clinic-600' : ''
+                      }`}
                   />
                 </button>
 
@@ -326,11 +329,10 @@ export default function DashboardLayout({ children }) {
                               key={sub.href}
                               to={sub.href}
                               onClick={() => setIsTopSettingsOpen(false)}
-                              className={`flex items-center gap-2.5 px-2.5 py-2 rounded-lg text-xs font-semibold transition-all ${
-                                sub.active
-                                  ? 'bg-clinic-50 text-clinic-700 font-bold'
-                                  : 'text-slate-600 hover:bg-slate-50 hover:text-slate-900'
-                              }`}
+                              className={`flex items-center gap-2.5 px-2.5 py-2 rounded-lg text-xs font-semibold transition-all ${sub.active
+                                ? 'bg-clinic-50 text-clinic-700 font-bold'
+                                : 'text-slate-600 hover:bg-slate-50 hover:text-slate-900'
+                                }`}
                             >
                               <SubIcon className={`h-4 w-4 ${sub.active ? 'text-clinic-600' : 'text-slate-400'}`} />
                               <span>{sub.name}</span>
@@ -376,11 +378,11 @@ export default function DashboardLayout({ children }) {
                 <div className="h-8 w-8 rounded-full bg-clinic-100 border border-clinic-250 flex items-center justify-center font-bold text-clinic-700 text-xs">
                   {currentUser.name
                     ? currentUser.name
-                        .split(' ')
-                        .map((n) => n[0])
-                        .join('')
-                        .substring(0, 2)
-                        .toUpperCase()
+                      .split(' ')
+                      .map((n) => n[0])
+                      .join('')
+                      .substring(0, 2)
+                      .toUpperCase()
                     : 'US'}
                 </div>
                 <div className="hidden lg:block">

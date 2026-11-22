@@ -5,7 +5,7 @@ import LoginPage from '../pages/auth/LoginPage';
 import ReceptionistDashboard from '../modules/queue/pages/ReceptionistDashboard';
 import DoctorDashboard from '../modules/clinical/pages/DoctorDashboard';
 import PatientsPage from '../modules/patients/pages/PatientsPage';
-import { ClinicSettingsLayout, PrescriptionSettingsPage, ClinicServicesPage } from '../modules/clinic-settings';
+import { ClinicSettingsLayout, PrescriptionSettingsPage, VitalsSettingsPage, ClinicServicesPage } from '../modules/clinic-settings';
 import WaitingRoomDisplay from '../modules/queue/pages/WaitingRoomDisplay';
 import DashboardLayout from '../layouts/DashboardLayout';
 import { ProtectedRoute, getRoleDefaultRoute } from './ProtectedRoute';
@@ -149,6 +149,7 @@ function AppRoutes() {
         >
           <Route index element={<Navigate to="prescription" replace />} />
           <Route path="prescription" element={<PrescriptionSettingsPage />} />
+          <Route path="vitals" element={<VitalsSettingsPage />} />
           <Route path="services" element={<ClinicServicesPage />} />
         </Route>
 

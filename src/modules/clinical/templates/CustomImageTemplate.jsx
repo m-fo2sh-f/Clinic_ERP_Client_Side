@@ -7,11 +7,6 @@ import {
 
 /**
  * CustomImageTemplate — Prints prescription content over a user-uploaded custom stationery background image.
- *
- * CRITICAL RULE 3 (Laser Printer Filter):
- * When settings.laser_contrast_opt is active, applies CSS filter:
- * contrast(1.06) brightness(1.03) [with optional grayscale(100%)]
- * for ultra-sharp laser output without faint or washed-out backgrounds.
  */
 export default function CustomImageTemplate({
   settings = {},
@@ -40,11 +35,14 @@ export default function CustomImageTemplate({
     settings?.custom_image_url ||
     settings?.background_image ||
     settings?.custom_bg_image_url ||
-    settings?.direct_storage_url;
+    settings?.direct_storage_url ||
+    (settings?.image_path
+      ? `/api/v1/clinic-settings/prescription-template/image/${settings.image_path.split('/').pop().split('\\').pop()}`
+      : null);
+
   const laserOpt = Boolean(settings?.laser_contrast_opt);
   const grayscaleMode = Boolean(settings?.grayscale_mode);
 
-  // Compute CSS filter for laser printers
   const filterStyles = [];
   if (laserOpt) {
     filterStyles.push('contrast(1.06) brightness(1.03)');
@@ -76,6 +74,7 @@ export default function CustomImageTemplate({
           alt="Custom Prescription Background"
           loading="eager"
           decoding="sync"
+          crossOrigin="anonymous"
           className="absolute inset-0 w-full h-full pointer-events-none select-none z-0"
           style={{
             width: '100%',
@@ -86,7 +85,7 @@ export default function CustomImageTemplate({
           }}
         />
       ) : (
-        <div className="absolute inset-0 border-2 border-dashed border-slate-200 flex items-center justify-center text-slate-300 pointer-events-none text-xs">
+        <div className="absolute inset-0 border-2 border-dashed border-slate-200 flex items-center justify-center text-slate-300 pointer-events-none text-xs print:hidden">
           [Custom Background Image Area]
         </div>
       )}

@@ -2,6 +2,13 @@
  * Default sample dummy data for visual calibrator and test prints
  */
 export const SAMPLE_PRESCRIPTION_DATA = {
+  doctor: {
+    id: 1,
+    name: 'د. أحمد علي (Dr. Ahmed Ali)',
+    title: 'استشاري أمراض القلب والأوعية الدموية',
+    degrees: 'دكتوراه أمراض القلب • زميل كلية الأطباء الملكية',
+    phone: '01012345678',
+  },
   patient: {
     id: 101,
     name: 'أحمد محمود إبراهيم',
@@ -20,12 +27,14 @@ export const SAMPLE_PRESCRIPTION_DATA = {
     blood_pressure: '125/80',
     heartRate: '74',
     heart_rate: '74',
+    pulse: '74',
     temperature: '37.1',
     weight: '78',
     height: '175',
     spo2: '99',
     randomBloodSugar: '110',
     blood_sugar: '110',
+    blood_glucose: '110',
   },
   diagnoses: ['ارتفاع ضغط الدم الأولي (Primary HTN)', 'عسر هضم وظيفي (Functional Dyspepsia)'],
   medications: [

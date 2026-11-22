@@ -12,27 +12,8 @@ import {
   Droplet,
 } from 'lucide-react';
 import { Card, CardHeader, CardTitle, CardContent } from '../../../components/ui/Card';
+import EyeRefractionForm from './EyeRefractionForm';
 
-/**
- * ClinicalFindingsCard — vital signs inputs with auto-formatting, chief complaint,
- * examination findings, and autocomplete multi-tag diagnosis selector.
- *
- * @param {Object}   props
- * @param {Object}   props.vitals                   – { bloodPressure, heartRate, temperature, weight, height, spo2, randomBloodSugar }
- * @param {Function} props.onUpdateVital            – (field, value) => void
- * @param {Object}   props.clinicalNotes            – { chiefComplaint, examinationFindings }
- * @param {Function} props.onUpdateNote             – (field, value) => void
- * @param {string[]} props.finalDiagnoses           – Selected diagnosis tags
- * @param {string}   props.diagnosisInput           – Current search input value
- * @param {Function} props.onDiagnosisInputChange   – (value) => void
- * @param {boolean}  props.showDiagnosisDropdown    – Whether dropdown is visible
- * @param {Function} props.onShowDropdown           – () => void
- * @param {Object}   props.diagnosisContainerRef    – Ref for click-outside detection
- * @param {string[]} props.filteredDiagnoses        – Filtered autocomplete results
- * @param {Function} props.onAddDiagnosis           – (value) => void
- * @param {Function} props.onRemoveDiagnosis        – (tag) => void
- * @param {Function} props.onDiagnosisKeyDown       – Keyboard handler
- */
 export default function ClinicalFindingsCard({
   vitals = {},
   onUpdateVital,
@@ -48,10 +29,10 @@ export default function ClinicalFindingsCard({
   onAddDiagnosis,
   onRemoveDiagnosis,
   onDiagnosisKeyDown,
+  vitalsConfig = null,
 }) {
-  /**
-   * Automatic slash insertion for Blood Pressure input e.g. "120" -> "120/"
-   */
+  const isEnabled = (key) => !vitalsConfig?.enabled_keys || vitalsConfig.enabled_keys.includes(key);
+
   const handleBloodPressureChange = (e) => {
     const rawVal = e.target.value;
     const prevVal = vitals.bloodPressure || '';
@@ -92,116 +73,147 @@ export default function ClinicalFindingsCard({
           </h4>
 
           <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3">
-            {/* Blood Pressure */}
-            <div>
-              <label className="block text-[11px] font-semibold text-slate-600 mb-1 flex items-center gap-1">
-                <Activity className="h-3 w-3 text-red-500" />
-                Blood Pressure (BP)
-              </label>
-              <input
-                type="text"
-                placeholder="120/80"
-                value={vitals.bloodPressure || ''}
-                onChange={handleBloodPressureChange}
-                className="w-full px-3 py-1.5 text-xs bg-white border border-slate-200 rounded-lg focus:ring-2 focus:ring-clinic-500 font-semibold"
-              />
-            </div>
+            {isEnabled('blood_pressure') && (
+              <div>
+                <label className="block text-[11px] font-semibold text-slate-600 mb-1 flex items-center gap-1">
+                  <Activity className="h-3 w-3 text-red-500" />
+                  Blood Pressure (BP)
+                </label>
+                <input
+                  type="text"
+                  placeholder="120/80"
+                  value={vitals.bloodPressure || ''}
+                  onChange={handleBloodPressureChange}
+                  className="w-full px-3 py-1.5 text-xs bg-white border border-slate-200 rounded-lg focus:ring-2 focus:ring-clinic-500 font-semibold"
+                />
+              </div>
+            )}
 
-            {/* Heart Rate */}
-            <div>
-              <label className="block text-[11px] font-semibold text-slate-600 mb-1 flex items-center gap-1">
-                <Heart className="h-3 w-3 text-rose-500" />
-                Heart Rate (Pulse)
-              </label>
-              <input
-                type="text"
-                placeholder="75 bpm"
-                value={vitals.heartRate || ''}
-                onChange={(e) => onUpdateVital('heartRate', e.target.value)}
-                className="w-full px-3 py-1.5 text-xs bg-white border border-slate-200 rounded-lg focus:ring-2 focus:ring-clinic-500 font-semibold"
-              />
-            </div>
+            {isEnabled('heart_rate') && (
+              <div>
+                <label className="block text-[11px] font-semibold text-slate-600 mb-1 flex items-center gap-1">
+                  <Heart className="h-3 w-3 text-rose-500" />
+                  Heart Rate (Pulse)
+                </label>
+                <input
+                  type="text"
+                  placeholder="75 bpm"
+                  value={vitals.heartRate || ''}
+                  onChange={(e) => onUpdateVital('heartRate', e.target.value)}
+                  className="w-full px-3 py-1.5 text-xs bg-white border border-slate-200 rounded-lg focus:ring-2 focus:ring-clinic-500 font-semibold"
+                />
+              </div>
+            )}
 
-            {/* Temperature */}
-            <div>
-              <label className="block text-[11px] font-semibold text-slate-600 mb-1 flex items-center gap-1">
-                <Thermometer className="h-3 w-3 text-amber-500" />
-                Temperature (Temp)
-              </label>
-              <input
-                type="text"
-                placeholder="37.0 °C"
-                value={vitals.temperature || ''}
-                onChange={(e) => onUpdateVital('temperature', e.target.value)}
-                className="w-full px-3 py-1.5 text-xs bg-white border border-slate-200 rounded-lg focus:ring-2 focus:ring-clinic-500 font-semibold"
-              />
-            </div>
+            {isEnabled('temperature') && (
+              <div>
+                <label className="block text-[11px] font-semibold text-slate-600 mb-1 flex items-center gap-1">
+                  <Thermometer className="h-3 w-3 text-amber-500" />
+                  Temperature (Temp)
+                </label>
+                <input
+                  type="text"
+                  placeholder="37.0 °C"
+                  value={vitals.temperature || ''}
+                  onChange={(e) => onUpdateVital('temperature', e.target.value)}
+                  className="w-full px-3 py-1.5 text-xs bg-white border border-slate-200 rounded-lg focus:ring-2 focus:ring-clinic-500 font-semibold"
+                />
+              </div>
+            )}
 
-            {/* Weight */}
-            <div>
-              <label className="block text-[11px] font-semibold text-slate-600 mb-1 flex items-center gap-1">
-                <Weight className="h-3 w-3 text-indigo-500" />
-                Weight
-              </label>
-              <input
-                type="text"
-                placeholder="70 kg"
-                value={vitals.weight || ''}
-                onChange={(e) => onUpdateVital('weight', e.target.value)}
-                className="w-full px-3 py-1.5 text-xs bg-white border border-slate-200 rounded-lg focus:ring-2 focus:ring-clinic-500 font-semibold"
-              />
-            </div>
+            {isEnabled('weight') && (
+              <div>
+                <label className="block text-[11px] font-semibold text-slate-600 mb-1 flex items-center gap-1">
+                  <Weight className="h-3 w-3 text-indigo-500" />
+                  Weight
+                </label>
+                <input
+                  type="text"
+                  placeholder="70 kg"
+                  value={vitals.weight || ''}
+                  onChange={(e) => onUpdateVital('weight', e.target.value)}
+                  className="w-full px-3 py-1.5 text-xs bg-white border border-slate-200 rounded-lg focus:ring-2 focus:ring-clinic-500 font-semibold"
+                />
+              </div>
+            )}
 
-            {/* Height */}
-            <div>
-              <label className="block text-[11px] font-semibold text-slate-600 mb-1 flex items-center gap-1">
-                <Ruler className="h-3 w-3 text-blue-500" />
-                Height
-              </label>
-              <input
-                type="text"
-                placeholder="175 cm"
-                value={vitals.height || ''}
-                onChange={(e) => onUpdateVital('height', e.target.value)}
-                className="w-full px-3 py-1.5 text-xs bg-white border border-slate-200 rounded-lg focus:ring-2 focus:ring-clinic-500 font-semibold"
-              />
-            </div>
+            {isEnabled('height') && (
+              <div>
+                <label className="block text-[11px] font-semibold text-slate-600 mb-1 flex items-center gap-1">
+                  <Ruler className="h-3 w-3 text-blue-500" />
+                  Height
+                </label>
+                <input
+                  type="text"
+                  placeholder="175 cm"
+                  value={vitals.height || ''}
+                  onChange={(e) => onUpdateVital('height', e.target.value)}
+                  className="w-full px-3 py-1.5 text-xs bg-white border border-slate-200 rounded-lg focus:ring-2 focus:ring-clinic-500 font-semibold"
+                />
+              </div>
+            )}
 
-            {/* SpO2 */}
-            <div>
-              <label className="block text-[11px] font-semibold text-slate-600 mb-1 flex items-center gap-1">
-                <Wind className="h-3 w-3 text-cyan-500" />
-                Blood Oxygen (SpO2)
-              </label>
-              <input
-                type="text"
-                placeholder="98 %"
-                value={vitals.spo2 || ''}
-                onChange={(e) => onUpdateVital('spo2', e.target.value)}
-                className="w-full px-3 py-1.5 text-xs bg-white border border-slate-200 rounded-lg focus:ring-2 focus:ring-clinic-500 font-semibold"
-              />
-            </div>
+            {isEnabled('oxygen_saturation') && (
+              <div>
+                <label className="block text-[11px] font-semibold text-slate-600 mb-1 flex items-center gap-1">
+                  <Wind className="h-3 w-3 text-cyan-500" />
+                  Blood Oxygen (SpO2)
+                </label>
+                <input
+                  type="text"
+                  placeholder="98 %"
+                  value={vitals.spo2 || ''}
+                  onChange={(e) => onUpdateVital('spo2', e.target.value)}
+                  className="w-full px-3 py-1.5 text-xs bg-white border border-slate-200 rounded-lg focus:ring-2 focus:ring-clinic-500 font-semibold"
+                />
+              </div>
+            )}
 
-            {/* Random Blood Sugar */}
-            <div className="col-span-2 sm:col-span-1">
-              <label className="block text-[11px] font-semibold text-slate-600 mb-1 flex items-center gap-1">
-                <Droplet className="h-3 w-3 text-emerald-500" />
-                Blood Sugar (RBS)
-              </label>
-              <input
-                type="text"
-                placeholder="110 mg/dL"
-                value={vitals.randomBloodSugar || ''}
-                onChange={(e) => onUpdateVital('randomBloodSugar', e.target.value)}
-                className="w-full px-3 py-1.5 text-xs bg-white border border-slate-200 rounded-lg focus:ring-2 focus:ring-clinic-500 font-semibold"
-              />
-            </div>
+            {isEnabled('blood_glucose') && (
+              <div>
+                <label className="block text-[11px] font-semibold text-slate-600 mb-1 flex items-center gap-1">
+                  <Droplet className="h-3 w-3 text-emerald-500" />
+                  Blood Sugar (RBS)
+                </label>
+                <input
+                  type="text"
+                  placeholder="110 mg/dL"
+                  value={vitals.randomBloodSugar || ''}
+                  onChange={(e) => onUpdateVital('randomBloodSugar', e.target.value)}
+                  className="w-full px-3 py-1.5 text-xs bg-white border border-slate-200 rounded-lg focus:ring-2 focus:ring-clinic-500 font-semibold"
+                />
+              </div>
+            )}
+
+            {/* Custom Vitals Dynamically */}
+            {vitalsConfig?.custom_vitals?.map((cv) => (
+              <div key={cv.key}>
+                <label className="block text-[11px] font-semibold text-slate-600 mb-1 flex items-center gap-1">
+                  <Activity className="h-3 w-3 text-amber-500" />
+                  {cv.label} {cv.unit ? `(${cv.unit})` : ''}
+                </label>
+                <input
+                  type="text"
+                  placeholder={cv.placeholder || '--'}
+                  value={vitals[cv.key] || ''}
+                  onChange={(e) => onUpdateVital(cv.key, e.target.value)}
+                  className="w-full px-3 py-1.5 text-xs bg-white border border-slate-200 rounded-lg focus:ring-2 focus:ring-clinic-500 font-semibold"
+                />
+              </div>
+            ))}
           </div>
         </div>
 
+        {/* Refraction Card (Ophthalmology) */}
+        {vitalsConfig?.enable_refraction && (
+          <EyeRefractionForm
+            refractionData={vitals.refraction || vitals.visionData || {}}
+            onChangeRefraction={(data) => onUpdateVital('refraction', data)}
+          />
+        )}
+
         {/* Text fields grid */}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
-          {/* Chief Complaint */}
           <div>
             <label className="block text-xs font-semibold text-slate-700 uppercase tracking-wide mb-1.5">
               Chief Complaint <span className="text-red-500">*</span>
@@ -215,7 +227,6 @@ export default function ClinicalFindingsCard({
             />
           </div>
 
-          {/* Physical Examination */}
           <div>
             <label className="block text-xs font-semibold text-slate-700 uppercase tracking-wide mb-1.5">
               Physical Examination
@@ -223,9 +234,7 @@ export default function ClinicalFindingsCard({
             <textarea
               rows={3}
               value={clinicalNotes.examinationFindings}
-              onChange={(e) =>
-                onUpdateNote('examinationFindings', e.target.value)
-              }
+              onChange={(e) => onUpdateNote('examinationFindings', e.target.value)}
               placeholder="e.g. Erythematous pharynx, enlarged tonsils..."
               className="w-full px-3.5 py-2.5 text-xs bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-clinic-500"
             />
@@ -238,72 +247,52 @@ export default function ClinicalFindingsCard({
             Final Diagnosis <span className="text-red-500">*</span>
           </label>
 
-          <div
-            className="min-h-[46px] p-2 bg-slate-50 border border-slate-200 rounded-xl focus-within:ring-2 focus-within:ring-clinic-500 flex flex-wrap items-center gap-2 cursor-text"
-            onClick={onShowDropdown}
-          >
-            {finalDiagnoses.map((diag, index) => (
+          <div className="flex flex-wrap items-center gap-1.5 p-2 bg-slate-50 border border-slate-200 rounded-xl focus-within:ring-2 focus-within:ring-clinic-500 focus-within:bg-white min-h-[42px]">
+            {finalDiagnoses.map((tag) => (
               <span
-                key={index}
-                className="inline-flex items-center gap-1.5 px-3 py-1 bg-clinic-100 text-clinic-900 border border-clinic-200 rounded-lg text-xs font-bold"
+                key={tag}
+                className="inline-flex items-center gap-1 px-2.5 py-1 bg-clinic-600 text-white rounded-lg text-xs font-semibold shadow-xs"
               >
-                <Check className="h-3.5 w-3.5" />
-                <span>{diag}</span>
+                <span>{tag}</span>
                 <button
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    onRemoveDiagnosis(diag);
-                  }}
+                  type="button"
+                  onClick={() => onRemoveDiagnosis(tag)}
+                  className="hover:bg-clinic-700 p-0.5 rounded-full transition-colors"
                 >
-                  <X className="h-3.5 w-3.5" />
+                  <X className="h-3 w-3" />
                 </button>
               </span>
             ))}
+
             <input
               type="text"
               value={diagnosisInput}
-              onChange={(e) => {
-                onDiagnosisInputChange(e.target.value);
-                onShowDropdown();
-              }}
+              onChange={(e) => onDiagnosisInputChange(e.target.value)}
+              onFocus={onShowDropdown}
               onKeyDown={onDiagnosisKeyDown}
-              placeholder={
-                finalDiagnoses.length === 0
-                  ? 'Search diagnosis or type a new one...'
-                  : 'Add another diagnosis...'
-              }
-              className="flex-1 min-w-[200px] border-none bg-transparent text-xs font-semibold focus:outline-none p-1"
+              placeholder={finalDiagnoses.length === 0 ? 'Type diagnosis...' : 'Add another...'}
+              className="flex-1 min-w-[140px] bg-transparent border-0 text-xs focus:outline-hidden p-1 font-medium text-slate-800"
             />
           </div>
 
-          {/* Dropdown */}
-          {showDiagnosisDropdown &&
-            (diagnosisInput.trim().length > 0 ||
-              filteredDiagnoses.length > 0) && (
-              <div className="absolute top-full left-0 right-0 z-50 w-full mt-1 bg-white border border-slate-200 rounded-xl shadow-2xl max-h-56 overflow-y-auto py-1">
-                {filteredDiagnoses.length === 0 ? (
+          {showDiagnosisDropdown && filteredDiagnoses.length > 0 && (
+            <div className="absolute z-20 left-0 right-0 mt-1 bg-white border border-slate-200 rounded-xl shadow-xl max-h-48 overflow-y-auto">
+              {filteredDiagnoses.map((diag) => {
+                const isSelected = finalDiagnoses.includes(diag);
+                return (
                   <button
+                    key={diag}
                     type="button"
-                    onClick={() => onAddDiagnosis(diagnosisInput)}
-                    className="w-full text-left px-4 py-2.5 hover:bg-clinic-50 text-xs font-semibold text-clinic-700"
+                    onClick={() => onAddDiagnosis(diag)}
+                    className="w-full text-left px-3.5 py-2 text-xs hover:bg-slate-50 flex items-center justify-between border-b border-slate-100 last:border-0"
                   >
-                    Add custom diagnosis: &quot;{diagnosisInput}&quot;
+                    <span className="font-semibold text-slate-800">{diag}</span>
+                    {isSelected && <Check className="h-3.5 w-3.5 text-clinic-600" />}
                   </button>
-                ) : (
-                  filteredDiagnoses.map((item, idx) => (
-                    <button
-                      key={idx}
-                      type="button"
-                      onClick={() => onAddDiagnosis(item)}
-                      className="w-full text-left px-4 py-2.5 hover:bg-clinic-50 text-xs font-medium text-slate-800 flex justify-between"
-                    >
-                      {item}{' '}
-                      <span className="font-bold text-clinic-600">+ Add</span>
-                    </button>
-                  ))
-                )}
-              </div>
-            )}
+                );
+              })}
+            </div>
+          )}
         </div>
       </CardContent>
     </Card>

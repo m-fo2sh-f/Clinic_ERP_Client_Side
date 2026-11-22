@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
+import { useOutletContext } from 'react-router-dom';
 import { useReactToPrint } from 'react-to-print';
-import { Save, Printer, Loader2, CheckCircle2, AlertCircle } from 'lucide-react';
+import { Save, Printer, Loader2, CheckCircle2, AlertCircle, LayoutTemplate, Move } from 'lucide-react';
 import { useBranchContext } from '../../../context/BranchContext';
 import Button from '../../../components/ui/Button';
 import usePrescriptionTemplate from '../hooks/usePrescriptionTemplate';
@@ -9,13 +10,20 @@ import BuiltinSpecialtyPicker from '../components/prescription/BuiltinSpecialtyP
 import CustomTemplateUploader from '../components/prescription/CustomTemplateUploader';
 import VisualMarginCalibrator from '../components/prescription/VisualMarginCalibrator';
 import ClinicalTogglesCard from '../components/prescription/ClinicalTogglesCard';
+import { FreeformPrescriptionStudio } from '../components/prescription/studio';
 import PrescriptionPrintWrapper from '../../clinical/components/PrescriptionPrintWrapper';
 import { SAMPLE_PRESCRIPTION_DATA } from '../../clinical/templates/TemplateHelpers';
-import { DEFAULT_PRESCRIPTION_SETTINGS, getPrintPageStyle } from '../constants/prescriptionConstants';
+import {
+  DEFAULT_PRESCRIPTION_SETTINGS,
+  DEFAULT_FREEFORM_LAYOUT,
+  LAYOUT_MODES,
+  getPrintPageStyle,
+} from '../constants/prescriptionConstants';
 
 export default function PrescriptionSettingsPage() {
   const { activeBranch } = useBranchContext();
-  const branchId = activeBranch?.id;
+  const outletCtx = useOutletContext() || {};
+  const selectedDoctorId = outletCtx.selectedDoctorId || null;
 
   const {
     settings,
@@ -28,19 +36,24 @@ export default function PrescriptionSettingsPage() {
     uploadImage,
     deleteImage,
     validateImageFile,
-  } = usePrescriptionTemplate(branchId);
+  } = usePrescriptionTemplate(activeBranch?.id, selectedDoctorId);
 
   const [draftSettings, setDraftSettings] = useState(settings || DEFAULT_PRESCRIPTION_SETTINGS);
 
   useEffect(() => {
     if (settings) {
-      setDraftSettings(settings);
+      setDraftSettings({
+        ...DEFAULT_PRESCRIPTION_SETTINGS,
+        ...settings,
+        freeform_layout: settings.freeform_layout || DEFAULT_FREEFORM_LAYOUT,
+      });
     }
   }, [settings]);
 
   const printComponentRef = useRef(null);
   const current = draftSettings || DEFAULT_PRESCRIPTION_SETTINGS;
-  const paperSize = current.paper_size || 'A5';
+  const paperSize = current.paper_size || 'A4';
+  const layoutMode = current.layout_mode || LAYOUT_MODES.STANDARD_FLOW;
 
   const handleTestPrint = useReactToPrint({
     contentRef: printComponentRef,
@@ -49,6 +62,56 @@ export default function PrescriptionSettingsPage() {
   });
 
   const handleFieldChange = (key, val) => setDraftSettings((prev) => ({ ...prev, [key]: val }));
+
+  const handleUploadImage = async (file, type = 'image') => {
+    try {
+      const updated = await uploadImage(file, type);
+      if (updated) {
+        setDraftSettings((prev) => ({
+          ...prev,
+          ...updated,
+          ...(type === 'image'
+            ? {
+                image_url: updated.image_url,
+                custom_image_url: updated.custom_image_url || updated.image_url,
+                image_path: updated.image_path,
+                mode: 'custom_image',
+              }
+            : {
+                guide_image_url: updated.guide_image_url,
+                guide_image_path: updated.guide_image_path,
+              }),
+        }));
+      }
+    } catch {
+      // Feedback toast handled by mutation hook
+    }
+  };
+
+  const handleDeleteImage = async (type = 'image') => {
+    try {
+      const updated = await deleteImage(type);
+      if (updated) {
+        setDraftSettings((prev) => ({
+          ...prev,
+          ...updated,
+          ...(type === 'image'
+            ? {
+                image_url: null,
+                custom_image_url: null,
+                image_path: null,
+                mode: 'builtin',
+              }
+            : {
+                guide_image_url: null,
+                guide_image_path: null,
+              }),
+        }));
+      }
+    } catch {
+      // Feedback toast handled by mutation hook
+    }
+  };
 
   const handleSave = async (e) => {
     e?.preventDefault();
@@ -71,13 +134,13 @@ export default function PrescriptionSettingsPage() {
   const isBusy = isSaving || isUploading || isDeleting;
 
   return (
-    <div className="space-y-6 animate-in fade-in">
+    <div className="space-y-6 animate-in fade-in" dir="rtl">
       {/* Top Action Bar */}
       <div className="bg-white px-6 py-4 rounded-2xl border border-slate-200/80 shadow-xs flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
         <div>
           <h2 className="text-sm font-bold text-slate-900 m-0">تخصيص محرك وقوالب الروشتة (Prescription Engine)</h2>
           <p className="text-xs text-slate-500 mt-0.5 m-0">
-            حدد النمط والهوامش واضغط على "حفظ التغييرات" لتطبيقها فوراً على كل كشوفات الفرع.
+            اختر بين الهوامش الانسيابية أو استوديو السحب والإفلات التفاعلي مع حفظ فوري ومطابقة تامة للطباعة.
           </p>
         </div>
 
@@ -122,62 +185,107 @@ export default function PrescriptionSettingsPage() {
         </div>
       )}
 
-      {/* 1. Mode Selector */}
-      <TemplateModeSelector
-        selectedMode={current.mode || 'builtin'}
-        onSelectMode={(mode) => handleFieldChange('mode', mode)}
-        disabled={isBusy}
-      />
-
-      {/* 2. Builtin Specialty Templates (If Builtin Mode) */}
-      {(current.mode || 'builtin') === 'builtin' && (
-        <BuiltinSpecialtyPicker
-          selectedTemplateId={current.template_id || 'egyptian_clinic'}
-          onSelectTemplate={(tid) => handleFieldChange('template_id', tid)}
-          selectedColor={current.primary_color || '#991b1b'}
-          onSelectColor={(col) => handleFieldChange('primary_color', col)}
+      {/* Layout Engine Mode Toggle */}
+      <div className="bg-white p-3 rounded-2xl border border-slate-200/80 shadow-xs flex items-center gap-2">
+        <button
+          type="button"
           disabled={isBusy}
-        />
-      )}
+          onClick={() => handleFieldChange('layout_mode', LAYOUT_MODES.STANDARD_FLOW)}
+          className={`flex-1 py-2.5 px-4 rounded-xl text-xs font-bold flex items-center justify-center gap-2 transition-all cursor-pointer ${
+            layoutMode === LAYOUT_MODES.STANDARD_FLOW
+              ? 'bg-clinic-600 text-white shadow-xs'
+              : 'text-slate-600 hover:bg-slate-100'
+          }`}
+        >
+          <LayoutTemplate className="h-4 w-4" />
+          <span>النمط الانسيابي الكلاسيكي (Standard Flow &amp; Margins)</span>
+        </button>
 
-      {/* 3. Custom Image Uploader (If Custom Image Mode) */}
-      {current.mode === 'custom_image' && (
-        <CustomTemplateUploader
-          imageUrl={current.image_url || current.custom_image_url}
-          onUpload={uploadImage}
-          onDelete={deleteImage}
-          validateFile={validateImageFile}
+        <button
+          type="button"
+          disabled={isBusy}
+          onClick={() => handleFieldChange('layout_mode', LAYOUT_MODES.FREEFORM_CANVAS)}
+          className={`flex-1 py-2.5 px-4 rounded-xl text-xs font-bold flex items-center justify-center gap-2 transition-all cursor-pointer ${
+            layoutMode === LAYOUT_MODES.FREEFORM_CANVAS
+              ? 'bg-clinic-600 text-white shadow-xs'
+              : 'text-slate-600 hover:bg-slate-100'
+          }`}
+        >
+          <Move className="h-4 w-4" />
+          <span>استوديو السحب والإفلات التفاعلي (Freeform Canvas Studio)</span>
+        </button>
+      </div>
+
+      {/* Conditional View: Studio vs Standard Flow */}
+      {layoutMode === LAYOUT_MODES.FREEFORM_CANVAS ? (
+        <FreeformPrescriptionStudio
+          layout={current.freeform_layout || DEFAULT_FREEFORM_LAYOUT}
+          onChangeLayout={(newLayout) => handleFieldChange('freeform_layout', newLayout)}
+          paperSize={paperSize}
+          onPaperSizeChange={(ps) => handleFieldChange('paper_size', ps)}
+          guideImageUrl={current.guide_image_url}
+          onUploadGuideImage={(file) => handleUploadImage(file, 'guide_image')}
+          onDeleteGuideImage={() => handleDeleteImage('guide_image')}
+          customImageUrl={current.image_url || current.custom_image_url}
           isUploading={isUploading}
           isDeleting={isDeleting}
           disabled={isBusy}
         />
+      ) : (
+        <div className="space-y-6">
+          <TemplateModeSelector
+            selectedMode={current.mode || 'builtin'}
+            onSelectMode={(mode) => handleFieldChange('mode', mode)}
+            disabled={isBusy}
+          />
+
+          {(current.mode || 'builtin') === 'builtin' && (
+            <BuiltinSpecialtyPicker
+              selectedTemplateId={current.template_id || 'egyptian_clinic'}
+              onSelectTemplate={(tid) => handleFieldChange('template_id', tid)}
+              selectedColor={current.primary_color || '#991b1b'}
+              onSelectColor={(col) => handleFieldChange('primary_color', col)}
+              disabled={isBusy}
+            />
+          )}
+
+          {current.mode === 'custom_image' && (
+            <CustomTemplateUploader
+              imageUrl={current.image_url || current.custom_image_url}
+              onUpload={(file) => handleUploadImage(file, 'image')}
+              onDelete={() => handleDeleteImage('image')}
+              validateFile={validateImageFile}
+              isUploading={isUploading}
+              isDeleting={isDeleting}
+              disabled={isBusy}
+            />
+          )}
+
+          <VisualMarginCalibrator
+            settings={current}
+            margins={current.margins}
+            paperSize={paperSize}
+            onMarginChange={(m) => handleFieldChange('margins', m)}
+            onPaperSizeChange={(ps) => handleFieldChange('paper_size', ps)}
+            disabled={isBusy}
+          />
+
+          <ClinicalTogglesCard
+            settings={current}
+            onToggleChange={handleFieldChange}
+            disabled={isBusy}
+          />
+        </div>
       )}
 
-      {/* 4. Visual Margin Calibrator */}
-      <VisualMarginCalibrator
-        settings={current}
-        margins={current.margins}
-        paperSize={current.paper_size || 'A5'}
-        onMarginChange={(m) => handleFieldChange('margins', m)}
-        onPaperSizeChange={(ps) => handleFieldChange('paper_size', ps)}
-        disabled={isBusy}
-      />
-
-      {/* 5. Clinical Toggles */}
-      <ClinicalTogglesCard
-        settings={current}
-        onToggleChange={handleFieldChange}
-        disabled={isBusy}
-      />
-
-      {/* Off-screen Preloaded Print Replica for Testing (CRITICAL RULE 5: off-screen in DOM, NOT display:none) */}
+      {/* Off-screen Preloaded Print Replica for Testing */}
       <div
         style={{
           position: 'fixed',
           left: '-99999px',
           top: '-99999px',
-          width: paperSize === 'A3' ? '297mm' : paperSize === 'A4' ? '210mm' : '148mm',
-          height: paperSize === 'A3' ? '420mm' : paperSize === 'A4' ? '297mm' : '210mm',
+          width: paperSize === 'A4' ? '210mm' : '148mm',
+          height: paperSize === 'A4' ? '297mm' : '210mm',
           opacity: 0,
           pointerEvents: 'none',
         }}

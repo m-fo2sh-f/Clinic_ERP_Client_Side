@@ -22,6 +22,7 @@ export default function PrescriptionSheet({
   branchName,
   clinicName,
   branchId,
+  doctorId = null,
   medications = [],
   onAddMedication,
   onUpdateMedication,
@@ -43,7 +44,7 @@ export default function PrescriptionSheet({
   encounter = {},
   onOpenHistory,
 }) {
-  const { settings: templateSettings } = usePrescriptionTemplate(branchId);
+  const { settings: templateSettings } = usePrescriptionTemplate(branchId, doctorId);
   const [fontSizeOverride, setFontSizeOverride] = useState(null);
 
   // Resolve active settings from TanStack Query cache with fallback to DEFAULT_PRESCRIPTION_SETTINGS

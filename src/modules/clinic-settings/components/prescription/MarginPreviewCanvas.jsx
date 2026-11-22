@@ -1,22 +1,6 @@
 import React from 'react';
 import { VectorQrCode } from '../../../clinical/templates/TemplateHelpers';
-
-const DUMMY_MEDICATIONS = [
-  { id: 1, name: '1 - Xoraxone 1gm Vial', dose: 'حقنة عضل كاملة كل 24 ساعة لمدة 5 أيام' },
-  { id: 2, name: '2 - Zithrokan 500mg Caps', dose: 'كبسولة على الريق صباحاً والصيام بعدها لمدة ساعة ونصف' },
-  { id: 3, name: '3 - Panadol Extra Tablets', dose: 'قرص كل 8 ساعات لمدة أسبوع بعد الأكل' },
-  { id: 4, name: '4 - Flamifast 50mg Tab', dose: 'قرص بعد الإفطار والعشاء' },
-];
-
-const DUMMY_VITALS = [
-  { label: 'الضغط:', val: '125/80' },
-  { label: 'النبض:', val: '74 bpm' },
-  { label: 'الحرارة:', val: '37.1 °C' },
-  { label: 'الوزن:', val: '78 kg' },
-  { label: 'الطول:', val: '175 cm' },
-  { label: 'السكر:', val: '110 mg' },
-  { label: 'SpO2:', val: '99%' },
-];
+import { SAMPLE_PRESCRIPTION_DATA } from '../../../clinical/templates/samplePrescriptionData';
 
 /**
  * MarginPreviewCanvas — Authentic live print simulation canvas mirroring the actual
@@ -49,10 +33,24 @@ export default function MarginPreviewCanvas({
     settings?.custom_image_url ||
     settings?.background_image ||
     settings?.custom_bg_image_url ||
-    settings?.direct_storage_url;
+    settings?.direct_storage_url ||
+    (settings?.image_path
+      ? `/api/v1/clinic-settings/prescription-template/image/${settings.image_path.split('/').pop().split('\\').pop()}`
+      : null);
+
   const isCustomMode = settings?.mode === 'custom_image';
   const isBuiltinMode = (settings?.mode || 'builtin') === 'builtin';
   const primaryColor = settings?.primary_color || '#991b1b';
+
+  const vitalsList = [
+    { label: 'الضغط:', val: SAMPLE_PRESCRIPTION_DATA.vitals.bloodPressure },
+    { label: 'النبض:', val: `${SAMPLE_PRESCRIPTION_DATA.vitals.heartRate} bpm` },
+    { label: 'الحرارة:', val: `${SAMPLE_PRESCRIPTION_DATA.vitals.temperature} °C` },
+    { label: 'الوزن:', val: `${SAMPLE_PRESCRIPTION_DATA.vitals.weight} kg` },
+    { label: 'الطول:', val: `${SAMPLE_PRESCRIPTION_DATA.vitals.height} cm` },
+    { label: 'السكر:', val: `${SAMPLE_PRESCRIPTION_DATA.vitals.blood_sugar} mg` },
+    { label: 'SpO2:', val: `${SAMPLE_PRESCRIPTION_DATA.vitals.spo2}%` },
+  ];
 
   return (
     <div className="flex flex-col items-center justify-center p-3.5 sm:p-4 bg-slate-100/80 rounded-2xl border border-slate-200 space-y-2.5">
@@ -63,7 +61,6 @@ export default function MarginPreviewCanvas({
         </span>
       </div>
 
-      {/* Simulated Physical Paper Sheet */}
       <div
         className="bg-white rounded-lg shadow-lg border border-slate-300 relative overflow-hidden transition-all select-none"
         style={{
@@ -90,7 +87,7 @@ export default function MarginPreviewCanvas({
           </div>
         )}
 
-        {/* Layer 2: Authentic Monochromatic Printable Content (bg-transparent, pure black text) */}
+        {/* Layer 2: Authentic Monochromatic Printable Content */}
         <div
           className="absolute z-10 flex flex-col justify-between overflow-hidden bg-transparent select-none text-black"
           dir="rtl"
@@ -104,42 +101,39 @@ export default function MarginPreviewCanvas({
         >
           {/* Top: Patient Bar */}
           <div className="border-b border-black/30 pb-0.5 mb-1 flex items-center justify-between text-[6.5px] text-black font-semibold leading-tight shrink-0">
-            <div><span className="font-bold">المريض: </span><span>أحمد محمود إبراهيم</span></div>
-            <div><span className="font-bold">السن / النوع: </span><span>38 سنة / ذكر</span></div>
-            <div><span className="font-bold">التاريخ: </span><span className="font-mono">2026/11/04</span></div>
-            <div className="font-mono font-bold">RX-2026-9841</div>
+            <div><span className="font-bold">المريض: </span><span>{SAMPLE_PRESCRIPTION_DATA.patient.name}</span></div>
+            <div><span className="font-bold">السن / النوع: </span><span>{SAMPLE_PRESCRIPTION_DATA.patient.age} / ذكر</span></div>
+            <div><span className="font-bold">التاريخ: </span><span className="font-mono">2026/11/05</span></div>
+            <div className="font-mono font-bold">{SAMPLE_PRESCRIPTION_DATA.encounter.serial_no}</div>
           </div>
 
-          {/* 2-Column Body: Right Column (Medications ~72%) + Left Column (Vitals & Diagnoses ~28%) */}
+          {/* 2-Column Body: Right Column (Medications) + Left Column (Vitals & Diagnoses) */}
           <div className="flex-1 flex gap-1.5 items-start overflow-hidden min-h-0 text-black py-0.5">
-            {/* Right Column (~72%): Medications, Instructions, Next Visit */}
             <div className="w-[72%] flex flex-col justify-between h-full space-y-1 overflow-hidden">
               <div className="space-y-1 overflow-hidden">
-                {DUMMY_MEDICATIONS.map((med) => (
+                {SAMPLE_PRESCRIPTION_DATA.medications.map((med, idx) => (
                   <div key={med.id}>
                     <div className="text-[7.5px] font-bold text-black leading-tight text-left" dir="ltr">
-                      {med.name}
+                      {idx + 1} - {med.name}
                     </div>
                     <div className="text-[6.5px] text-black font-medium leading-tight text-right" dir="rtl">
-                      {med.dose}
+                      {med.dosage}
                     </div>
                   </div>
                 ))}
               </div>
 
-              {/* Instructions & Next Visit */}
               <div className="pt-0.5 border-t border-black/15 space-y-0.5 shrink-0">
                 <div className="text-[6.5px] text-black leading-tight">
                   <span className="font-bold">التعليمات الطبية: </span>
-                  <span>حمية قليلة الملح، الإكثار من الماء، وتجنب المسكنات بدون استشارة.</span>
+                  <span>{SAMPLE_PRESCRIPTION_DATA.advice}</span>
                 </div>
                 <div className="text-[6.5px] text-black font-semibold leading-tight">
-                  <span>الاستشارة القادمة: الأربعاء ، 18 نوفمبر 2026</span>
+                  <span>الاستشارة القادمة: {SAMPLE_PRESCRIPTION_DATA.followUpDate}</span>
                 </div>
               </div>
             </div>
 
-            {/* Left Column (~28%): Vitals & Diagnoses with right vertical border */}
             <div className="w-[28%] border-r border-black/25 pr-1 space-y-1 h-full overflow-hidden text-right shrink-0" dir="rtl">
               {settings?.show_vitals !== false && (
                 <div className="space-y-0.5">
@@ -147,7 +141,7 @@ export default function MarginPreviewCanvas({
                     العلامات الحيوية:
                   </div>
                   <div className="space-y-0.2 text-[6px] text-black">
-                    {DUMMY_VITALS.map((v, idx) => (
+                    {vitalsList.map((v, idx) => (
                       <div key={idx} className="flex justify-between">
                         <span>{v.label}</span>
                         <span className="font-mono font-bold" dir="ltr">{v.val}</span>
@@ -161,27 +155,28 @@ export default function MarginPreviewCanvas({
                 <div className="space-y-0.5 border-t border-black/20 pt-0.5">
                   <div className="text-[7px] font-bold text-black">التشخيص:</div>
                   <div className="text-[5.8px] text-black leading-tight space-y-0.5">
-                    <div>• ارتفاع ضغط الدم الأولي (Primary HTN)</div>
-                    <div>• عسر هضم وظيفي (Functional Dyspepsia)</div>
+                    {SAMPLE_PRESCRIPTION_DATA.diagnoses.map((d, idx) => (
+                      <div key={idx}>• {d}</div>
+                    ))}
                   </div>
                 </div>
               )}
             </div>
           </div>
 
-          {/* Bottom: QR Code + Verification (Left) & Ref Code (Right) */}
+          {/* Bottom: QR Code */}
           <div className="pt-0.5 border-t border-black/20 flex items-center justify-between text-[6.5px] text-black shrink-0">
-            <div className="font-mono font-bold text-black text-[6.5px]">Ref: RX-2026-9841</div>
+            <div className="font-mono font-bold text-black text-[6.5px]">Ref: {SAMPLE_PRESCRIPTION_DATA.encounter.serial_no}</div>
             {settings?.show_qr !== false && (
               <div className="flex items-center gap-1 text-[6px] text-black font-mono">
                 <span className="font-bold text-[6px]">رمز التحقق الإلكتروني</span>
-                <VectorQrCode value="RX-2026-9841" size={16} color="#000000" />
+                <VectorQrCode value={SAMPLE_PRESCRIPTION_DATA.encounter.serial_no} size={16} color="#000000" />
               </div>
             )}
           </div>
         </div>
 
-        {/* Layer 3: Visual Margin Guides (when enabled) */}
+        {/* Layer 3: Visual Margin Guides */}
         {showGuides && (
           <>
             <div

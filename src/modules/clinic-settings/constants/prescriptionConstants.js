@@ -1,10 +1,72 @@
 export * from './templateOptions';
 
+export const LAYOUT_MODES = {
+  STANDARD_FLOW: 'standard_flow',
+  FREEFORM_CANVAS: 'freeform_canvas',
+};
+
+/**
+ * Standard items coordinates generator for split vitals.
+ */
+export const generateDefaultVitalItemCoordinates = (key, index = 0, _total = 6) => {
+  const row = Math.floor(index / 2);
+  const col = index % 2;
+  return {
+    x_pct: col === 0 ? 5 : 52,
+    y_pct: Number((22 + row * 4.5).toFixed(1)),
+    width_pct: 42,
+    height_pct: 4,
+    is_visible: true,
+    show_label: true,
+    show_unit: true,
+  };
+};
+
+/**
+ * Default Freeform Layout with identical keys for both A5 and A4.
+ */
+const BASE_FREEFORM_PAGE = {
+  patient_mode: 'unified', // 'unified' | 'split'
+  vitals_mode: 'unified',  // 'unified' | 'split'
+  patient_unified: { x_pct: 5, y_pct: 4, width_pct: 90, height_pct: 6, is_visible: true, show_label: true, font_size: 'base' },
+  patient_name: { x_pct: 5, y_pct: 4, width_pct: 38, height_pct: 5, is_visible: true, show_label: true },
+  patient_age: { x_pct: 45, y_pct: 4, width_pct: 18, height_pct: 5, is_visible: true, show_label: true },
+  patient_date: { x_pct: 65, y_pct: 4, width_pct: 15, height_pct: 5, is_visible: true, show_label: true },
+  patient_rx_code: { x_pct: 82, y_pct: 4, width_pct: 13, height_pct: 5, is_visible: true, show_label: true },
+  patient_phone: { x_pct: 5, y_pct: 9.5, width_pct: 35, height_pct: 4, is_visible: false, show_label: true },
+  vitals_block: { x_pct: 5, y_pct: 11, width_pct: 90, height_pct: 7, is_visible: true, show_label: true, show_unit: true, font_size: 'sm' },
+  vitals_items: {
+    blood_pressure: { x_pct: 5, y_pct: 11, width_pct: 20, height_pct: 4, is_visible: true, show_label: true, show_unit: true },
+    heart_rate: { x_pct: 27, y_pct: 11, width_pct: 18, height_pct: 4, is_visible: true, show_label: true, show_unit: true },
+    temperature: { x_pct: 47, y_pct: 11, width_pct: 18, height_pct: 4, is_visible: true, show_label: true, show_unit: true },
+    blood_glucose: { x_pct: 67, y_pct: 11, width_pct: 18, height_pct: 4, is_visible: true, show_label: true, show_unit: true },
+  },
+  diagnosis_block: { x_pct: 5, y_pct: 19, width_pct: 90, height_pct: 6, is_visible: true, show_label: true, font_size: 'sm' },
+  refraction_block: { x_pct: 5, y_pct: 26, width_pct: 90, height_pct: 12, is_visible: false, show_label: true, font_size: 'sm' },
+  medications_block: { x_pct: 5, y_pct: 26, width_pct: 90, height_pct: 50, is_visible: true, show_label: true, font_size: 'base' },
+  advice_block: { x_pct: 5, y_pct: 78, width_pct: 65, height_pct: 12, is_visible: true, show_label: true, font_size: 'sm' },
+  qr_block: { x_pct: 75, y_pct: 84, width_pct: 20, height_pct: 12, is_visible: true, show_label: false },
+};
+
+export const DEFAULT_FREEFORM_LAYOUT = {
+  A5: { ...BASE_FREEFORM_PAGE },
+  A4: {
+    ...BASE_FREEFORM_PAGE,
+    patient_unified: { ...BASE_FREEFORM_PAGE.patient_unified, y_pct: 3, height_pct: 5 },
+    vitals_block: { ...BASE_FREEFORM_PAGE.vitals_block, y_pct: 9, height_pct: 6 },
+    diagnosis_block: { ...BASE_FREEFORM_PAGE.diagnosis_block, y_pct: 16, height_pct: 5 },
+    medications_block: { ...BASE_FREEFORM_PAGE.medications_block, y_pct: 22, height_pct: 56 },
+    advice_block: { ...BASE_FREEFORM_PAGE.advice_block, y_pct: 80, height_pct: 12 },
+    qr_block: { ...BASE_FREEFORM_PAGE.qr_block, y_pct: 85, height_pct: 10 },
+  },
+};
+
 /**
  * Default prescription settings fallback.
  */
 export const DEFAULT_PRESCRIPTION_SETTINGS = {
   mode: 'builtin', // 'letterhead' | 'builtin' | 'custom_image'
+  layout_mode: LAYOUT_MODES.STANDARD_FLOW, // 'standard_flow' | 'freeform_canvas'
   template_id: 'egyptian_clinic',
   body_layout: 'columns',
   font_size: 'md',
@@ -17,45 +79,16 @@ export const DEFAULT_PRESCRIPTION_SETTINGS = {
   laser_contrast_opt: true,
   auto_print: false,
   primary_color: '#991b1b',
-  clinic_name: 'المركز الطبي لأمراض القلب والباطنة',
-  doctor_name: 'دكتور / وحيد سليمان الحنفي',
-  doctor_title: 'استشاري الأمراض الباطنة والقلب',
-  header_data: {
-    title: 'المركز الطبي لأمراض القلب والباطنة',
-    specialty: 'عيادات الباطنة والقلب التخصصية',
-    degrees: 'زميل كلية الأطباء الملكية بلندن • دكتوراه أمراض القلب',
-    sub_specialties: 'باطنة عامة — أمراض القلب — سكر وضغط — رسم قلب وإيكو',
-    second_doctor: {
-      name: 'دكتور / محمد وحيد سليمان',
-      title: 'ماجستير أمراض القلب والأوعية الدموية',
-      degrees: 'زمالة كهرومغناطيسية القلب ومنظمات ضربات القلب',
-    },
-    phones: ['0402388422', '01026758170'],
-    address: 'طنطا — ميدان المشحمة — شارع الجلاء — برج الأطباء',
-  },
-  footer_data: {
-    services: 'فحص القلب الفوري بجهاز الإيكو — رسم القلب الكهربائي — سونار على البطن والحوض',
-    clinic_phones: '0402388422 — 01026758170',
-    doctor_phones: '01227117011 — 01025591123',
-    address: 'طنطا — ميدان المشحمة — شارع الجلاء — برج الأطباء',
-  },
-  image_path: null,
+  freeform_layout: DEFAULT_FREEFORM_LAYOUT,
+  guide_image_url: null,
   image_url: null,
-  custom_image_url: null,
-  background_image: null,
 };
 
-/**
- * Paper sizes supported by browser printing.
- */
 export const PAPER_SIZES = [
-  { id: 'A5', label: 'ورق A5 (المقاس الطبي القياسي 148×210 مم)', desc: 'المقاس الأكثر شيوعاً في العيادات المصرية' },
+  { id: 'A5', label: 'ورق A5 (المقاس الطبي القياسي 148×210 مم)', desc: 'المقاس الأكثر شيوعاً في العيادات' },
   { id: 'A4', label: 'ورق A4 (المقاس الكامل 210×297 مم)', desc: 'مناسب للتقارير والروشتات الطويلة ومراكز المستشفيات' },
 ];
 
-/**
- * Margin calibration boundary values (in centimeters).
- */
 export const MARGIN_BOUNDS = {
   top: { min: 0.5, max: 12.0, step: 0.1, default: 4.5 },
   bottom: { min: 0.5, max: 10.0, step: 0.1, default: 3.0 },
@@ -63,9 +96,6 @@ export const MARGIN_BOUNDS = {
   right: { min: 0.5, max: 5.0, step: 0.1, default: 1.5 },
 };
 
-/**
- * Image upload restrictions and validation rules.
- */
 export const ALLOWED_IMAGE_CONFIG = {
   mimeTypes: ['image/jpeg', 'image/png', 'image/webp'],
   extensions: ['.jpg', '.jpeg', '.png', '.webp'],
@@ -74,9 +104,6 @@ export const ALLOWED_IMAGE_CONFIG = {
   dimensions: { minWidth: 300, minHeight: 300, maxWidth: 4500, maxHeight: 4500 },
 };
 
-/**
- * Color presets for theme accent.
- */
 export const COLOR_PRESETS = [
   { hex: '#991b1b', name: 'أحمر داكن كلاسيكي' },
   { hex: '#0284c7', name: 'أزرق طبي سماوي' },
@@ -86,9 +113,6 @@ export const COLOR_PRESETS = [
   { hex: '#0f172a', name: 'أسود فحمي أحادي' },
 ];
 
-/**
- * Generates pure CSS page styles for print media query.
- */
 export const getPrintPageStyle = (paperSize = 'A5') => `
   @page { size: ${paperSize} portrait; margin: 0 !important; }
   @media print {

@@ -6,14 +6,10 @@ import DermatologyTemplate from '../templates/DermatologyTemplate';
 import PediatricsTemplate from '../templates/PediatricsTemplate';
 import PreprintedLetterheadTemplate from '../templates/PreprintedLetterheadTemplate';
 import CustomImageTemplate from '../templates/CustomImageTemplate';
+import FreeformPrintRenderer from './FreeformPrintRenderer';
 
 /**
  * PrescriptionPrintWrapper — Unified printing & preview container for all prescription templates.
- *
- * Implements:
- * - CRITICAL RULE 6 (Bi-Directional RTL/LTR isolation)
- * - CRITICAL RULE 5 (Preloading Assets: loading="eager", decoding="sync", rendered off-screen in DOM without display:none)
- * - CRITICAL RULE 3 (Laser Printer Filter: contrast 1.06, brightness 1.03)
  */
 const PrescriptionPrintWrapper = forwardRef(function PrescriptionPrintWrapper(
   {
@@ -35,6 +31,7 @@ const PrescriptionPrintWrapper = forwardRef(function PrescriptionPrintWrapper(
   ref
 ) {
   const mode = settings?.mode || 'builtin';
+  const layoutMode = settings?.layout_mode || 'standard_flow';
   const templateId = settings?.template_id || 'egyptian_clinic';
   const paperSize = settings?.paper_size || 'A5';
 
@@ -45,10 +42,12 @@ const PrescriptionPrintWrapper = forwardRef(function PrescriptionPrintWrapper(
       ? { width: '210mm', minHeight: '297mm', height: '297mm' }
       : { width: '148mm', minHeight: '210mm', height: '210mm' };
 
-  // Select target template component (EgyptianClinicTemplate is default authentic model)
+  // Select target template component
   let TemplateComponent = EgyptianClinicTemplate;
 
-  if (mode === 'letterhead') {
+  if (layoutMode === 'freeform_canvas') {
+    TemplateComponent = FreeformPrintRenderer;
+  } else if (mode === 'letterhead') {
     TemplateComponent = PreprintedLetterheadTemplate;
   } else if (mode === 'custom_image') {
     TemplateComponent = CustomImageTemplate;
@@ -119,6 +118,7 @@ const PrescriptionPrintWrapper = forwardRef(function PrescriptionPrintWrapper(
         followUpDate={followUpDate}
         visionData={visionData}
         routineData={routineData}
+        isPreview={isPreview}
       />
     </div>
   );

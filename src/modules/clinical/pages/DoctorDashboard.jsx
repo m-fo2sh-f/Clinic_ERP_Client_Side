@@ -18,6 +18,7 @@ import QueueDrawer from '../components/QueueDrawer';
 import ActivePatientCard from '../components/ActivePatientCard';
 import ClinicalFindingsCard from '../components/ClinicalFindingsCard';
 import PrescriptionSheet from '../components/PrescriptionSheet';
+import useVitalsSettings from '../../clinic-settings/hooks/useVitalsSettings';
 import EmptyDoctorState from '../components/EmptyDoctorState';
 import PatientHistoryModal from '../components/PatientHistoryModal';
 import DoctorBillableServices from '../components/DoctorBillableServices';
@@ -38,6 +39,7 @@ export default function DoctorDashboard() {
   const branchId = activeBranch?.id;
   const branchName = activeBranch?.name || 'Main Branch';
   const doctorId = user?.id;
+  const { vitalsConfig } = useVitalsSettings(branchId, doctorId);
 
   // â”€â”€ Session Recovery: Active In-Progress Encounter â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
   const { data: activeEncounterData, isLoading: encounterLoading } = useQuery({
@@ -483,7 +485,9 @@ export default function DoctorDashboard() {
             {/* Section 2: Clinical findings, vitals & diagnosis */}
             <ErrorBoundary title="Ø®Ø·Ø£ ÙÙŠ Ø§Ù„ÙØ­Øµ Ø§Ù„Ø³Ø±ÙŠØ±ÙŠ ÙˆØ§Ù„ØªØ´Ø®ÙŠØµ">
               <ClinicalFindingsCard
+                vitalsConfig={vitalsConfig}
                 vitals={consultation.vitals}
+                
                 onUpdateVital={consultation.updateVital}
                 clinicalNotes={consultation.clinicalNotes}
                 onUpdateNote={consultation.updateClinicalNote}
@@ -522,6 +526,7 @@ export default function DoctorDashboard() {
                 branchName={branchName}
                 clinicName={branchName}
                 branchId={branchId}
+                doctorId={doctorId}
                 vitals={consultation.vitals}
                 diagnoses={consultation.finalDiagnoses}
                 encounter={activeEncounter || activeQueueItem}

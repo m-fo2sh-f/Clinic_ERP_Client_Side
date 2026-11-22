@@ -1,5 +1,6 @@
 export { default as ClinicSettingsLayout } from './layout/ClinicSettingsLayout';
 export { default as PrescriptionSettingsPage } from './pages/PrescriptionSettingsPage';
+export { default as VitalsSettingsPage } from './pages/VitalsSettingsPage';
 export { default as ClinicServicesPage } from './pages/ClinicServicesPage';
 
 export { default as TemplateModeSelector } from './components/prescription/TemplateModeSelector';
@@ -13,8 +14,9 @@ export { default as ServiceCatalogTable } from './components/services/ServiceCat
 export { default as ServiceFormModal } from './components/services/ServiceFormModal';
 
 export * from './constants/prescriptionConstants';
-export * from './constants/settingsNavigation';
+export * from './constants/vitalsConstants';
 export * from './constants/servicesConstants';
 export * from './api/clinicSettingsApi';
 export * from './hooks/usePrescriptionTemplate';
+export * from './hooks/useVitalsSettings';
 export * from './hooks/useClinicServicesManager';
