@@ -8,12 +8,13 @@ import StudioToolbar from './StudioToolbar';
 export default function FreeformPrescriptionStudio({
   layout,
   onChangeLayout,
-  paperSize = 'A5',
+  paperSize = 'A4',
   onPaperSizeChange,
   guideImageUrl = null,
   onUploadGuideImage,
   onDeleteGuideImage,
   customImageUrl = null,
+  vitalsConfig = null,
   isUploading = false,
   isDeleting = false,
   disabled = false,
@@ -28,6 +29,8 @@ export default function FreeformPrescriptionStudio({
     activePageLayout,
     selectedNodeId,
     setSelectedNodeId,
+    snapGrid,
+    setSnapGrid,
     isSnapEnabled,
     setIsSnapEnabled,
     showGuideImage,
@@ -47,11 +50,13 @@ export default function FreeformPrescriptionStudio({
   };
 
   return (
-    <div className="space-y-4" dir="rtl">
+    <div className="space-y-4" dir="ltr">
       {/* 1. Studio Toolbar */}
       <StudioToolbar
         paperSize={activePaperSize}
         onPaperSizeChange={setPaperSize}
+        snapGrid={snapGrid}
+        onSnapGridChange={setSnapGrid}
         isSnapEnabled={isSnapEnabled}
         onToggleSnap={() => setIsSnapEnabled((prev) => !prev)}
         showGuideImage={showGuideImage}
@@ -84,10 +89,12 @@ export default function FreeformPrescriptionStudio({
             selectedNodeId={selectedNodeId}
             onSelectNode={setSelectedNodeId}
             onPointerDown={handlePointerDown}
+            snapGrid={snapGrid}
             isSnapEnabled={isSnapEnabled}
             showGuideImage={showGuideImage}
             guideImageUrl={guideImageUrl}
             customImageUrl={customImageUrl}
+            vitalsConfig={vitalsConfig}
           />
         </div>
 
@@ -98,12 +105,13 @@ export default function FreeformPrescriptionStudio({
           onSelectNode={setSelectedNodeId}
           onUpdateNode={updateNode}
           onUpdatePageSetting={updatePageSetting}
-          isSnapEnabled={isSnapEnabled}
-          onToggleSnap={() => setIsSnapEnabled((prev) => !prev)}
+          snapGrid={snapGrid}
+          onSnapGridChange={setSnapGrid}
           showGuideImage={showGuideImage}
           onToggleGuideImage={() => setShowGuideImage((prev) => !prev)}
           hasGuideImage={Boolean(guideImageUrl)}
           onResetToDefault={resetToDefault}
+          vitalsConfig={vitalsConfig}
         />
       </div>
 
@@ -114,6 +122,7 @@ export default function FreeformPrescriptionStudio({
         pageLayout={activePageLayout}
         paperSize={activePaperSize}
         customImageUrl={customImageUrl}
+        vitalsConfig={vitalsConfig}
       />
     </div>
   );

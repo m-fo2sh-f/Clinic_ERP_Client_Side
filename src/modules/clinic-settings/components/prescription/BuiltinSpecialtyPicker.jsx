@@ -10,12 +10,12 @@ export default function BuiltinSpecialtyPicker({
   disabled = false,
 }) {
   return (
-    <div className="bg-white p-6 rounded-2xl border border-slate-200/80 shadow-xs space-y-5 animate-in fade-in">
+    <div className="bg-white p-6 rounded-2xl border border-slate-200/80 shadow-xs space-y-5 animate-in fade-in text-left" dir="ltr">
       <div className="flex items-center justify-between border-b border-slate-100 pb-3">
         <div>
-          <h3 className="text-sm font-bold text-slate-900 m-0">اختر القالب التخصصي المناسب لعيادتك</h3>
+          <h3 className="text-sm font-bold text-slate-900 m-0">Specialty Clinical Templates</h3>
           <p className="text-xs text-slate-500 mt-0.5 m-0">
-            تخطيطات هندسية طبية جاهزة تحاكي روشتات أكبر الاستشاريين والعيادات المصرية.
+            Pre-engineered medical layouts tailored to specific clinical specialties and consultation workflows.
           </p>
         </div>
       </div>
@@ -32,15 +32,15 @@ export default function BuiltinSpecialtyPicker({
               type="button"
               disabled={disabled}
               onClick={() => onSelectTemplate(tmpl.id)}
-              className={`text-right p-4 rounded-xl border transition-all cursor-pointer flex flex-col justify-between text-xs space-y-3 disabled:opacity-60 disabled:cursor-not-allowed ${
+              className={`text-left p-4 rounded-xl border transition-all cursor-pointer flex flex-col justify-between text-xs space-y-3 disabled:opacity-60 disabled:cursor-not-allowed ${
                 isSelected
-                  ? `${tmpl.accent} ring-2 ring-clinic-600 shadow-xs font-semibold`
+                  ? `${tmpl.accent} ring-2 ring-blue-600 shadow-xs font-semibold`
                   : 'border-slate-200 bg-white hover:border-slate-300 hover:bg-slate-50/60 text-slate-700'
               }`}
             >
               <div className="space-y-2">
                 <div className="flex items-center justify-between">
-                  <div className={`p-2 rounded-lg ${isSelected ? 'bg-white text-clinic-700 shadow-2xs' : 'bg-slate-100 text-slate-600'}`}>
+                  <div className={`p-2 rounded-lg ${isSelected ? 'bg-white text-blue-700 shadow-2xs' : 'bg-slate-100 text-slate-600'}`}>
                     <Icon className="h-4 w-4" />
                   </div>
                   <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-white/80 border border-slate-200/60">
@@ -58,8 +58,8 @@ export default function BuiltinSpecialtyPicker({
       {/* Primary Color Palette */}
       <div className="border-t border-slate-100 pt-4 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
         <div className="flex items-center gap-2 text-xs font-bold text-slate-700">
-          <Palette className="h-4 w-4 text-clinic-600" />
-          <span>اللون المميز للهيدر والخطوط (Primary Color Theme):</span>
+          <Palette className="h-4 w-4 text-blue-600" />
+          <span>Primary Header Color Theme:</span>
         </div>
 
         <div className="flex items-center gap-2 flex-wrap">

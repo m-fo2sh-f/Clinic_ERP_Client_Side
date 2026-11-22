@@ -6,7 +6,7 @@ import { Card, CardHeader, CardTitle, CardContent } from '../../../components/ui
 import PrescriptionPrintWrapper from './PrescriptionPrintWrapper';
 import CompleteExaminationModal from './CompleteExaminationModal';
 import usePrescriptionTemplate from '../../clinic-settings/hooks/usePrescriptionTemplate';
-import { DEFAULT_PRESCRIPTION_SETTINGS } from '../../clinic-settings/constants/prescriptionConstants';
+import { DEFAULT_PRESCRIPTION_SETTINGS, getPrintPageStyle } from '../../clinic-settings/constants/prescriptionConstants';
 import {
   DrugSearchCombobox,
   QuickDosageChips,
@@ -66,37 +66,9 @@ export default function PrescriptionSheet({
   const effectiveDoctorName = doctorName || settings?.doctor_name || 'Dr.';
   const effectiveIsSubmitting = Boolean(isSubmitting || isSaving);
 
-  // Page style for react-to-print (A5 or A4)
-  const paperSize = settings.paper_size || 'A5';
-  const pageStyle = `
-    @page {
-      size: ${paperSize} portrait;
-      margin: 0 !important;
-    }
-    @media print {
-      html, body {
-        margin: 0 !important;
-        padding: 0 !important;
-        width: 100% !important;
-        height: 100% !important;
-        background: #ffffff !important;
-        -webkit-print-color-adjust: exact !important;
-        print-color-adjust: exact !important;
-      }
-      .no-print {
-        display: none !important;
-      }
-      .print-page-root {
-        box-shadow: none !important;
-        border: none !important;
-        width: 100% !important;
-        min-height: 100vh !important;
-        height: 100vh !important;
-        margin: 0 !important;
-        padding: 0 !important;
-      }
-    }
-  `;
+  // Strict physical print style generator
+  const paperSize = settings.paper_size || 'A4';
+  const pageStyle = getPrintPageStyle(paperSize);
 
   const handlePrint = useReactToPrint({
     contentRef: printComponentRef,
@@ -488,6 +460,7 @@ export default function PrescriptionSheet({
         <PrescriptionPrintWrapper
           ref={printComponentRef}
           settings={settings}
+          vitalsConfig={settings?.vitals_config}
           patient={activePatient}
           doctor={{ name: effectiveDoctorName, title: settings?.doctor_title }}
           branch={{ name: effectiveBranchName }}
@@ -539,6 +512,7 @@ export default function PrescriptionSheet({
             <div className="flex-1 overflow-y-auto p-8 bg-slate-300/80 flex justify-center items-start">
               <PrescriptionPrintWrapper
                 settings={settings}
+                vitalsConfig={settings?.vitals_config}
                 patient={activePatient}
                 doctor={{ name: effectiveDoctorName, title: settings?.doctor_title }}
                 branch={{ name: effectiveBranchName }}

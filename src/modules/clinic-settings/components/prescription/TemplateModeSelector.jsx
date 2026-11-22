@@ -3,12 +3,12 @@ import { PRESCRIPTION_MODES } from '../../constants/prescriptionConstants';
 
 export default function TemplateModeSelector({ selectedMode = 'builtin', onSelectMode, disabled = false }) {
   return (
-    <div className="bg-white p-6 rounded-2xl border border-slate-200/80 shadow-xs space-y-4">
+    <div className="bg-white p-6 rounded-2xl border border-slate-200/80 shadow-xs space-y-4 text-left" dir="ltr">
       <div className="flex items-center justify-between border-b border-slate-100 pb-3">
         <div>
-          <h3 className="text-sm font-bold text-slate-900 m-0">نمط وشكل طباعة الروشتة (Prescription Printing Mode)</h3>
+          <h3 className="text-sm font-bold text-slate-900 m-0">Prescription Printing Mode</h3>
           <p className="text-xs text-slate-500 mt-0.5 m-0">
-            حدد كيف يتم إخراج الروشتة عند الضغط على أمر الطباعة في شاشة الكشف الطبي.
+            Select how the prescription document is rendered and formatted for physical paper printing.
           </p>
         </div>
       </div>
@@ -24,7 +24,7 @@ export default function TemplateModeSelector({ selectedMode = 'builtin', onSelec
               type="button"
               disabled={disabled}
               onClick={() => onSelectMode(mode.id)}
-              className={`text-right p-4 rounded-xl border transition-all cursor-pointer flex flex-col justify-between text-xs space-y-3 disabled:opacity-60 disabled:cursor-not-allowed ${
+              className={`text-left p-4 rounded-xl border transition-all cursor-pointer flex flex-col justify-between text-xs space-y-3 disabled:opacity-60 disabled:cursor-not-allowed ${
                 isSelected
                   ? `${mode.accent} ${mode.ring} shadow-xs font-semibold`
                   : 'border-slate-200 bg-white hover:border-slate-300 hover:bg-slate-50/60 text-slate-700'

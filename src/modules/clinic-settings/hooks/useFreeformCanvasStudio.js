@@ -3,14 +3,14 @@ import { DEFAULT_FREEFORM_LAYOUT } from '../constants/prescriptionConstants';
 
 export function useFreeformCanvasStudio(
   controlledLayout,
-  controlledPaperSize = 'A5',
+  controlledPaperSize = 'A4',
   onChangeLayout = null,
   onPaperSizeChange = null
 ) {
-  const [internalPaperSize, setInternalPaperSize] = useState(controlledPaperSize);
+  const [internalPaperSize, setInternalPaperSize] = useState(controlledPaperSize || 'A4');
   const [internalLayout, setInternalLayout] = useState(controlledLayout || DEFAULT_FREEFORM_LAYOUT);
   const [selectedNodeId, setSelectedNodeId] = useState(null);
-  const [isSnapEnabled, setIsSnapEnabled] = useState(true);
+  const [snapGrid, setSnapGrid] = useState('5mm'); // '5mm' | '10mm' | 'off'
   const [showGuideImage, setShowGuideImage] = useState(true);
 
   const canvasRef = useRef(null);
@@ -37,7 +37,7 @@ export function useFreeformCanvasStudio(
     }
   }, [layout, onChangeLayout]);
 
-  const activePageLayout = layout?.[paperSize] || DEFAULT_FREEFORM_LAYOUT[paperSize] || DEFAULT_FREEFORM_LAYOUT.A5;
+  const activePageLayout = layout?.[paperSize] || DEFAULT_FREEFORM_LAYOUT[paperSize] || DEFAULT_FREEFORM_LAYOUT.A4;
 
   const updateNode = useCallback((nodeId, patch) => {
     updateLayout((prev) => {
@@ -78,6 +78,15 @@ export function useFreeformCanvasStudio(
     updateLayout(DEFAULT_FREEFORM_LAYOUT);
   }, [updateLayout]);
 
+  const isSnapEnabled = snapGrid !== 'off';
+  const setIsSnapEnabled = useCallback((updater) => {
+    setSnapGrid((prev) => {
+      const currentBool = prev !== 'off';
+      const nextBool = typeof updater === 'function' ? updater(currentBool) : Boolean(updater);
+      return nextBool ? '5mm' : 'off';
+    });
+  }, []);
+
   const handlePointerDown = useCallback((e, nodeId, action = 'drag') => {
     e.stopPropagation();
     setSelectedNodeId(nodeId);
@@ -109,16 +118,46 @@ export function useFreeformCanvasStudio(
       const deltaXPct = ((ev.clientX - startX) / cRect.width) * 100;
       const deltaYPct = ((ev.clientY - startY) / cRect.height) * 100;
 
+      const paperW = paperSize === 'A5' ? 148 : 210;
+      const paperH = paperSize === 'A5' ? 210 : 297;
+      const snapStepMm = snapGrid === '5mm' ? 5 : (snapGrid === '10mm' ? 10 : null);
+
       if (act === 'drag') {
-        let newX = Math.round((initX + deltaXPct) * 2) / 2;
-        let newY = Math.round((initY + deltaYPct) * 2) / 2;
-        newX = Math.max(0, Math.min(100 - initW, newX));
-        newY = Math.max(0, Math.min(100 - initH, newY));
-        updateNode(targetId, { x_pct: newX, y_pct: newY });
+        let targetX = initX + deltaXPct;
+        let targetY = initY + deltaYPct;
+        if (snapStepMm) {
+          const xMm = (targetX / 100) * paperW;
+          const yMm = (targetY / 100) * paperH;
+          const snappedXMm = Math.round(xMm / snapStepMm) * snapStepMm;
+          const snappedYMm = Math.round(yMm / snapStepMm) * snapStepMm;
+          targetX = (snappedXMm / paperW) * 100;
+          targetY = (snappedYMm / paperH) * 100;
+        } else {
+          targetX = Math.round(targetX * 2) / 2;
+          targetY = Math.round(targetY * 2) / 2;
+        }
+        const maxW = initW || 10;
+        const maxH = initH || 4;
+        targetX = Math.max(0, Math.min(100 - maxW, Number(targetX.toFixed(2))));
+        targetY = Math.max(0, Math.min(100 - maxH, Number(targetY.toFixed(2))));
+        updateNode(targetId, { x_pct: targetX, y_pct: targetY });
       } else if (act === 'resize') {
-        let newW = Math.max(5, Math.min(100 - initX, Math.round((initW + deltaXPct) * 2) / 2));
-        let newH = Math.max(3, Math.min(100 - initY, Math.round((initH + deltaYPct) * 2) / 2));
-        updateNode(targetId, { width_pct: newW, height_pct: newH });
+        let targetW = initW + deltaXPct;
+        let targetH = initH + deltaYPct;
+        if (snapStepMm) {
+          const wMm = (targetW / 100) * paperW;
+          const hMm = (targetH / 100) * paperH;
+          const snappedWMm = Math.round(wMm / snapStepMm) * snapStepMm;
+          const snappedHMm = Math.round(hMm / snapStepMm) * snapStepMm;
+          targetW = (snappedWMm / paperW) * 100;
+          targetH = (snappedHMm / paperH) * 100;
+        } else {
+          targetW = Math.round(targetW * 2) / 2;
+          targetH = Math.round(targetH * 2) / 2;
+        }
+        targetW = Math.max(4, Math.min(100 - initX, Number(targetW.toFixed(2))));
+        targetH = Math.max(2, Math.min(100 - initY, Number(targetH.toFixed(2))));
+        updateNode(targetId, { width_pct: targetW, height_pct: targetH });
       }
     };
 
@@ -130,7 +169,7 @@ export function useFreeformCanvasStudio(
 
     window.addEventListener('pointermove', handlePointerMove);
     window.addEventListener('pointerup', handlePointerUp);
-  }, [layout, paperSize, updateNode]);
+  }, [layout, paperSize, snapGrid, updateNode]);
 
   return {
     canvasRef,
@@ -141,6 +180,8 @@ export function useFreeformCanvasStudio(
     activePageLayout,
     selectedNodeId,
     setSelectedNodeId,
+    snapGrid,
+    setSnapGrid,
     isSnapEnabled,
     setIsSnapEnabled,
     showGuideImage,

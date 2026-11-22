@@ -1,7 +1,19 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { useOutletContext } from 'react-router-dom';
 import { useReactToPrint } from 'react-to-print';
-import { Save, Printer, Loader2, CheckCircle2, AlertCircle, LayoutTemplate, Move } from 'lucide-react';
+import {
+  Save,
+  Printer,
+  Loader2,
+  CheckCircle2,
+  AlertCircle,
+  LayoutTemplate,
+  Move,
+  Columns2,
+  Rows3,
+  AlignHorizontalJustifyStart,
+  AlignVerticalJustifyStart,
+} from 'lucide-react';
 import { useBranchContext } from '../../../context/BranchContext';
 import Button from '../../../components/ui/Button';
 import usePrescriptionTemplate from '../hooks/usePrescriptionTemplate';
@@ -17,6 +29,8 @@ import {
   DEFAULT_PRESCRIPTION_SETTINGS,
   DEFAULT_FREEFORM_LAYOUT,
   LAYOUT_MODES,
+  STANDARD_FLOW_LAYOUTS,
+  VITALS_DIRECTIONS,
   getPrintPageStyle,
 } from '../constants/prescriptionConstants';
 
@@ -125,8 +139,8 @@ export default function PrescriptionSettingsPage() {
   if (isLoading) {
     return (
       <div className="py-24 flex items-center justify-center gap-3 text-slate-500 text-xs">
-        <Loader2 className="h-6 w-6 animate-spin text-clinic-600" />
-        <span>جاري تحميل إعدادات وقوالب الروشتة...</span>
+        <Loader2 className="h-6 w-6 animate-spin text-blue-600" />
+        <span>Loading prescription template and layout engine...</span>
       </div>
     );
   }
@@ -134,13 +148,13 @@ export default function PrescriptionSettingsPage() {
   const isBusy = isSaving || isUploading || isDeleting;
 
   return (
-    <div className="space-y-6 animate-in fade-in" dir="rtl">
+    <div className="space-y-6 animate-in fade-in text-left" dir="ltr">
       {/* Top Action Bar */}
       <div className="bg-white px-6 py-4 rounded-2xl border border-slate-200/80 shadow-xs flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
         <div>
-          <h2 className="text-sm font-bold text-slate-900 m-0">تخصيص محرك وقوالب الروشتة (Prescription Engine)</h2>
+          <h2 className="text-sm font-bold text-slate-900 m-0">Prescription Engine &amp; Layout Studio</h2>
           <p className="text-xs text-slate-500 mt-0.5 m-0">
-            اختر بين الهوامش الانسيابية أو استوديو السحب والإفلات التفاعلي مع حفظ فوري ومطابقة تامة للطباعة.
+            Design standard flow layouts with calibrated margins or drag-and-drop nodes in the Freeform Canvas Studio.
           </p>
         </div>
 
@@ -152,17 +166,17 @@ export default function PrescriptionSettingsPage() {
             className="flex-1 sm:flex-none px-4 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-xl text-xs font-bold flex items-center justify-center gap-1.5 transition-all cursor-pointer disabled:opacity-50"
           >
             <Printer className="h-4 w-4 text-slate-600" />
-            <span>تجربة الطباعة</span>
+            <span>Test Print</span>
           </button>
 
           <Button
             type="button"
             disabled={isBusy}
             onClick={handleSave}
-            className="flex-1 sm:flex-none flex items-center justify-center gap-1.5 text-xs font-bold shadow-xs"
+            className="flex-1 sm:flex-none flex items-center justify-center gap-1.5 text-xs font-bold shadow-xs cursor-pointer"
           >
             {isSaving ? <Loader2 className="h-4 w-4 animate-spin" /> : <Save className="h-4 w-4" />}
-            <span>حفظ التغييرات</span>
+            <span>Save Changes</span>
           </Button>
         </div>
       </div>
@@ -193,12 +207,12 @@ export default function PrescriptionSettingsPage() {
           onClick={() => handleFieldChange('layout_mode', LAYOUT_MODES.STANDARD_FLOW)}
           className={`flex-1 py-2.5 px-4 rounded-xl text-xs font-bold flex items-center justify-center gap-2 transition-all cursor-pointer ${
             layoutMode === LAYOUT_MODES.STANDARD_FLOW
-              ? 'bg-clinic-600 text-white shadow-xs'
+              ? 'bg-blue-600 text-white shadow-xs'
               : 'text-slate-600 hover:bg-slate-100'
           }`}
         >
           <LayoutTemplate className="h-4 w-4" />
-          <span>النمط الانسيابي الكلاسيكي (Standard Flow &amp; Margins)</span>
+          <span>Standard Flow &amp; Calibrated Margins</span>
         </button>
 
         <button
@@ -207,12 +221,12 @@ export default function PrescriptionSettingsPage() {
           onClick={() => handleFieldChange('layout_mode', LAYOUT_MODES.FREEFORM_CANVAS)}
           className={`flex-1 py-2.5 px-4 rounded-xl text-xs font-bold flex items-center justify-center gap-2 transition-all cursor-pointer ${
             layoutMode === LAYOUT_MODES.FREEFORM_CANVAS
-              ? 'bg-clinic-600 text-white shadow-xs'
+              ? 'bg-blue-600 text-white shadow-xs'
               : 'text-slate-600 hover:bg-slate-100'
           }`}
         >
           <Move className="h-4 w-4" />
-          <span>استوديو السحب والإفلات التفاعلي (Freeform Canvas Studio)</span>
+          <span>Freeform Canvas Studio (Interactive Drag &amp; Drop)</span>
         </button>
       </div>
 
@@ -227,6 +241,7 @@ export default function PrescriptionSettingsPage() {
           onUploadGuideImage={(file) => handleUploadImage(file, 'guide_image')}
           onDeleteGuideImage={() => handleDeleteImage('guide_image')}
           customImageUrl={current.image_url || current.custom_image_url}
+          vitalsConfig={current.vitals_config}
           isUploading={isUploading}
           isDeleting={isDeleting}
           disabled={isBusy}
@@ -261,12 +276,113 @@ export default function PrescriptionSettingsPage() {
             />
           )}
 
+          {/* Standard Flow Column & Vitals Arrangement Card */}
+          <div className="bg-white p-6 rounded-2xl border border-slate-200/80 shadow-xs space-y-4">
+            <div className="border-b border-slate-100 pb-3">
+              <h3 className="text-sm font-bold text-slate-900 m-0">Standard Flow Layout Structure</h3>
+              <p className="text-xs text-slate-500 mt-0.5 m-0">
+                Choose the structural distribution of vital signs, eye refraction, and medications on the sheet.
+              </p>
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              {/* Column arrangement selector */}
+              <div>
+                <label className="text-xs font-bold text-slate-700 block mb-2">Prescription Column Format:</label>
+                <div className="grid grid-cols-2 gap-2">
+                  <button
+                    type="button"
+                    disabled={isBusy}
+                    onClick={() => handleFieldChange('standard_flow_layout', STANDARD_FLOW_LAYOUTS.SIDE_BY_SIDE)}
+                    className={`p-3 rounded-xl border text-xs font-bold flex flex-col items-start gap-1 transition-all cursor-pointer ${
+                      (current.standard_flow_layout || STANDARD_FLOW_LAYOUTS.SIDE_BY_SIDE) === STANDARD_FLOW_LAYOUTS.SIDE_BY_SIDE
+                        ? 'border-blue-600 bg-blue-50/70 text-blue-900 shadow-2xs'
+                        : 'border-slate-200 bg-white text-slate-600 hover:bg-slate-50'
+                    }`}
+                  >
+                    <div className="flex items-center gap-1.5">
+                      <Columns2 className="h-4 w-4 text-blue-600" />
+                      <span>Side-by-Side (2 Columns)</span>
+                    </div>
+                    <span className="text-[10px] text-slate-500 font-normal">
+                      Vitals &amp; Refraction on left; Medications on right.
+                    </span>
+                  </button>
+
+                  <button
+                    type="button"
+                    disabled={isBusy}
+                    onClick={() => handleFieldChange('standard_flow_layout', STANDARD_FLOW_LAYOUTS.STACKED)}
+                    className={`p-3 rounded-xl border text-xs font-bold flex flex-col items-start gap-1 transition-all cursor-pointer ${
+                      current.standard_flow_layout === STANDARD_FLOW_LAYOUTS.STACKED
+                        ? 'border-blue-600 bg-blue-50/70 text-blue-900 shadow-2xs'
+                        : 'border-slate-200 bg-white text-slate-600 hover:bg-slate-50'
+                    }`}
+                  >
+                    <div className="flex items-center gap-1.5">
+                      <Rows3 className="h-4 w-4 text-blue-600" />
+                      <span>Stacked (1 Column)</span>
+                    </div>
+                    <span className="text-[10px] text-slate-500 font-normal">
+                      Full-width vitals banner above full-width medications list.
+                    </span>
+                  </button>
+                </div>
+              </div>
+
+              {/* Vitals orientation selector */}
+              <div>
+                <label className="text-xs font-bold text-slate-700 block mb-2">Vitals Display Orientation:</label>
+                <div className="grid grid-cols-2 gap-2">
+                  <button
+                    type="button"
+                    disabled={isBusy}
+                    onClick={() => handleFieldChange('vitals_direction', VITALS_DIRECTIONS.HORIZONTAL)}
+                    className={`p-3 rounded-xl border text-xs font-bold flex flex-col items-start gap-1 transition-all cursor-pointer ${
+                      (current.vitals_direction || VITALS_DIRECTIONS.HORIZONTAL) === VITALS_DIRECTIONS.HORIZONTAL
+                        ? 'border-blue-600 bg-blue-50/70 text-blue-900 shadow-2xs'
+                        : 'border-slate-200 bg-white text-slate-600 hover:bg-slate-50'
+                    }`}
+                  >
+                    <div className="flex items-center gap-1.5">
+                      <AlignHorizontalJustifyStart className="h-4 w-4 text-blue-600" />
+                      <span>Horizontal (Flow)</span>
+                    </div>
+                    <span className="text-[10px] text-slate-500 font-normal">
+                      Inline wrap of active clinic vitals.
+                    </span>
+                  </button>
+
+                  <button
+                    type="button"
+                    disabled={isBusy}
+                    onClick={() => handleFieldChange('vitals_direction', VITALS_DIRECTIONS.VERTICAL)}
+                    className={`p-3 rounded-xl border text-xs font-bold flex flex-col items-start gap-1 transition-all cursor-pointer ${
+                      current.vitals_direction === VITALS_DIRECTIONS.VERTICAL
+                        ? 'border-blue-600 bg-blue-50/70 text-blue-900 shadow-2xs'
+                        : 'border-slate-200 bg-white text-slate-600 hover:bg-slate-50'
+                    }`}
+                  >
+                    <div className="flex items-center gap-1.5">
+                      <AlignVerticalJustifyStart className="h-4 w-4 text-blue-600" />
+                      <span>Vertical (List)</span>
+                    </div>
+                    <span className="text-[10px] text-slate-500 font-normal">
+                      Stacked rows ideal for multi-vital exams.
+                    </span>
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+
           <VisualMarginCalibrator
             settings={current}
             margins={current.margins}
             paperSize={paperSize}
             onMarginChange={(m) => handleFieldChange('margins', m)}
             onPaperSizeChange={(ps) => handleFieldChange('paper_size', ps)}
+            vitalsConfig={current.vitals_config}
             disabled={isBusy}
           />
 
@@ -294,6 +410,7 @@ export default function PrescriptionSettingsPage() {
         <PrescriptionPrintWrapper
           ref={printComponentRef}
           settings={current}
+          vitalsConfig={current.vitals_config}
           patient={SAMPLE_PRESCRIPTION_DATA.patient}
           doctor={SAMPLE_PRESCRIPTION_DATA.doctor}
           encounter={SAMPLE_PRESCRIPTION_DATA.encounter}
@@ -302,6 +419,7 @@ export default function PrescriptionSettingsPage() {
           medications={SAMPLE_PRESCRIPTION_DATA.medications}
           advice={SAMPLE_PRESCRIPTION_DATA.advice}
           followUpDate={SAMPLE_PRESCRIPTION_DATA.followUpDate}
+          visionData={SAMPLE_PRESCRIPTION_DATA.visionData}
         />
       </div>
     </div>

@@ -1,127 +1,13 @@
 import React, { forwardRef } from 'react';
-import EgyptianClinicTemplate from '../templates/EgyptianClinicTemplate';
-import InternalMedicineTemplate from '../templates/InternalMedicineTemplate';
-import OphthalmologyTemplate from '../templates/OphthalmologyTemplate';
-import DermatologyTemplate from '../templates/DermatologyTemplate';
-import PediatricsTemplate from '../templates/PediatricsTemplate';
-import PreprintedLetterheadTemplate from '../templates/PreprintedLetterheadTemplate';
-import CustomImageTemplate from '../templates/CustomImageTemplate';
-import FreeformPrintRenderer from './FreeformPrintRenderer';
+import SharedPrescriptionRenderer from './SharedPrescriptionRenderer';
 
 /**
- * PrescriptionPrintWrapper — Unified printing & preview container for all prescription templates.
+ * PrescriptionPrintWrapper — Unified printing & preview container.
+ * Delegates 100% to the single pure SharedPrescriptionRenderer engine to guarantee
+ * Zero-Drift 1:1 WYSIWYG matching between on-screen preview and physical laser print.
  */
-const PrescriptionPrintWrapper = forwardRef(function PrescriptionPrintWrapper(
-  {
-    settings = {},
-    patient = {},
-    doctor = {},
-    branch = {},
-    encounter = {},
-    vitals = {},
-    diagnoses = [],
-    medications = [],
-    advice = '',
-    followUpDate = '',
-    visionData = {},
-    routineData = {},
-    isPreview = false,
-    className = '',
-  },
-  ref
-) {
-  const mode = settings?.mode || 'builtin';
-  const layoutMode = settings?.layout_mode || 'standard_flow';
-  const templateId = settings?.template_id || 'egyptian_clinic';
-  const paperSize = settings?.paper_size || 'A5';
-
-  // Dynamic dimensions based on standard ISO paper sizes
-  const dimensions = paperSize === 'A3'
-    ? { width: '297mm', minHeight: '420mm', height: '420mm' }
-    : paperSize === 'A4'
-      ? { width: '210mm', minHeight: '297mm', height: '297mm' }
-      : { width: '148mm', minHeight: '210mm', height: '210mm' };
-
-  // Select target template component
-  let TemplateComponent = EgyptianClinicTemplate;
-
-  if (layoutMode === 'freeform_canvas') {
-    TemplateComponent = FreeformPrintRenderer;
-  } else if (mode === 'letterhead') {
-    TemplateComponent = PreprintedLetterheadTemplate;
-  } else if (mode === 'custom_image') {
-    TemplateComponent = CustomImageTemplate;
-  } else {
-    switch (templateId) {
-      case 'ophthalmology':
-        TemplateComponent = OphthalmologyTemplate;
-        break;
-      case 'dermatology':
-        TemplateComponent = DermatologyTemplate;
-        break;
-      case 'pediatrics':
-        TemplateComponent = PediatricsTemplate;
-        break;
-      case 'internal_classic':
-      case 'internal_medicine':
-        TemplateComponent = InternalMedicineTemplate;
-        break;
-      case 'egyptian_clinic':
-      default:
-        TemplateComponent = EgyptianClinicTemplate;
-        break;
-    }
-  }
-
-  // Laser printer filter optimization
-  const laserOpt = Boolean(settings?.laser_contrast_opt);
-  const grayscaleMode = Boolean(settings?.grayscale_mode);
-  const filterStyles = [];
-  if (laserOpt) {
-    filterStyles.push('contrast(1.06) brightness(1.03)');
-  }
-  if (grayscaleMode) {
-    filterStyles.push('grayscale(100%)');
-  }
-  const combinedFilter = filterStyles.length > 0 ? filterStyles.join(' ') : undefined;
-
-  return (
-    <div
-      ref={ref}
-      id="prescription-print-document"
-      className={`prescription-sheet-wrapper relative bg-white text-slate-900 box-border flex flex-col ${
-        isPreview
-          ? 'shadow-2xl rounded-sm border border-slate-300 mx-auto shrink-0'
-          : 'print-page-root'
-      } ${className}`}
-      style={{
-        width: isPreview ? dimensions.width : '100%',
-        minHeight: isPreview ? dimensions.minHeight : '100%',
-        height: isPreview ? dimensions.height : '100%',
-        filter: combinedFilter,
-        WebkitFilter: combinedFilter,
-        pageBreakAfter: 'avoid',
-        pageBreakInside: 'avoid',
-      }}
-      dir="rtl"
-    >
-      <TemplateComponent
-        settings={settings}
-        patient={patient}
-        doctor={doctor}
-        branch={branch}
-        encounter={encounter}
-        vitals={vitals}
-        diagnoses={diagnoses}
-        medications={medications}
-        advice={advice}
-        followUpDate={followUpDate}
-        visionData={visionData}
-        routineData={routineData}
-        isPreview={isPreview}
-      />
-    </div>
-  );
+const PrescriptionPrintWrapper = forwardRef(function PrescriptionPrintWrapper(props, ref) {
+  return <SharedPrescriptionRenderer ref={ref} {...props} />;
 });
 
 export default PrescriptionPrintWrapper;
