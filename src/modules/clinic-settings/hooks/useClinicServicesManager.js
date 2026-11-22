@@ -84,6 +84,7 @@ export function useClinicServicesManager(branchId, isReadOnly = false) {
   });
 
   // Filtered services
+  // Search filtering by name or code
   const filteredServices = useMemo(() => {
     if (!searchQuery.trim()) return services;
     const term = searchQuery.toLowerCase().trim();
