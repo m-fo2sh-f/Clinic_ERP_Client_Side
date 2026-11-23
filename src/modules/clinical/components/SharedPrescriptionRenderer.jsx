@@ -448,8 +448,8 @@ const SharedPrescriptionRenderer = forwardRef(function SharedPrescriptionRendere
         />
       )}
 
-      {/* Layer 1: Background Stationery Image (Printed) */}
-      {mode !== 'letterhead' && bgUrl && (
+      {/* Layer 1: Background Stationery Image (Printed only in custom_image mode) */}
+      {mode === 'custom_image' && bgUrl && (
         <img
           src={bgUrl}
           alt="Stationery Background"
@@ -458,15 +458,21 @@ const SharedPrescriptionRenderer = forwardRef(function SharedPrescriptionRendere
           crossOrigin="anonymous"
           className="absolute inset-0 w-full h-full object-fill pointer-events-none select-none z-0"
           style={{ printColorAdjust: 'exact', WebkitPrintColorAdjust: 'exact' }}
+          onError={(e) => {
+            e.currentTarget.style.display = 'none';
+          }}
         />
       )}
 
-      {/* Layer 2: Alignment Guide Image (NEVER Printed — print:hidden) */}
-      {guideUrl && (
+      {/* Layer 2: Alignment Guide Image (STRICTLY for Freeform Studio editor on-screen canvas — NEVER rendered during print or preview) */}
+      {isStudio && guideUrl && (
         <img
           src={guideUrl}
           alt="Letterhead Alignment Guide"
           className="absolute inset-0 w-full h-full object-fill pointer-events-none select-none opacity-40 z-0 print:hidden"
+          onError={(e) => {
+            e.currentTarget.style.display = 'none';
+          }}
         />
       )}
 

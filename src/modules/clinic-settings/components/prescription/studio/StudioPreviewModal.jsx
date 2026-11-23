@@ -1,5 +1,5 @@
 import React from 'react';
-import { X, Printer } from 'lucide-react';
+import { X } from 'lucide-react';
 import SharedPrescriptionRenderer from '../../../../clinical/components/SharedPrescriptionRenderer';
 
 export default function StudioPreviewModal({

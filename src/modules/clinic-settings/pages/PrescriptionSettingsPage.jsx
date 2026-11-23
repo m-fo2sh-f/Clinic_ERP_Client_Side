@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, useMemo, useCallback } from 'react';
 import { useOutletContext } from 'react-router-dom';
 import { useReactToPrint } from 'react-to-print';
 import {
@@ -73,11 +73,26 @@ export default function PrescriptionSettingsPage() {
   const paperSize = current.paper_size || 'A4';
   const layoutMode = current.layout_mode || LAYOUT_MODES.STANDARD_FLOW;
 
+  const isPrintingRef = useRef(false);
+  const testPrintPageStyle = useMemo(() => getPrintPageStyle(paperSize), [paperSize]);
+
   const handleTestPrint = useReactToPrint({
+    onBeforePrint: () => { isPrintingRef.current = true; },
+    onAfterPrint: () => { isPrintingRef.current = false; },
+    onPrintError: () => { isPrintingRef.current = false; },
     contentRef: printComponentRef,
-    pageStyle: getPrintPageStyle(paperSize),
+    pageStyle: testPrintPageStyle,
     documentTitle: `Prescription_Template_Test_${paperSize}`,
   });
+
+  const safeHandleTestPrint = useCallback(() => {
+    if (isPrintingRef.current) return;
+    try {
+      handleTestPrint();
+    } catch (_e) {
+      isPrintingRef.current = false;
+    }
+  }, [handleTestPrint]);
 
   const handleFieldChange = (key, val) => setDraftSettings((prev) => ({ ...prev, [key]: val }));
 
@@ -166,7 +181,7 @@ export default function PrescriptionSettingsPage() {
           <button
             type="button"
             disabled={isBusy}
-            onClick={() => handleTestPrint()}
+            onClick={() => safeHandleTestPrint()}
             className="flex-1 sm:flex-none px-4 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-xl text-xs font-bold flex items-center justify-center gap-1.5 transition-all cursor-pointer disabled:opacity-50"
           >
             <Printer className="h-4 w-4 text-slate-600" />

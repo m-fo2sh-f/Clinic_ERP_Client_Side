@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, useMemo, useCallback } from 'react';
 import { useReactToPrint } from 'react-to-print';
 import { Pill, Printer, Plus, Trash2, FileCheck, Calendar, Eye, X, History, Star } from 'lucide-react';
 import Button from '../../../components/ui/Button';
@@ -71,26 +71,39 @@ export default function PrescriptionSheet({
 
   // Strict physical print style generator
   const paperSize = settings.paper_size || 'A4';
-  const pageStyle = getPrintPageStyle(paperSize);
+  const pageStyle = useMemo(() => getPrintPageStyle(paperSize), [paperSize]);
+  const isPrintingRef = useRef(false);
 
   const handlePrint = useReactToPrint({
+    onBeforePrint: () => { isPrintingRef.current = true; },
+    onAfterPrint: () => { isPrintingRef.current = false; },
+    onPrintError: () => { isPrintingRef.current = false; },
     contentRef: printComponentRef,
     pageStyle,
     documentTitle: `Prescription_${activePatient?.name || 'Patient'}`,
   });
+
+  const safeHandlePrint = useCallback(() => {
+    if (isPrintingRef.current) return;
+    try {
+      handlePrint();
+    } catch (_e) {
+      isPrintingRef.current = false;
+    }
+  }, [handlePrint]);
 
   // Support auto_print: trigger print dialog automatically when examination is saved
   useEffect(() => {
     if (isPrescriptionSaved && settings?.auto_print && !hasAutoPrintedRef.current) {
       hasAutoPrintedRef.current = true;
       const timer = setTimeout(() => {
-        handlePrint();
+        safeHandlePrint();
       }, 400);
       return () => clearTimeout(timer);
     } else if (!isPrescriptionSaved) {
       hasAutoPrintedRef.current = false;
     }
-  }, [isPrescriptionSaved, settings?.auto_print, handlePrint]);
+  }, [isPrescriptionSaved, settings?.auto_print, safeHandlePrint]);
 
   const handleAdviceChange = (value) => {
     if (typeof onGeneralAdviceChange === 'function') {
@@ -121,7 +134,7 @@ export default function PrescriptionSheet({
 
   const handleSaveAndPrint = () => {
     setIsCompleteModalOpen(false);
-    handlePrint();
+    safeHandlePrint();
     if (typeof onCompleteExamination === 'function') {
       onCompleteExamination();
     }
@@ -495,7 +508,7 @@ export default function PrescriptionSheet({
                   size="sm"
                   onClick={() => {
                     setIsPreviewOpen(false);
-                    handlePrint();
+                    safeHandlePrint();
                   }}
                   className="bg-clinic-600 hover:bg-clinic-500 text-white gap-1.5"
                 >

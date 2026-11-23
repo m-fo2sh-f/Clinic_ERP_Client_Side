@@ -89,7 +89,7 @@ export default function FreeformPrintRenderer({
       }}
     >
       {/* 1. Background image (Printed) */}
-      {settings.mode !== 'letterhead' && bgUrl && (
+      {settings.mode === 'custom_image' && bgUrl && (
         <img
           src={bgUrl}
           alt="Prescription Background"
@@ -101,15 +101,21 @@ export default function FreeformPrintRenderer({
             printColorAdjust: 'exact',
             WebkitPrintColorAdjust: 'exact',
           }}
+          onError={(e) => {
+            e.currentTarget.style.display = 'none';
+          }}
         />
       )}
 
       {/* 2. Letterhead Guide Image (NEVER Printed — print:hidden) */}
-      {guideUrl && (
+      {isStudio && guideUrl && (
         <img
           src={guideUrl}
           alt="Letterhead Alignment Guide"
           className="absolute inset-0 w-full h-full object-fill pointer-events-none select-none opacity-40 z-0 print:hidden"
+          onError={(e) => {
+            e.currentTarget.style.display = 'none';
+          }}
         />
       )}
 
