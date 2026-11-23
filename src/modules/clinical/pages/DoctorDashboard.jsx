@@ -528,6 +528,7 @@ export default function DoctorDashboard() {
                 branchId={branchId}
                 doctorId={doctorId}
                 vitals={consultation.vitals}
+                vitalsConfig={vitalsConfig}
                 diagnoses={consultation.finalDiagnoses}
                 encounter={activeEncounter || activeQueueItem}
                 onOpenHistory={() => setIsHistoryOpen(true)}

@@ -37,13 +37,10 @@ export const SPECIALTY_VITALS_PRESETS = [
   {
     id: 'ophthalmology',
     name: 'طب وجراحة العيون',
-    description: 'بطاقة قياس النظر والإنكسار (OD/OS) + ضغط العين وحدة الإبصار وضغط الدم',
+    description: 'بطاقة وجدول قياس النظر وانكسار العين (OD/OS) وضغط الدم',
     activeKeys: ['blood_pressure'],
     enableRefraction: true,
-    customVitals: [
-      { key: 'intraocular_pressure', label: 'ضغط العين (IOP)', unit: 'mmHg', placeholder: '15' },
-      { key: 'visual_acuity', label: 'حدة الإبصار (VA)', unit: '6/6', placeholder: '6/6' },
-    ],
+    customVitals: [],
   },
   {
     id: 'dermatology',

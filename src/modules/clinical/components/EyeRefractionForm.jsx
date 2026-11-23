@@ -56,6 +56,7 @@ export default function EyeRefractionForm({
               <th className="py-1.5 px-2">AXIS (المحور)</th>
               <th className="py-1.5 px-2">VA (حدة الإبصار)</th>
               <th className="py-1.5 px-2">IOP (ضغط العين)</th>
+              <th className="py-1.5 px-2">ADD (إضافة القراءة)</th>
             </tr>
           </thead>
           <tbody>
@@ -107,6 +108,15 @@ export default function EyeRefractionForm({
                   className="w-full px-1.5 py-1 text-center font-mono border border-slate-200 rounded focus:border-sky-500"
                 />
               </td>
+              <td className="p-1">
+                <input
+                  type="text"
+                  value={od.add || ''}
+                  onChange={(e) => handleFieldChange('od', 'add', e.target.value)}
+                  placeholder="+1.50"
+                  className="w-full px-1.5 py-1 text-center font-mono border border-slate-200 rounded focus:border-sky-500"
+                />
+              </td>
             </tr>
 
             {/* OS - Left Eye */}
@@ -154,6 +164,15 @@ export default function EyeRefractionForm({
                   value={os.iop || ''}
                   onChange={(e) => handleFieldChange('os', 'iop', e.target.value)}
                   placeholder="16 mmHg"
+                  className="w-full px-1.5 py-1 text-center font-mono border border-slate-200 rounded focus:border-sky-500"
+                />
+              </td>
+              <td className="p-1">
+                <input
+                  type="text"
+                  value={os.add || ''}
+                  onChange={(e) => handleFieldChange('os', 'add', e.target.value)}
+                  placeholder="+1.50"
                   className="w-full px-1.5 py-1 text-center font-mono border border-slate-200 rounded focus:border-sky-500"
                 />
               </td>

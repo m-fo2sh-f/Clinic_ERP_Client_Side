@@ -17,6 +17,7 @@ import {
 import { useBranchContext } from '../../../context/BranchContext';
 import Button from '../../../components/ui/Button';
 import usePrescriptionTemplate from '../hooks/usePrescriptionTemplate';
+import useVitalsSettings from '../hooks/useVitalsSettings';
 import TemplateModeSelector from '../components/prescription/TemplateModeSelector';
 import BuiltinSpecialtyPicker from '../components/prescription/BuiltinSpecialtyPicker';
 import CustomTemplateUploader from '../components/prescription/CustomTemplateUploader';
@@ -52,6 +53,8 @@ export default function PrescriptionSettingsPage() {
     validateImageFile,
   } = usePrescriptionTemplate(activeBranch?.id, selectedDoctorId);
 
+  const { vitalsConfig: liveVitalsConfig } = useVitalsSettings(activeBranch?.id, selectedDoctorId);
+
   const [draftSettings, setDraftSettings] = useState(settings || DEFAULT_PRESCRIPTION_SETTINGS);
 
   useEffect(() => {
@@ -66,6 +69,7 @@ export default function PrescriptionSettingsPage() {
 
   const printComponentRef = useRef(null);
   const current = draftSettings || DEFAULT_PRESCRIPTION_SETTINGS;
+  const effectiveVitalsConfig = liveVitalsConfig || current.vitals_config;
   const paperSize = current.paper_size || 'A4';
   const layoutMode = current.layout_mode || LAYOUT_MODES.STANDARD_FLOW;
 
@@ -241,7 +245,7 @@ export default function PrescriptionSettingsPage() {
           onUploadGuideImage={(file) => handleUploadImage(file, 'guide_image')}
           onDeleteGuideImage={() => handleDeleteImage('guide_image')}
           customImageUrl={current.image_url || current.custom_image_url}
-          vitalsConfig={current.vitals_config}
+          vitalsConfig={effectiveVitalsConfig}
           isUploading={isUploading}
           isDeleting={isDeleting}
           disabled={isBusy}
@@ -382,7 +386,7 @@ export default function PrescriptionSettingsPage() {
             paperSize={paperSize}
             onMarginChange={(m) => handleFieldChange('margins', m)}
             onPaperSizeChange={(ps) => handleFieldChange('paper_size', ps)}
-            vitalsConfig={current.vitals_config}
+            vitalsConfig={effectiveVitalsConfig}
             disabled={isBusy}
           />
 
@@ -410,7 +414,7 @@ export default function PrescriptionSettingsPage() {
         <PrescriptionPrintWrapper
           ref={printComponentRef}
           settings={current}
-          vitalsConfig={current.vitals_config}
+          vitalsConfig={effectiveVitalsConfig}
           patient={SAMPLE_PRESCRIPTION_DATA.patient}
           doctor={SAMPLE_PRESCRIPTION_DATA.doctor}
           encounter={SAMPLE_PRESCRIPTION_DATA.encounter}

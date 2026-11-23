@@ -2,6 +2,7 @@ import { useState, useCallback } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { getVitalsConfig, updateVitalsConfig } from '../api/clinicSettingsApi';
 import { DEFAULT_VITALS_CONFIG } from '../constants/vitalsConstants';
+import { prescriptionTemplateKeys } from './usePrescriptionTemplate';
 
 export const vitalsConfigKeys = {
   all: ['clinic-settings', 'vitals-config'],
@@ -37,6 +38,9 @@ export function useVitalsSettings(branchId, doctorId = null) {
     mutationFn: (updatedPayload) => updateVitalsConfig(updatedPayload, branchId, doctorId),
     onSuccess: (savedData) => {
       queryClient.setQueryData(queryKey, savedData);
+      queryClient.invalidateQueries({ queryKey: vitalsConfigKeys.all });
+      queryClient.invalidateQueries({ queryKey: prescriptionTemplateKeys.all });
+      queryClient.invalidateQueries({ queryKey: ['encounter'] });
       showStatus('success', 'تم حفظ إعدادات وتخصيصات العلامات الحيوية بنجاح.');
     },
     onError: (err) => {

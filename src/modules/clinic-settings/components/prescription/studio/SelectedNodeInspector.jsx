@@ -1,5 +1,5 @@
 import React from 'react';
-import { Eye, EyeOff, Check, AlignHorizontalJustifyStart, AlignVerticalJustifyStart, Table, Grid } from 'lucide-react';
+import { Eye, EyeOff, Check, AlignHorizontalJustifyStart, AlignVerticalJustifyStart, Table, Grid, Square } from 'lucide-react';
 import { getNodeMetadata } from './canvasNodeDefinitions';
 import { TYPOGRAPHY_STEPS, normalizeFontSizeKey } from '../../../constants/prescriptionConstants';
 
@@ -51,8 +51,8 @@ export default function SelectedNodeInspector({
             </span>
           </div>
 
-          {/* Visibility, Label, and Unit Toggles */}
-          <div className={`grid ${meta?.hasShowUnit ? 'grid-cols-3' : 'grid-cols-2'} gap-2`}>
+          {/* Visibility, Label, Border, and Unit Toggles */}
+          <div className="grid grid-cols-2 gap-2">
             <button
               type="button"
               onClick={() => onUpdateNode(selectedNodeId, { is_visible: !selectedNode.is_visible })}
@@ -79,6 +79,20 @@ export default function SelectedNodeInspector({
             >
               <Check className={`h-3.5 w-3.5 ${selectedNode.show_label !== false ? 'opacity-100' : 'opacity-0'}`} />
               <span>Label</span>
+            </button>
+
+            <button
+              type="button"
+              onClick={() => onUpdateNode(selectedNodeId, { show_border: selectedNode.show_border === false ? true : false })}
+              className={`flex items-center justify-center gap-1.5 px-2 py-1.5 rounded-xl text-xs font-bold transition-all border cursor-pointer ${
+                selectedNode.show_border !== false
+                  ? 'bg-indigo-50 text-indigo-700 border-indigo-200 shadow-2xs'
+                  : 'bg-slate-100 text-slate-500 border-slate-200'
+              }`}
+              title="Show or Hide Outline Border"
+            >
+              <Square className={`h-3.5 w-3.5 ${selectedNode.show_border !== false ? 'opacity-100' : 'opacity-40'}`} />
+              <span>{selectedNode.show_border !== false ? 'Border: On' : 'Border: Off'}</span>
             </button>
 
             {meta?.hasShowUnit && (

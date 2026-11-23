@@ -31,7 +31,15 @@ export default function ClinicalFindingsCard({
   onDiagnosisKeyDown,
   vitalsConfig = null,
 }) {
-  const isEnabled = (key) => !vitalsConfig?.enabled_keys || vitalsConfig.enabled_keys.includes(key);
+  const isEnabled = (key) => {
+    if (!vitalsConfig?.enabled_keys || !Array.isArray(vitalsConfig.enabled_keys)) return true;
+    const enabled = vitalsConfig.enabled_keys;
+    if (enabled.includes(key)) return true;
+    if ((key === 'blood_glucose' || key === 'blood_sugar') && (enabled.includes('blood_glucose') || enabled.includes('blood_sugar') || enabled.includes('rbs'))) return true;
+    if ((key === 'oxygen_saturation' || key === 'spo2') && (enabled.includes('oxygen_saturation') || enabled.includes('spo2'))) return true;
+    if ((key === 'respiratory_rate' || key === 'rr') && (enabled.includes('respiratory_rate') || enabled.includes('rr'))) return true;
+    return false;
+  };
 
   const handleBloodPressureChange = (e) => {
     const rawVal = e.target.value;
@@ -40,7 +48,7 @@ export default function ClinicalFindingsCard({
 
     let formatted = rawVal;
     if (!isDeleting) {
-      const clean = rawVal.replace(/[^\d\/]/g, '');
+      const clean = rawVal.replace(/[^\d/]/g, '');
       const digitsOnly = clean.replace(/\D/g, '');
 
       if (digitsOnly.length === 3 && !clean.includes('/')) {
@@ -185,27 +193,48 @@ export default function ClinicalFindingsCard({
               </div>
             )}
 
-            {/* Custom Vitals Dynamically */}
-            {vitalsConfig?.custom_vitals?.map((cv) => (
-              <div key={cv.key}>
+            {isEnabled('respiratory_rate') && (
+              <div>
                 <label className="block text-[11px] font-semibold text-slate-600 mb-1 flex items-center gap-1">
-                  <Activity className="h-3 w-3 text-amber-500" />
-                  {cv.label} {cv.unit ? `(${cv.unit})` : ''}
+                  <Wind className="h-3 w-3 text-teal-500" />
+                  Respiratory Rate (RR)
                 </label>
                 <input
                   type="text"
-                  placeholder={cv.placeholder || '--'}
-                  value={vitals[cv.key] || ''}
-                  onChange={(e) => onUpdateVital(cv.key, e.target.value)}
+                  placeholder="16 bpm"
+                  value={vitals.respiratoryRate || vitals.respiratory_rate || ''}
+                  onChange={(e) => {
+                    onUpdateVital('respiratoryRate', e.target.value);
+                    onUpdateVital('respiratory_rate', e.target.value);
+                  }}
                   className="w-full px-3 py-1.5 text-xs bg-white border border-slate-200 rounded-lg focus:ring-2 focus:ring-clinic-500 font-semibold"
                 />
               </div>
-            ))}
+            )}
+
+            {/* Custom Vitals Dynamically (excluding ophthalmology refraction metrics) */}
+            {vitalsConfig?.custom_vitals
+              ?.filter((cv) => !['intraocular_pressure', 'visual_acuity', 'iop', 'va', 'sph', 'cyl', 'axis', 'refraction'].includes(cv.key.toLowerCase()))
+              .map((cv) => (
+                <div key={cv.key}>
+                  <label className="block text-[11px] font-semibold text-slate-600 mb-1 flex items-center gap-1">
+                    <Activity className="h-3 w-3 text-amber-500" />
+                    {cv.label} {cv.unit ? `(${cv.unit})` : ''}
+                  </label>
+                  <input
+                    type="text"
+                    placeholder={cv.placeholder || '--'}
+                    value={vitals[cv.key] || ''}
+                    onChange={(e) => onUpdateVital(cv.key, e.target.value)}
+                    className="w-full px-3 py-1.5 text-xs bg-white border border-slate-200 rounded-lg focus:ring-2 focus:ring-clinic-500 font-semibold"
+                  />
+                </div>
+              ))}
           </div>
         </div>
 
         {/* Refraction Card (Ophthalmology) */}
-        {vitalsConfig?.enable_refraction && (
+        {Boolean(vitalsConfig?.enable_refraction || vitalsConfig?.refraction_card_enabled) && (
           <EyeRefractionForm
             refractionData={vitals.refraction || vitals.visionData || {}}
             onChangeRefraction={(data) => onUpdateVital('refraction', data)}

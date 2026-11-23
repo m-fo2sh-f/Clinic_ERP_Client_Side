@@ -29,6 +29,8 @@ export const SAMPLE_PRESCRIPTION_DATA = {
     heart_rate: '74',
     pulse: '74',
     temperature: '37.1',
+    respiratory_rate: '16',
+    oxygen_saturation: '99',
     weight: '78',
     height: '175',
     spo2: '99',

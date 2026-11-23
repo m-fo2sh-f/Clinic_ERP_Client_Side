@@ -94,7 +94,7 @@ const SharedPrescriptionRenderer = forwardRef(function SharedPrescriptionRendere
 
   // Resolve active vitals items from doctor database configuration
   const resolveActiveVitalsList = () => {
-    const defaultEnabled = vitalsConfig?.enabled_keys || ['blood_pressure', 'heart_rate', 'temperature', 'blood_glucose'];
+    const defaultEnabled = vitalsConfig?.enabled_keys || ['blood_pressure', 'heart_rate', 'temperature', 'blood_glucose', 'weight', 'height', 'oxygen_saturation'];
     const customList = Array.isArray(vitalsConfig?.custom_vitals) ? vitalsConfig.custom_vitals : [];
 
     const items = [];
@@ -102,44 +102,56 @@ const SharedPrescriptionRenderer = forwardRef(function SharedPrescriptionRendere
     // Helper to extract value from vitals object
     const getVal = (k) => {
       if (!activeVitals) return '';
-      if (k === 'blood_pressure') return activeVitals.blood_pressure || activeVitals.bloodPressure || (activeVitals.bp_systolic && `${activeVitals.bp_systolic}/${activeVitals.bp_diastolic}`) || s.vitals.blood_pressure;
-      if (k === 'heart_rate' || k === 'pulse') return activeVitals.heart_rate || activeVitals.heartRate || activeVitals.pulse || s.vitals.heart_rate;
-      if (k === 'temperature' || k === 'temp') return activeVitals.temperature || activeVitals.temp || s.vitals.temperature;
-      if (k === 'blood_sugar' || k === 'blood_glucose' || k === 'rbs') return activeVitals.blood_sugar || activeVitals.blood_glucose || activeVitals.randomBloodSugar || s.vitals.blood_sugar;
-      if (k === 'weight') return activeVitals.weight || s.vitals.weight;
-      if (k === 'height') return activeVitals.height || s.vitals.height;
-      if (k === 'spo2') return activeVitals.spo2 || s.vitals.spo2;
-      return activeVitals[k] || '';
+      if (k === 'blood_pressure') return activeVitals.blood_pressure || activeVitals.bloodPressure || (activeVitals.bp_systolic && `${activeVitals.bp_systolic}/${activeVitals.bp_diastolic}`) || (isPreview || isStudio ? s.vitals.blood_pressure : '');
+      if (k === 'heart_rate' || k === 'pulse') return activeVitals.heart_rate || activeVitals.heartRate || activeVitals.pulse || (isPreview || isStudio ? s.vitals.heart_rate : '');
+      if (k === 'temperature' || k === 'temp') return activeVitals.temperature || activeVitals.temp || (isPreview || isStudio ? s.vitals.temperature : '');
+      if (k === 'blood_sugar' || k === 'blood_glucose' || k === 'rbs') return activeVitals.blood_sugar || activeVitals.blood_glucose || activeVitals.randomBloodSugar || (isPreview || isStudio ? s.vitals.blood_sugar : '');
+      if (k === 'respiratory_rate' || k === 'rr') return activeVitals.respiratory_rate || activeVitals.respiratoryRate || activeVitals.rr || (isPreview || isStudio ? '16' : '');
+      if (k === 'oxygen_saturation' || k === 'spo2') return activeVitals.oxygen_saturation || activeVitals.spo2 || (isPreview || isStudio ? s.vitals.spo2 : '');
+      if (k === 'weight') return activeVitals.weight || (isPreview || isStudio ? s.vitals.weight : '');
+      if (k === 'height') return activeVitals.height || (isPreview || isStudio ? s.vitals.height : '');
+      return activeVitals[k] || (isPreview || isStudio ? 'Normal' : '');
     };
 
     const defaultMeta = {
       blood_pressure: { label: 'BP', unit: 'mmHg' },
       heart_rate: { label: 'Pulse', unit: 'bpm' },
       temperature: { label: 'Temp', unit: '°C' },
+      respiratory_rate: { label: 'RR', unit: 'bpm' },
+      oxygen_saturation: { label: 'SpO2', unit: '%' },
+      spo2: { label: 'SpO2', unit: '%' },
       blood_glucose: { label: 'RBS', unit: 'mg/dL' },
       blood_sugar: { label: 'RBS', unit: 'mg/dL' },
       weight: { label: 'Weight', unit: 'kg' },
       height: { label: 'Height', unit: 'cm' },
-      spo2: { label: 'SpO2', unit: '%' },
     };
 
-    defaultEnabled.forEach((key) => {
-      const meta = defaultMeta[key] || { label: key.toUpperCase(), unit: '' };
-      const val = getVal(key);
-      if (val) {
-        items.push({ key, label: meta.label, val, unit: meta.unit });
-      }
-    });
+    // Filter out eye refraction keys from general vitals
+    const eyeKeys = ['intraocular_pressure', 'visual_acuity', 'iop', 'va', 'refraction', 'sph', 'cyl', 'axis'];
 
-    customList.forEach((cv) => {
-      const val = activeVitals[cv.key] || cv.default_value || 'Normal';
-      items.push({
-        key: cv.key,
-        label: cv.label_en || cv.label || cv.key,
-        val,
-        unit: cv.unit || '',
+    defaultEnabled
+      .filter((key) => !eyeKeys.includes(key.toLowerCase()))
+      .forEach((key) => {
+        const meta = defaultMeta[key] || { label: key.replace(/_/g, ' ').toUpperCase(), unit: '' };
+        const val = getVal(key);
+        if (val) {
+          items.push({ key, label: meta.label, val, unit: meta.unit });
+        }
       });
-    });
+
+    customList
+      .filter((cv) => !eyeKeys.includes(cv.key.toLowerCase()))
+      .forEach((cv) => {
+        const val = activeVitals[cv.key] || (isPreview || isStudio ? (cv.default_value || 'Normal') : '');
+        if (val) {
+          items.push({
+            key: cv.key,
+            label: cv.label_en || cv.label || cv.key,
+            val,
+            unit: cv.unit || '',
+          });
+        }
+      });
 
     return items;
   };
@@ -150,53 +162,54 @@ const SharedPrescriptionRenderer = forwardRef(function SharedPrescriptionRendere
     (vitalsConfig?.refraction_card_enabled !== false || vitalsConfig?.enable_refraction)
   );
 
-  // Standard flow Margins
+  // Standard flow Margins & Styling
   const margins = settings?.margins || { top_cm: 4.5, bottom_cm: 3.0, left_cm: 1.5, right_cm: 1.5 };
   const standardLayout = settings?.standard_flow_layout || STANDARD_FLOW_LAYOUTS.SIDE_BY_SIDE;
   const standardFontSize = getFontSizeMm(settings?.font_size || 'md');
+  const showBorders = settings?.show_borders !== false;
 
   // Render Eye Refraction Table in Clean Standard B&W
-  const renderEyeRefractionTable = (nodeFontSize = 'sm') => {
+  const renderEyeRefractionTable = (nodeFontSize = 'sm', showBorder = true) => {
     const fontSize = getFontSizeMm(nodeFontSize);
     const od = activeVisionData?.od || {};
     const os = activeVisionData?.os || {};
     const pd = activeVisionData?.pd || '';
 
     return (
-      <div className="w-full border border-black bg-white select-none box-border" style={{ fontSize }}>
-        <div className="flex items-center justify-between px-2 py-0.5 border-b border-black bg-slate-100 font-bold text-[0.85em]">
+      <div className={`w-full ${showBorder ? 'border border-black' : ''} bg-white select-none box-border`} style={{ fontSize }}>
+        <div className={`flex items-center justify-between px-2 py-0.5 ${showBorder ? 'border-b border-black' : 'border-b border-slate-200'} bg-slate-100 font-bold text-[0.85em]`}>
           <span>EYE REFRACTION &amp; VISION (OD / OS)</span>
           {pd && <span>PD: <strong className="font-mono">{pd}</strong></span>}
         </div>
         <table className="w-full border-collapse text-center">
           <thead>
-            <tr className="border-b border-black text-[0.8em] font-bold bg-slate-50">
-              <th className="border-r border-black py-0.5 px-1 w-[12%]">Eye</th>
-              <th className="border-r border-black py-0.5 px-1 w-[14%]">SPH</th>
-              <th className="border-r border-black py-0.5 px-1 w-[14%]">CYL</th>
-              <th className="border-r border-black py-0.5 px-1 w-[14%]">AXIS</th>
-              <th className="border-r border-black py-0.5 px-1 w-[14%]">VA</th>
-              <th className="border-r border-black py-0.5 px-1 w-[14%]">IOP</th>
+            <tr className={`border-b ${showBorder ? 'border-black' : 'border-slate-300'} text-[0.8em] font-bold bg-slate-50`}>
+              <th className={`border-r ${showBorder ? 'border-black' : 'border-slate-200'} py-0.5 px-1 w-[12%]`}>Eye</th>
+              <th className={`border-r ${showBorder ? 'border-black' : 'border-slate-200'} py-0.5 px-1 w-[14%]`}>SPH</th>
+              <th className={`border-r ${showBorder ? 'border-black' : 'border-slate-200'} py-0.5 px-1 w-[14%]`}>CYL</th>
+              <th className={`border-r ${showBorder ? 'border-black' : 'border-slate-200'} py-0.5 px-1 w-[14%]`}>AXIS</th>
+              <th className={`border-r ${showBorder ? 'border-black' : 'border-slate-200'} py-0.5 px-1 w-[14%]`}>VA</th>
+              <th className={`border-r ${showBorder ? 'border-black' : 'border-slate-200'} py-0.5 px-1 w-[14%]`}>IOP</th>
               <th className="py-0.5 px-1 w-[18%]">ADD</th>
             </tr>
           </thead>
           <tbody className="font-mono font-semibold">
-            <tr className="border-b border-black">
-              <td className="border-r border-black py-0.5 font-bold font-sans bg-slate-50">OD (R)</td>
-              <td className="border-r border-black py-0.5">{od.sph || '-'}</td>
-              <td className="border-r border-black py-0.5">{od.cyl || '-'}</td>
-              <td className="border-r border-black py-0.5">{od.axis ? `${od.axis}°` : '-'}</td>
-              <td className="border-r border-black py-0.5">{od.va || '-'}</td>
-              <td className="border-r border-black py-0.5">{od.iop || '-'}</td>
+            <tr className={`border-b ${showBorder ? 'border-black' : 'border-slate-200'}`}>
+              <td className={`border-r ${showBorder ? 'border-black' : 'border-slate-200'} py-0.5 font-bold font-sans bg-slate-50`}>OD (R)</td>
+              <td className={`border-r ${showBorder ? 'border-black' : 'border-slate-200'} py-0.5`}>{od.sph || '-'}</td>
+              <td className={`border-r ${showBorder ? 'border-black' : 'border-slate-200'} py-0.5`}>{od.cyl || '-'}</td>
+              <td className={`border-r ${showBorder ? 'border-black' : 'border-slate-200'} py-0.5`}>{od.axis ? `${od.axis}°` : '-'}</td>
+              <td className={`border-r ${showBorder ? 'border-black' : 'border-slate-200'} py-0.5`}>{od.va || '-'}</td>
+              <td className={`border-r ${showBorder ? 'border-black' : 'border-slate-200'} py-0.5`}>{od.iop || '-'}</td>
               <td className="py-0.5">{od.add || '-'}</td>
             </tr>
             <tr>
-              <td className="border-r border-black py-0.5 font-bold font-sans bg-slate-50">OS (L)</td>
-              <td className="border-r border-black py-0.5">{os.sph || '-'}</td>
-              <td className="border-r border-black py-0.5">{os.cyl || '-'}</td>
-              <td className="border-r border-black py-0.5">{os.axis ? `${os.axis}°` : '-'}</td>
-              <td className="border-r border-black py-0.5">{os.va || '-'}</td>
-              <td className="border-r border-black py-0.5">{os.iop || '-'}</td>
+              <td className={`border-r ${showBorder ? 'border-black' : 'border-slate-200'} py-0.5 font-bold font-sans bg-slate-50`}>OS (L)</td>
+              <td className={`border-r ${showBorder ? 'border-black' : 'border-slate-200'} py-0.5`}>{os.sph || '-'}</td>
+              <td className={`border-r ${showBorder ? 'border-black' : 'border-slate-200'} py-0.5`}>{os.cyl || '-'}</td>
+              <td className={`border-r ${showBorder ? 'border-black' : 'border-slate-200'} py-0.5`}>{os.axis ? `${os.axis}°` : '-'}</td>
+              <td className={`border-r ${showBorder ? 'border-black' : 'border-slate-200'} py-0.5`}>{os.va || '-'}</td>
+              <td className={`border-r ${showBorder ? 'border-black' : 'border-slate-200'} py-0.5`}>{os.iop || '-'}</td>
               <td className="py-0.5">{os.add || '-'}</td>
             </tr>
           </tbody>
@@ -211,14 +224,15 @@ const SharedPrescriptionRenderer = forwardRef(function SharedPrescriptionRendere
     const direction = node?.vitals_direction || settings?.vitals_direction || VITALS_DIRECTIONS.HORIZONTAL;
     const showLabel = node?.show_label !== false;
     const showUnit = node?.show_unit !== false;
+    const showBorder = node?.show_border !== false;
 
     return (
       <div
-        className="w-full h-full p-1 border border-slate-300 rounded-sm bg-white overflow-hidden flex flex-col justify-center"
+        className={`w-full h-full p-1 ${showBorder ? 'border border-slate-300 rounded-sm' : ''} bg-white overflow-hidden flex flex-col justify-center`}
         style={{ fontSize }}
       >
         {showLabel && (
-          <div className="font-bold text-[0.8em] text-slate-700 uppercase tracking-wider mb-0.5 border-b border-slate-200 pb-0.5">
+          <div className={`font-bold text-[0.8em] text-slate-700 uppercase tracking-wider mb-0.5 ${showBorder ? 'border-b border-slate-200' : ''} pb-0.5`}>
             Vital Signs
           </div>
         )}
@@ -245,6 +259,7 @@ const SharedPrescriptionRenderer = forwardRef(function SharedPrescriptionRendere
   const renderNodeContent = (key, node) => {
     const fontSize = getFontSizeMm(node?.font_size || 'md');
     const showLabel = node?.show_label !== false;
+    const showBorder = node?.show_border !== false;
 
     switch (key) {
       case 'patient_unified': {
@@ -255,7 +270,7 @@ const SharedPrescriptionRenderer = forwardRef(function SharedPrescriptionRendere
 
         return (
           <div
-            className="w-full h-full flex items-center justify-between border-b border-black pb-1 px-1 bg-white select-none"
+            className={`w-full h-full flex items-center justify-between ${showBorder ? 'border-b border-black' : ''} pb-1 px-1 bg-white select-none`}
             style={{ fontSize }}
           >
             <div>{showLabel && <span className="font-bold text-slate-600">Patient: </span>}<strong>{patientName}</strong></div>
@@ -310,7 +325,7 @@ const SharedPrescriptionRenderer = forwardRef(function SharedPrescriptionRendere
         return renderVitalsBlock(node);
 
       case 'refraction_block':
-        return renderEyeRefractionTable(node?.font_size || 'sm');
+        return renderEyeRefractionTable(node?.font_size || 'sm', showBorder);
 
       case 'diagnosis_block': {
         const diagText = Array.isArray(activeDiagnoses)
@@ -318,7 +333,7 @@ const SharedPrescriptionRenderer = forwardRef(function SharedPrescriptionRendere
           : activeDiagnoses;
 
         return (
-          <div className="w-full h-full flex flex-col justify-center px-1.5 border-l-2 border-black pl-2 select-none" style={{ fontSize }}>
+          <div className={`w-full h-full flex flex-col justify-center px-1.5 ${showBorder ? 'border-l-2 border-black pl-2' : 'pl-1'} select-none`} style={{ fontSize }}>
             {showLabel && <div className="text-[0.75em] font-bold text-slate-600 uppercase">Diagnosis</div>}
             <div className="font-bold text-slate-900">{diagText}</div>
           </div>
@@ -327,7 +342,7 @@ const SharedPrescriptionRenderer = forwardRef(function SharedPrescriptionRendere
 
       case 'medications_block':
         return (
-          <div className="w-full h-full p-2 border border-black/30 rounded-sm bg-white overflow-hidden flex flex-col select-none" style={{ fontSize }}>
+          <div className={`w-full h-full p-2 ${showBorder ? 'border border-black/30 rounded-sm' : ''} bg-white overflow-hidden flex flex-col select-none`} style={{ fontSize }}>
             <div className="flex items-center gap-2 pb-1 mb-1 border-b border-black">
               <span className="text-[1.4em] font-serif font-black">℞</span>
               {showLabel && <span className="font-bold text-[0.85em] tracking-wide uppercase">Medications &amp; Directions</span>}
@@ -349,7 +364,7 @@ const SharedPrescriptionRenderer = forwardRef(function SharedPrescriptionRendere
 
       case 'advice_block':
         return (
-          <div className="w-full h-full p-1.5 border border-slate-300 rounded-sm bg-white overflow-hidden flex flex-col justify-center select-none" style={{ fontSize }}>
+          <div className={`w-full h-full p-1.5 ${showBorder ? 'border border-slate-300 rounded-sm' : ''} bg-white overflow-hidden flex flex-col justify-center select-none`} style={{ fontSize }}>
             {showLabel && <div className="text-[0.75em] font-bold text-slate-600 uppercase mb-0.5">Instructions &amp; Follow-Up</div>}
             <div className="text-[0.85em] leading-tight text-slate-800 line-clamp-2">{activeAdvice}</div>
             {activeFollowUp && <div className="text-[0.8em] font-bold mt-1 text-slate-900">Next Visit: {activeFollowUp}</div>}
@@ -359,7 +374,7 @@ const SharedPrescriptionRenderer = forwardRef(function SharedPrescriptionRendere
       case 'qr_block': {
         const qrUrl = `https://verify.clinic/rx/${activeEncounter?.prescription_code || 'DEMO'}`;
         return (
-          <div className="w-full h-full flex flex-col items-center justify-center p-1 text-center bg-white border border-slate-200 select-none">
+          <div className={`w-full h-full flex flex-col items-center justify-center p-1 text-center bg-white ${showBorder ? 'border border-slate-200' : ''} select-none`}>
             <VectorQrCode value={qrUrl} size={42} color="#000000" />
             <span className="text-[7px] font-mono font-bold mt-0.5 text-black">VERIFIED</span>
           </div>
@@ -385,7 +400,7 @@ const SharedPrescriptionRenderer = forwardRef(function SharedPrescriptionRendere
 
           const meta = getNodeMetadata(key);
           return (
-            <div className="w-full h-full flex items-center px-1 border border-slate-300 rounded-xs bg-white overflow-hidden select-none" style={{ fontSize }}>
+            <div className={`w-full h-full flex items-center px-1 ${showBorder ? 'border border-slate-300 rounded-xs' : ''} bg-white overflow-hidden select-none`} style={{ fontSize }}>
               {showLabel && <span className="font-bold text-slate-600 mr-1 shrink-0">{node?.label || meta.title.replace('Eye Refraction: ', '')}:</span>}
               <span className="font-mono font-bold text-black truncate">{val}</span>
             </div>
@@ -398,7 +413,7 @@ const SharedPrescriptionRenderer = forwardRef(function SharedPrescriptionRendere
         const itemVal = activeVitals?.[key] || '---';
 
         return (
-          <div className="w-full h-full flex items-center px-1 border border-slate-200 rounded-xs bg-white overflow-hidden select-none" style={{ fontSize }}>
+          <div className={`w-full h-full flex items-center px-1 ${showBorder ? 'border border-slate-200 rounded-xs' : ''} bg-white overflow-hidden select-none`} style={{ fontSize }}>
             {showLabel && <span className="font-bold text-slate-600 mr-1 shrink-0">{meta.label || meta.title}:</span>}
             <span className="font-mono font-bold text-black truncate">{itemVal}</span>
             {showUnit && meta.unit && <span className="text-[0.8em] text-slate-500 ml-0.5 shrink-0">{meta.unit}</span>}
@@ -596,7 +611,7 @@ const SharedPrescriptionRenderer = forwardRef(function SharedPrescriptionRendere
         >
           {/* Header Section (Built-in mode) */}
           {mode === 'builtin' && (
-            <div className="border-b-2 border-black pb-2 mb-3">
+            <div className={`${showBorders ? 'border-b-2 border-black' : ''} pb-2 mb-3`}>
               <div className="flex justify-between items-start">
                 <div className="text-left" dir="ltr">
                   <h1 className="text-[1.25em] font-black m-0 text-black">{settings.header_data?.title || activeDoctor.name}</h1>
@@ -614,7 +629,7 @@ const SharedPrescriptionRenderer = forwardRef(function SharedPrescriptionRendere
           )}
 
           {/* Patient Unified Meta Bar */}
-          <div className="border-b border-black pb-1.5 mb-3 flex items-center justify-between text-[0.85em] bg-white">
+          <div className={`${showBorders ? 'border-b border-black' : ''} pb-1.5 mb-3 flex items-center justify-between text-[0.85em] bg-white`}>
             <div><span className="font-bold text-slate-700">Patient: </span><span className="font-bold">{activePatient.name || activePatient.full_name}</span></div>
             <div><span className="font-bold text-slate-700">Age: </span><span>{activePatient.age}</span></div>
             <div><span className="font-bold text-slate-700">Date: </span><span className="font-mono">{activeEncounter.date || new Date().toISOString().slice(0, 10)}</span></div>
@@ -630,24 +645,24 @@ const SharedPrescriptionRenderer = forwardRef(function SharedPrescriptionRendere
               <div className="flex-1 grid grid-cols-12 gap-4 overflow-hidden">
                 <div className="col-span-5 flex flex-col space-y-3 overflow-hidden">
                   {settings.show_vitals !== false && activeVitalsList.length > 0 && (
-                    renderVitalsBlock({ font_size: 'sm', vitals_direction: 'vertical' })
+                    renderVitalsBlock({ font_size: 'sm', vitals_direction: 'vertical', show_border: showBorders })
                   )}
 
                   {isRefractionEnabled && (
                     <div className="overflow-hidden">
-                      {renderEyeRefractionTable('xs')}
+                      {renderEyeRefractionTable('xs', showBorders)}
                     </div>
                   )}
 
                   {settings.show_diagnosis !== false && activeDiagnoses.length > 0 && (
-                    <div className="border-l-2 border-black pl-2 py-1">
+                    <div className={`${showBorders ? 'border-l-2 border-black pl-2' : 'pl-1'} py-1`}>
                       <div className="text-[0.75em] font-bold text-slate-600 uppercase">Diagnosis</div>
                       <div className="font-bold text-[0.85em]">{activeDiagnoses.join(' • ')}</div>
                     </div>
                   )}
                 </div>
 
-                <div className="col-span-7 flex flex-col border border-black p-3 rounded-sm overflow-hidden">
+                <div className={`col-span-7 flex flex-col ${showBorders ? 'border border-black' : ''} p-3 rounded-sm overflow-hidden`}>
                   <div className="flex items-center gap-2 pb-1 mb-2 border-b border-black">
                     <span className="text-[1.4em] font-serif font-black">℞</span>
                     <span className="font-bold text-[0.85em] uppercase tracking-wide">Medications &amp; Directions</span>
@@ -666,7 +681,7 @@ const SharedPrescriptionRenderer = forwardRef(function SharedPrescriptionRendere
               /* Stacked Layout: Full-Width Vitals Bar & Refraction, followed by Full-Width Medications Rx */
               <div className="flex-1 flex flex-col space-y-3 overflow-hidden">
                 {settings.show_vitals !== false && activeVitalsList.length > 0 && (
-                  <div className="border border-slate-300 p-2 rounded-sm flex items-center justify-start gap-4 flex-wrap bg-white">
+                  <div className={`${showBorders ? 'border border-slate-300' : ''} p-2 rounded-sm flex items-center justify-start gap-4 flex-wrap bg-white`}>
                     <span className="font-bold text-[0.8em] uppercase tracking-wider text-slate-600">Vitals:</span>
                     {activeVitalsList.map((item) => (
                       <div key={item.key} className="font-mono text-[0.85em]">
@@ -678,17 +693,17 @@ const SharedPrescriptionRenderer = forwardRef(function SharedPrescriptionRendere
                 )}
 
                 {isRefractionEnabled && (
-                  <div>{renderEyeRefractionTable('sm')}</div>
+                  <div>{renderEyeRefractionTable('sm', showBorders)}</div>
                 )}
 
                 {settings.show_diagnosis !== false && activeDiagnoses.length > 0 && (
-                  <div className="border-l-2 border-black pl-2 py-0.5">
+                  <div className={`${showBorders ? 'border-l-2 border-black pl-2' : 'pl-1'} py-0.5`}>
                     <span className="font-bold text-slate-600 text-[0.8em] mr-2">Diagnosis:</span>
                     <span className="font-bold">{activeDiagnoses.join(' • ')}</span>
                   </div>
                 )}
 
-                <div className="flex-1 border border-black p-3 rounded-sm flex flex-col overflow-hidden">
+                <div className={`flex-1 ${showBorders ? 'border border-black' : ''} p-3 rounded-sm flex flex-col overflow-hidden`}>
                   <div className="flex items-center gap-2 pb-1 mb-2 border-b border-black">
                     <span className="text-[1.4em] font-serif font-black">℞</span>
                     <span className="font-bold text-[0.85em] uppercase tracking-wide">Medications &amp; Directions</span>
@@ -707,7 +722,7 @@ const SharedPrescriptionRenderer = forwardRef(function SharedPrescriptionRendere
           </div>
 
           {/* Footer Section */}
-          <div className="mt-3 pt-2 border-t border-black flex justify-between items-end text-[0.8em]">
+          <div className={`mt-3 pt-2 ${showBorders ? 'border-t border-black' : ''} flex justify-between items-end text-[0.8em]`}>
             <div className="max-w-[75%]">
               <div className="font-bold text-slate-800">Advice: <span className="font-normal">{activeAdvice}</span></div>
               {activeFollowUp && <div className="font-bold text-slate-900 mt-0.5">Next Appointment: {activeFollowUp}</div>}

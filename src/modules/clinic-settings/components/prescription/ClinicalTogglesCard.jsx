@@ -1,6 +1,6 @@
 import React from 'react';
 import { ToggleLeft, ToggleRight } from 'lucide-react';
-import { CLINICAL_TOGGLES } from '../../constants/prescriptionConstants';
+import { CLINICAL_TOGGLES } from '../../constants/templateOptions';
 
 export default function ClinicalTogglesCard({
   settings = {},

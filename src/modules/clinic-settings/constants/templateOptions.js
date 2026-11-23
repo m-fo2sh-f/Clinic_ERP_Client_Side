@@ -12,6 +12,7 @@ import {
   Contrast,
   Printer,
   Glasses,
+  Square,
 } from 'lucide-react';
 
 /**
@@ -114,6 +115,12 @@ export const CLINICAL_TOGGLES = [
     label: 'OD/OS Eye Refraction Card',
     desc: 'Include the standard clinical eye examination table (SPH, CYL, AXIS, VA, IOP, PD, ADD).',
     icon: Glasses,
+  },
+  {
+    key: 'show_borders',
+    label: 'Section Outline Borders',
+    desc: 'Show outer boxed borders around medications, vitals, and diagnostic sections (disable for clean borderless minimalist look).',
+    icon: Square,
   },
   {
     key: 'show_qr',

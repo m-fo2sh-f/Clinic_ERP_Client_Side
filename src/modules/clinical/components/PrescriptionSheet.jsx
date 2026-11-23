@@ -42,6 +42,7 @@ export default function PrescriptionSheet({
   vitals = {},
   diagnoses = [],
   encounter = {},
+  vitalsConfig = null,
   onOpenHistory,
 }) {
   const { settings: templateSettings } = usePrescriptionTemplate(branchId, doctorId);
@@ -53,6 +54,8 @@ export default function PrescriptionSheet({
     ...(templateSettings || {}),
     ...(fontSizeOverride ? { font_size: fontSizeOverride } : {}),
   };
+
+  const effectiveVitalsConfig = vitalsConfig || settings?.vitals_config;
 
   const [isPreviewOpen, setIsPreviewOpen] = useState(false);
   const [isCompleteModalOpen, setIsCompleteModalOpen] = useState(false);
@@ -460,7 +463,7 @@ export default function PrescriptionSheet({
         <PrescriptionPrintWrapper
           ref={printComponentRef}
           settings={settings}
-          vitalsConfig={settings?.vitals_config}
+          vitalsConfig={effectiveVitalsConfig}
           patient={activePatient}
           doctor={{ name: effectiveDoctorName, title: settings?.doctor_title }}
           branch={{ name: effectiveBranchName }}
@@ -512,7 +515,7 @@ export default function PrescriptionSheet({
             <div className="flex-1 overflow-y-auto p-8 bg-slate-300/80 flex justify-center items-start">
               <PrescriptionPrintWrapper
                 settings={settings}
-                vitalsConfig={settings?.vitals_config}
+                vitalsConfig={effectiveVitalsConfig}
                 patient={activePatient}
                 doctor={{ name: effectiveDoctorName, title: settings?.doctor_title }}
                 branch={{ name: effectiveBranchName }}
