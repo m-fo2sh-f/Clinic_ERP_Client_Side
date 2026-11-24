@@ -108,15 +108,15 @@ export default function DoctorBillableServices({
     <div className="bg-white rounded-2xl border border-slate-200/90 shadow-sm p-5 space-y-4" dir="ltr">
       {/* Header */}
       <div className="flex items-center justify-between border-b border-slate-100 pb-3 flex-wrap gap-2">
-        <div className="flex items-center gap-2.5">
-          <div className="p-2 bg-clinic-50 text-clinic-600 rounded-xl border border-clinic-100">
+        <div className="flex items-center gap-2.5 min-w-0">
+          <div className="p-2 bg-clinic-50 text-clinic-600 rounded-xl border border-clinic-100 shrink-0">
             <Receipt className="h-5 w-5" />
           </div>
-          <div>
-            <h4 className="font-bold text-sm text-slate-900 m-0">
+          <div className="min-w-0">
+            <h4 className="font-bold text-sm text-slate-900 m-0 truncate">
               Extra Billable Services & Procedures
             </h4>
-            <p className="text-xs text-slate-400 m-0 mt-0.5">
+            <p className="text-xs text-slate-400 m-0 mt-0.5 line-clamp-2">
               Add attached procedures (e.g. ECG, Ultrasound) to be billed automatically on the patient invoice
             </p>
           </div>

@@ -137,11 +137,11 @@ export default function LiveQueue({ onPaymentSuccess, onOpenPayments }) {
           </div>
         </div>
 
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-2 flex-wrap sm:flex-nowrap">
           <select
             value={selectedDoctorId}
             onChange={(e) => setSelectedDoctorId(e.target.value)}
-            className="text-xs bg-white border border-slate-200 rounded-lg px-2.5 py-1.5 text-slate-700 font-semibold focus:outline-none focus:ring-1 focus:ring-clinic-500 cursor-pointer shadow-2xs"
+            className="text-xs bg-white border border-slate-200 rounded-lg px-2.5 py-1.5 text-slate-700 font-semibold focus:outline-none focus:ring-1 focus:ring-clinic-500 cursor-pointer shadow-2xs max-w-[130px] sm:max-w-[180px] truncate"
           >
             <option value="">جميع الأطباء</option>
             {branchDoctors.map((doc) => (
@@ -152,12 +152,12 @@ export default function LiveQueue({ onPaymentSuccess, onOpenPayments }) {
           </select>
           <button
             onClick={() => refetch()}
-            className="p-1.5 text-slate-400 hover:text-slate-600 hover:bg-slate-100 rounded-lg transition-colors cursor-pointer"
+            className="p-1.5 text-slate-400 hover:text-slate-600 hover:bg-slate-100 rounded-lg transition-colors cursor-pointer shrink-0"
             title="تحديث القائمة"
           >
             <RefreshCw className="h-4 w-4" />
           </button>
-          <Badge variant="success" className="px-2 py-0.5 text-xs font-bold text-emerald-800 bg-emerald-100">
+          <Badge variant="success" className="px-2 py-0.5 text-xs font-bold text-emerald-800 bg-emerald-100 shrink-0">
             {queue.length} بالصالة
           </Badge>
         </div>
@@ -207,7 +207,7 @@ export default function LiveQueue({ onPaymentSuccess, onOpenPayments }) {
             return (
               <div
                 key={item.id}
-                className={`p-3.5 rounded-xl border transition-all duration-200 flex flex-col sm:flex-row sm:items-center justify-between gap-3 ${
+                className={`p-3 sm:p-3.5 rounded-xl border transition-all duration-200 flex flex-col gap-2.5 ${
                   isUnderExam
                     ? 'border-amber-300 bg-amber-50/30 shadow-xs ring-1 ring-amber-200/50'
                     : isPendingPayment
@@ -215,12 +215,12 @@ export default function LiveQueue({ onPaymentSuccess, onOpenPayments }) {
                     : 'border-slate-200 bg-white hover:border-slate-300 hover:shadow-2xs'
                 }`}
               >
-                {/* Patient Information & Queue Badge */}
-                <div className="flex items-center gap-3 min-w-0 flex-1">
+                {/* Top: Queue Number Badge + Patient Details */}
+                <div className="flex items-start gap-2.5 min-w-0">
                   {/* Queue Number Badge & Order Controls */}
-                  <div className="flex items-center gap-1.5 shrink-0">
+                  <div className="flex items-center gap-1 shrink-0">
                     <div
-                      className={`flex items-center justify-center h-11 w-11 rounded-xl font-black text-sm shadow-2xs ${
+                      className={`flex items-center justify-center h-10 w-10 sm:h-11 sm:w-11 rounded-xl font-black text-xs sm:text-sm shadow-2xs shrink-0 ${
                         isUnderExam
                           ? 'bg-amber-600 text-white'
                           : isPendingPayment
@@ -233,7 +233,7 @@ export default function LiveQueue({ onPaymentSuccess, onOpenPayments }) {
 
                     {/* Stepper Buttons for Queue Order (Waiting only) */}
                     {isWaiting && (
-                      <div className="flex flex-col gap-0.5">
+                      <div className="flex flex-col gap-0.5 shrink-0">
                         <button
                           type="button"
                           onClick={() => handleMoveWaiting(item.id, 'up')}
@@ -258,12 +258,12 @@ export default function LiveQueue({ onPaymentSuccess, onOpenPayments }) {
 
                   {/* Patient Details */}
                   <div className="flex-1 min-w-0">
-                    <div className="flex items-center gap-2 flex-wrap">
-                      <h4 className="font-bold text-slate-900 text-sm truncate m-0" title={item.patient?.name}>
+                    <div className="flex items-center gap-1.5 flex-wrap">
+                      <h4 className="font-bold text-slate-900 text-sm truncate m-0 max-w-[180px] sm:max-w-none" title={item.patient?.name}>
                         {item.patient?.name || 'مريض غير مسجل'}
                       </h4>
                       {item.patient?.medical_number && (
-                        <span className="text-[10px] font-mono bg-slate-100 text-slate-600 border border-slate-200 px-1.5 py-0.5 rounded font-bold">
+                        <span className="text-[10px] font-mono bg-slate-100 text-slate-600 border border-slate-200 px-1.5 py-0.2 rounded font-bold shrink-0">
                           {item.patient.medical_number}
                         </span>
                       )}
@@ -272,19 +272,19 @@ export default function LiveQueue({ onPaymentSuccess, onOpenPayments }) {
                     {/* Badges: Status & Doctor */}
                     <div className="flex items-center gap-1.5 mt-1 flex-wrap">
                       <span
-                        className={`text-[10px] font-bold px-2 py-0.5 rounded-full border ${badgeConfig.className}`}
+                        className={`text-[10px] font-bold px-2 py-0.5 rounded-full border shrink-0 ${badgeConfig.className}`}
                       >
                         {badgeConfig.label}
                       </span>
 
                       {(item.doctor?.name || item.appointment?.doctor?.name) && (
-                        <span className="text-[10px] bg-blue-50 text-blue-700 font-semibold px-1.5 py-0.5 rounded border border-blue-200/60 truncate max-w-[140px]">
+                        <span className="text-[10px] bg-blue-50 text-blue-700 font-semibold px-1.5 py-0.5 rounded border border-blue-200/60 truncate max-w-[130px] sm:max-w-[160px] shrink-0">
                           👨‍⚕️ {item.doctor?.name || item.appointment?.doctor?.name}
                         </span>
                       )}
 
                       {item.checked_in_at && (
-                        <span className="flex items-center gap-1 text-[10px] text-slate-400 font-medium">
+                        <span className="flex items-center gap-1 text-[10px] text-slate-400 font-medium shrink-0">
                           <Clock className="h-3 w-3 shrink-0" />
                           {item.checked_in_at}
                         </span>
@@ -293,16 +293,16 @@ export default function LiveQueue({ onPaymentSuccess, onOpenPayments }) {
                   </div>
                 </div>
 
-                {/* Actions Section: Strict Medical Workflow */}
-                <div className="flex items-center gap-2 shrink-0">
+                {/* Bottom: Action Toolbar */}
+                <div className="border-t border-slate-100/80 pt-2 flex items-center justify-between gap-2">
                   {/* Status Indicator / Actions */}
                   {isUnderExam ? (
-                    <div className="flex items-center justify-center gap-1.5 py-1.5 px-3 bg-amber-50 text-amber-800 border border-amber-200 rounded-lg text-xs font-semibold">
+                    <div className="flex items-center gap-1.5 py-1 px-2.5 bg-amber-50 text-amber-800 border border-amber-200 rounded-lg text-xs font-semibold">
                       <span className="relative flex h-2 w-2">
                         <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-amber-400 opacity-75"></span>
                         <span className="relative inline-flex rounded-full h-2 w-2 bg-amber-500"></span>
                       </span>
-                      <span>الكشف جاري مع الطبيب</span>
+                      <span>الكشف جاري</span>
                     </div>
                   ) : isPendingPayment ? (
                     <Button
@@ -310,19 +310,18 @@ export default function LiveQueue({ onPaymentSuccess, onOpenPayments }) {
                       size="sm"
                       onClick={() => (onOpenPayments ? onOpenPayments() : onPaymentSuccess?.())}
                       leftIcon={<Receipt className="h-3.5 w-3.5 text-white shrink-0" />}
-                      className="bg-purple-600 hover:bg-purple-700 text-white text-xs font-bold px-3 py-1.5 rounded-lg shadow-2xs cursor-pointer"
+                      className="bg-purple-600 hover:bg-purple-700 text-white text-xs font-bold px-2.5 py-1 rounded-lg shadow-2xs cursor-pointer h-7"
                     >
                       <span>تحصيل الفاتورة</span>
                     </Button>
                   ) : (
-                    /* Waiting Patient Actions: Cancel / Left ONLY (NO Start Exam!) */
                     <Button
                       variant="ghost"
                       size="sm"
                       onClick={() => setCancellingItem(item)}
                       disabled={cancelQueueMutation.isPending}
                       leftIcon={<UserX className="h-3.5 w-3.5 text-rose-600 shrink-0" />}
-                      className="h-8 px-2.5 text-xs border border-rose-200 text-rose-700 hover:bg-rose-50 font-medium rounded-lg transition-colors cursor-pointer"
+                      className="h-7 px-2 text-xs border border-rose-200 text-rose-700 hover:bg-rose-50 font-medium rounded-lg transition-colors cursor-pointer"
                       title="انصراف المريض دون كشف"
                     >
                       <span>انصراف</span>
@@ -335,7 +334,7 @@ export default function LiveQueue({ onPaymentSuccess, onOpenPayments }) {
                     size="sm"
                     onClick={() => setServicesModalQueueItem(item)}
                     leftIcon={<Plus className="h-3.5 w-3.5 text-emerald-600 shrink-0" />}
-                    className="text-xs font-semibold h-8 px-2.5 bg-emerald-50/60 hover:bg-emerald-100 text-emerald-800 border-emerald-200/80 shadow-2xs whitespace-nowrap cursor-pointer"
+                    className="text-xs font-semibold h-7 px-2.5 bg-emerald-50/60 hover:bg-emerald-100 text-emerald-800 border-emerald-200/80 shadow-2xs whitespace-nowrap cursor-pointer ml-auto"
                     title="إضافة خدمات أو إجراءات إضافية"
                   >
                     <span>خدمات</span>

@@ -28,13 +28,13 @@ export default function EyeRefractionForm({
   };
 
   return (
-    <div className="p-4 rounded-xl border border-sky-200 bg-sky-50/40 space-y-3" dir="rtl">
-      <div className="flex items-center justify-between">
+    <div className="p-3 sm:p-4 rounded-xl border border-sky-200 bg-sky-50/40 space-y-3" dir="rtl">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
         <h4 className="text-xs font-bold uppercase tracking-wider text-sky-900 m-0 flex items-center gap-1.5">
           <Eye className="h-4 w-4 text-sky-600 shrink-0" />
           <span>قياس وفحص النظر وانكسار العين (OD / OS Refraction)</span>
         </h4>
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-2 self-start sm:self-auto">
           <label className="text-[11px] font-semibold text-slate-600">المسافة بين البؤبؤين (PD):</label>
           <input
             type="text"
@@ -46,8 +46,8 @@ export default function EyeRefractionForm({
         </div>
       </div>
 
-      <div className="overflow-x-auto">
-        <table className="w-full text-xs text-center border-collapse bg-white rounded-lg overflow-hidden border border-sky-200">
+      <div className="overflow-x-auto -mx-1 sm:mx-0">
+        <table className="min-w-[560px] w-full text-xs text-center border-collapse bg-white rounded-lg overflow-hidden border border-sky-200">
           <thead>
             <tr className="bg-sky-100/70 text-sky-900 font-bold border-b border-sky-200">
               <th className="py-1.5 px-2">العين</th>

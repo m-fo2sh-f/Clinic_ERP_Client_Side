@@ -1,7 +1,7 @@
 import React, { useEffect } from 'react';
 import { X } from 'lucide-react';
 
-export const Dialog = ({ isOpen, onClose, children }) => {
+export const Dialog = ({ isOpen, onClose, children, className = '' }) => {
   // Prevent body scrolling when dialog is open
   useEffect(() => {
     if (isOpen) {
@@ -17,14 +17,14 @@ export const Dialog = ({ isOpen, onClose, children }) => {
   if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center overflow-y-auto">
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-6 overflow-y-auto">
       {/* Backdrop */}
       <div 
         className="fixed inset-0 bg-slate-900/50 backdrop-blur-xs transition-opacity duration-300"
         onClick={onClose}
       />
       {/* Modal Contents */}
-      <div className="relative z-50 w-full max-w-lg scale-100 rounded-xl bg-white p-6 shadow-2xl border border-slate-200/80 transition-all m-4 hover:shadow-clinic-100/50">
+      <div className={`relative z-50 w-full max-w-lg max-h-[92vh] flex flex-col scale-100 rounded-2xl bg-white p-4 sm:p-6 shadow-2xl border border-slate-200/80 transition-all overflow-y-auto ${className}`}>
         {children}
       </div>
     </div>

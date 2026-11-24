@@ -7,7 +7,7 @@ import { useBranchContext } from '../../../context/BranchContext';
 import { useCreateAppointmentMutation } from '../../appointments/hooks/useAppointments';
 import { useWalkInMutation } from '../hooks/useQueue';
 
-export default function QuickActions({ stats = { total: 0, checkedIn: 0, remaining: 0 }, patients = [] }) {
+export default function QuickActions({ stats = { total: 0, checkedIn: 0, remaining: 0 }, _patients = [] }) {
   const { selectedBranchId, activeBranch } = useBranchContext();
   const branchId = selectedBranchId || activeBranch?.id;
 

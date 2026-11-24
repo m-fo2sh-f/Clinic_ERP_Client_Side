@@ -2,7 +2,6 @@ import React from 'react';
 import {
   Stethoscope,
   ChevronRight,
-  Loader2,
   Siren,
   ClipboardList,
 } from 'lucide-react';
@@ -41,7 +40,7 @@ export default function EmptyDoctorState({
           to invite the next waiting patient into your examination room and open
           their clinical medical record.
         </p>
-        <div className="flex items-center gap-3">
+        <div className="flex flex-col sm:flex-row items-center gap-3 w-full sm:w-auto">
           <Button
             variant="default"
             size="md"
@@ -50,7 +49,7 @@ export default function EmptyDoctorState({
             loadingText="Calling Next Patient..."
             leftIcon={<Siren className="h-4 w-4" />}
             rightIcon={<ChevronRight className="h-4 w-4" />}
-            className="bg-clinic-600 hover:bg-clinic-700 text-white font-bold px-6 py-2.5 shadow-md cursor-pointer"
+            className="w-full sm:w-auto bg-clinic-600 hover:bg-clinic-700 text-white font-bold px-6 py-2.5 shadow-md cursor-pointer justify-center"
           >
             <span>Call Next Patient</span>
           </Button>
@@ -58,7 +57,7 @@ export default function EmptyDoctorState({
             variant="outline"
             size="md"
             onClick={onOpenQueue}
-            className="border-slate-300 text-slate-700 hover:bg-slate-50 font-semibold gap-2"
+            className="w-full sm:w-auto border-slate-300 text-slate-700 hover:bg-slate-50 font-semibold gap-2 justify-center"
           >
             <ClipboardList className="h-4 w-4" />
             <span>View Queue ({waitingCount})</span>

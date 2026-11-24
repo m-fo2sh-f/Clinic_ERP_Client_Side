@@ -71,31 +71,31 @@ export default function PatientsPage() {
       </div>
 
       {/* ─── STATS SUMMARY WIDGETS ─── */}
-      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-        <div className="bg-white p-5 rounded-xl border border-slate-200/80 shadow-xs relative overflow-hidden">
-          <div className="absolute top-0 right-0 p-3.5 bg-clinic-50 text-clinic-600 rounded-bl-xl">
-            <Users className="h-5 w-5" />
+      <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 sm:gap-4">
+        <div className="bg-white p-4 sm:p-5 rounded-xl border border-slate-200/80 shadow-xs relative overflow-hidden">
+          <div className="absolute top-0 right-0 p-3 sm:p-3.5 bg-clinic-50 text-clinic-600 rounded-bl-xl">
+            <Users className="h-4.5 w-4.5 sm:h-5 sm:w-5" />
           </div>
           <p className="text-xs font-bold text-slate-400 uppercase tracking-wider">Registered Patients</p>
-          <p className="text-3xl font-extrabold text-slate-900 mt-2">{patients.length}</p>
+          <p className="text-2xl sm:text-3xl font-extrabold text-slate-900 mt-1.5 sm:mt-2">{patients.length}</p>
           <p className="text-xs text-slate-500 mt-1 font-medium">Recorded in active branch directory</p>
         </div>
 
-        <div className="bg-white p-5 rounded-xl border border-slate-200/80 shadow-xs relative overflow-hidden">
-          <div className="absolute top-0 right-0 p-3.5 bg-emerald-50 text-emerald-600 rounded-bl-xl">
-            <UserCheck className="h-5 w-5" />
+        <div className="bg-white p-4 sm:p-5 rounded-xl border border-slate-200/80 shadow-xs relative overflow-hidden">
+          <div className="absolute top-0 right-0 p-3 sm:p-3.5 bg-emerald-50 text-emerald-600 rounded-bl-xl">
+            <UserCheck className="h-4.5 w-4.5 sm:h-5 sm:w-5" />
           </div>
           <p className="text-xs font-bold text-slate-400 uppercase tracking-wider">Completed Consultations</p>
-          <p className="text-3xl font-extrabold text-slate-900 mt-2">{totalCompletedVisits}</p>
+          <p className="text-2xl sm:text-3xl font-extrabold text-slate-900 mt-1.5 sm:mt-2">{totalCompletedVisits}</p>
           <p className="text-xs text-emerald-600 font-medium">Finished clinical examinations</p>
         </div>
 
-        <div className="bg-white p-5 rounded-xl border border-slate-200/80 shadow-xs relative overflow-hidden">
-          <div className="absolute top-0 right-0 p-3.5 bg-indigo-50 text-indigo-600 rounded-bl-xl">
-            <Sparkles className="h-5 w-5" />
+        <div className="bg-white p-4 sm:p-5 rounded-xl border border-slate-200/80 shadow-xs relative overflow-hidden">
+          <div className="absolute top-0 right-0 p-3 sm:p-3.5 bg-indigo-50 text-indigo-600 rounded-bl-xl">
+            <Sparkles className="h-4.5 w-4.5 sm:h-5 sm:w-5" />
           </div>
           <p className="text-xs font-bold text-slate-400 uppercase tracking-wider">Active Search Query</p>
-          <p className="text-lg font-bold text-slate-800 mt-2 truncate">
+          <p className="text-base sm:text-lg font-bold text-slate-800 mt-1.5 sm:mt-2 truncate">
             {searchQuery ? `"${searchQuery}"` : 'All Patients'}
           </p>
           <p className="text-xs text-slate-500 font-medium">Instant name & phone filter</p>
@@ -103,29 +103,29 @@ export default function PatientsPage() {
       </div>
 
       {/* ─── MAIN PATIENT LIST & SEARCH SECTION ─── */}
-      <Card className="shadow-sm">
-        <CardHeader className="p-5 bg-slate-50/50 border-b border-slate-200/80 flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-4">
-          <CardTitle className="text-base font-bold text-slate-800 flex items-center gap-2">
-            <FileText className="h-5 w-5 text-clinic-600 shrink-0" />
-            Patient Directory List
+      <Card className="shadow-xs">
+        <CardHeader className="p-3.5 sm:p-5 bg-slate-50/50 border-b border-slate-200/80 flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3 sm:gap-4">
+          <CardTitle className="text-sm sm:text-base font-bold text-slate-800 flex items-center gap-2">
+            <FileText className="h-4.5 w-4.5 sm:h-5 sm:w-5 text-clinic-600 shrink-0" />
+            <span>Patient Directory List</span>
           </CardTitle>
 
           {/* Search Box */}
           <div className="relative w-full sm:w-80">
-            <Search className="absolute left-3.5 top-2.5 h-4 w-4 text-slate-400" />
+            <Search className="absolute left-3 top-2.5 h-4 w-4 text-slate-400" />
             <input
               type="text"
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
               placeholder="Search by patient name or phone..."
-              className="w-full pl-10 pr-9 py-2 bg-white border border-slate-200 rounded-lg text-xs font-medium text-slate-900 focus:outline-none focus:ring-2 focus:ring-clinic-500 transition-all"
+              className="w-full pl-9 pr-8 py-1.5 sm:py-2 bg-white border border-slate-200 rounded-lg text-xs font-medium text-slate-900 focus:outline-none focus:ring-2 focus:ring-clinic-500 transition-all"
             />
             {searchQuery && (
               <button
                 onClick={() => setSearchQuery('')}
-                className="absolute right-3 top-2.5 text-slate-400 hover:text-slate-600"
+                className="absolute right-2.5 top-2.5 text-slate-400 hover:text-slate-600"
               >
-                <X className="h-4 w-4" />
+                <X className="h-3.5 w-3.5" />
               </button>
             )}
           </div>
@@ -151,7 +151,7 @@ export default function PatientsPage() {
             </div>
           ) : (
             <div className="overflow-x-auto">
-              <table className="w-full text-left border-collapse">
+              <table className="min-w-[640px] w-full text-left border-collapse">
                 <thead>
                   <tr className="border-b border-slate-200/80 bg-slate-50/80 text-[11px] font-extrabold uppercase tracking-wider text-slate-500">
                     <th className="py-3.5 px-6">Patient Name</th>

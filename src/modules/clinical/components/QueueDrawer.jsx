@@ -42,7 +42,7 @@ export default function QueueDrawer({
       />
 
       {/* Drawer panel */}
-      <aside className="relative w-full max-w-sm bg-white h-full shadow-2xl border-l border-slate-200 flex flex-col z-50 animate-in slide-in-from-right duration-200">
+      <aside className="relative w-full max-w-[88vw] sm:max-w-md bg-white h-full shadow-2xl border-l border-slate-200 flex flex-col z-50 animate-in slide-in-from-right duration-200">
         {/* Header */}
         <div className="p-4 border-b border-slate-200 bg-slate-50/80 flex items-center justify-between">
           <div className="flex items-center gap-2">

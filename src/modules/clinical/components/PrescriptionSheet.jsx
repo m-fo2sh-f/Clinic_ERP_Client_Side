@@ -311,9 +311,9 @@ export default function PrescriptionSheet({
                     </button>
                   </div>
 
-                  <div className="grid grid-cols-1 md:grid-cols-12 gap-3 items-start">
+                  <div className="grid grid-cols-1 lg:grid-cols-12 gap-3 items-start">
                     {/* Field 1: Combobox Drug Name (5 cols) */}
-                    <div className="md:col-span-5">
+                    <div className="lg:col-span-5">
                       <label className="block text-[11px] font-bold text-slate-700 mb-1">
                         اسم الدواء (Drug Name) *
                       </label>
@@ -335,7 +335,7 @@ export default function PrescriptionSheet({
                     </div>
 
                     {/* Field 2: Unified Dosage & Instructions (7 cols) */}
-                    <div className="md:col-span-7 space-y-1.5" dir="rtl">
+                    <div className="lg:col-span-7 space-y-1.5" dir="rtl">
                       <label className="block text-[11px] font-bold text-slate-700 mb-1">
                         الجرعة والتعليمات (Dosage & Instructions) *
                       </label>

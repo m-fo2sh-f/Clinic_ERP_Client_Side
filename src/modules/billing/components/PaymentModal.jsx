@@ -154,25 +154,25 @@ export default function PaymentModal({
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-sm animate-in fade-in">
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 bg-slate-900/60 backdrop-blur-sm animate-in fade-in">
       <div
         className="bg-white rounded-2xl shadow-2xl border border-slate-200 w-full max-w-lg overflow-hidden flex flex-col max-h-[92vh]"
         dir="ltr"
       >
         {/* MODAL HEADER */}
-        <div className="bg-slate-900 text-white px-6 py-4 flex items-center justify-between border-b border-slate-800">
+        <div className="bg-slate-900 text-white px-4 sm:px-6 py-3.5 sm:py-4 flex items-center justify-between border-b border-slate-800">
           <div className="flex items-center gap-3">
             <div className="p-2 bg-emerald-500/20 text-emerald-400 rounded-xl border border-emerald-500/30">
               <Receipt className="h-5 w-5" />
             </div>
             <div>
-              <h3 className="font-bold text-base m-0 flex items-center gap-2">
+              <h3 className="font-bold text-sm sm:text-base m-0 flex items-center gap-2">
                 Collect Patient Payment
-                <span className="text-xs bg-slate-800 px-2 py-0.5 rounded text-slate-300 font-mono border border-slate-700">
+                <span className="text-[11px] sm:text-xs bg-slate-800 px-2 py-0.5 rounded text-slate-300 font-mono border border-slate-700">
                   #{currentInvoice?.invoice_number}
                 </span>
               </h3>
-              <p className="text-xs text-slate-400 mt-0.5 m-0">
+              <p className="text-[11px] sm:text-xs text-slate-400 mt-0.5 m-0">
                 Patient: <strong className="text-white">{currentInvoice?.patient?.name || 'Clinic Patient'}</strong>
               </p>
             </div>
@@ -187,12 +187,12 @@ export default function PaymentModal({
 
         {/* COMPLETED SUCCESS & RECEIPT VIEW */}
         {completedInvoice ? (
-          <div className="p-6 space-y-6 overflow-y-auto">
+          <div className="p-4 sm:p-6 space-y-4 sm:space-y-6 overflow-y-auto">
             <div className="text-center space-y-2">
               <div className="inline-flex p-3 bg-emerald-100 text-emerald-600 rounded-full">
                 <CheckCircle2 className="h-8 w-8" />
               </div>
-              <h4 className="text-lg font-bold text-slate-900 m-0">Payment Collected Successfully!</h4>
+              <h4 className="text-base sm:text-lg font-bold text-slate-900 m-0">Payment Collected Successfully!</h4>
               <p className="text-xs text-slate-500">
                 Appointment marked as completed and transaction recorded.
               </p>
@@ -279,7 +279,7 @@ export default function PaymentModal({
           </div>
         ) : (
           /* PAYMENT & SERVICES FORM */
-          <form onSubmit={handleSubmit} className="p-6 space-y-5 overflow-y-auto">
+          <form onSubmit={handleSubmit} className="p-4 sm:p-6 space-y-4 sm:space-y-5 overflow-y-auto">
             {errorMessage && (
               <div className="p-3 bg-red-50 border border-red-200 rounded-xl text-xs text-red-700 flex items-center gap-2">
                 <AlertCircle className="h-4 w-4 shrink-0 text-red-500" />

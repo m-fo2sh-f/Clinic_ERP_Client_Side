@@ -255,134 +255,137 @@ export default function DashboardLayout({ children }) {
 
       {/* Main Dashboard Area: Dynamically takes all remaining width and slides smoothly */}
       <div className="flex-1 flex flex-col min-w-0 transition-all duration-300 ease-in-out">
-        {/* Header Bar */}
-        <header className="h-16 bg-white border-b border-slate-200/80 px-3 sm:px-6 flex items-center justify-between sticky top-0 z-20 shadow-xs gap-2">
-          {/* Left section: Sidebar toggle + Page identity */}
-          <div className="flex items-center gap-2.5 sm:gap-3 shrink-0">
-            {/* Toggle Button for Push Sidebar */}
-            <button
-              onClick={() => setIsSidebarOpen((prev) => !prev)}
-              className={`p-2 rounded-xl transition-all flex items-center gap-2 cursor-pointer border shadow-xs ${isSidebarOpen
-                ? 'bg-clinic-50 text-clinic-700 border-clinic-200'
-                : 'bg-slate-50/70 text-slate-700 hover:text-clinic-700 hover:bg-clinic-50/80 border-slate-200'
-                }`}
-              title={isSidebarOpen ? 'إخفاء القائمة الجانبية (Collapse)' : 'إظهار القائمة الجانبية (Expand)'}
-            >
-              <Menu className="h-5 w-5 text-clinic-600" />
-              <span className="text-xs font-bold hidden md:inline">
-                {isSidebarOpen ? 'إخفاء القائمة' : 'القائمة'}
-              </span>
-            </button>
-
-            {/* Brand Logo & Name (Shown when sidebar is collapsed) */}
-            {!isSidebarOpen && (
-              <div className="hidden sm:flex items-center gap-2 animate-in fade-in duration-200">
-                <div className="bg-clinic-500 text-white p-1.5 rounded-lg shadow-xs">
-                  <Activity className="h-4.5 w-4.5" />
-                </div>
-                <span className="font-extrabold text-sm text-slate-800 tracking-tight hidden lg:inline">
-                  Healios SaaS
-                </span>
-              </div>
-            )}
-
-            {/* Dynamic Page Title & Subtitle */}
-            {pageHeader && (
-              <div className="border-r border-slate-200 pr-2.5 mr-1 hidden sm:block">
-                <h2 className="text-xs sm:text-sm font-bold text-slate-800 leading-tight m-0">
-                  {pageHeader.title}
-                </h2>
-                <p className="text-[10px] text-slate-400 font-medium leading-tight m-0">
-                  {pageHeader.subtitle}
-                </p>
-              </div>
-            )}
-          </div>
-
-          {/* Middle Section: Page Action Controls (Portaled dynamically from active view) */}
-          <div id="layout-header-actions" className="flex-1 flex items-center justify-end sm:justify-center gap-2 sm:gap-3 px-1 sm:px-3 overflow-x-auto no-scrollbar"></div>
-
-          {/* Right Controls: Branch Switcher & User Profile */}
-          <div className="flex items-center gap-2 sm:gap-3 shrink-0">
-            {/* Branch Switcher Select Header */}
-            <div className="w-36 sm:w-48">
-              <Select
-                value={selectedBranchId || ''}
-                onChange={(e) => {
-                  selectBranch(e.target.value);
-                }}
-                className="py-1.5 pl-2 pr-7 sm:pr-8 border-slate-200 bg-slate-50/50 hover:bg-white text-xs font-bold text-slate-700 cursor-pointer"
-              >
-                {branches.map((b) => (
-                  <option key={b.id} value={b.id}>
-                    {b.name}
-                  </option>
-                ))}
-              </Select>
-            </div>
-
-
-
-            {/* User Profile dropdown */}
-            <div className="relative">
+        {/* Header Bar — Responsive 2-Tier on < lg, Single Unified on lg+ */}
+        <header className="bg-white border-b border-slate-200/80 sticky top-0 z-20 shadow-xs transition-all">
+          <div className="px-3 sm:px-6 py-2.5 lg:py-0 lg:h-16 flex flex-wrap lg:flex-nowrap items-center justify-between gap-y-2 gap-x-2 sm:gap-x-4">
+            {/* Left section: Sidebar toggle + Page identity */}
+            <div className="order-1 flex items-center gap-2 sm:gap-3 shrink-0">
+              {/* Toggle Button for Push Sidebar */}
               <button
-                onClick={() => setIsProfileOpen(!isProfileOpen)}
-                className="flex items-center gap-2 p-1.5 rounded-lg hover:bg-slate-50 text-left transition-colors cursor-pointer"
+                onClick={() => setIsSidebarOpen((prev) => !prev)}
+                className={`p-1.5 sm:p-2 rounded-xl transition-all flex items-center gap-1.5 cursor-pointer border shadow-xs ${isSidebarOpen
+                  ? 'bg-clinic-50 text-clinic-700 border-clinic-200'
+                  : 'bg-slate-50/70 text-slate-700 hover:text-clinic-700 hover:bg-clinic-50/80 border-slate-200'
+                  }`}
+                title={isSidebarOpen ? 'إخفاء القائمة الجانبية (Collapse)' : 'إظهار القائمة الجانبية (Expand)'}
               >
-                <div className="h-8 w-8 rounded-full bg-clinic-100 border border-clinic-250 flex items-center justify-center font-bold text-clinic-700 text-xs">
-                  {currentUser.name
-                    ? currentUser.name
-                      .split(' ')
-                      .map((n) => n[0])
-                      .join('')
-                      .substring(0, 2)
-                      .toUpperCase()
-                    : 'US'}
-                </div>
-                <div className="hidden lg:block">
-                  <p className="text-xs font-bold text-slate-800 leading-none">{currentUser.name}</p>
-                  <p className="text-[10px] text-slate-450 mt-0.5 leading-none capitalize">
-                    {userRolesDisplay}
-                  </p>
-                </div>
-                <ChevronDown className="h-3.5 w-3.5 text-slate-400 hidden sm:block" />
+                <Menu className="h-4.5 w-4.5 sm:h-5 sm:w-5 text-clinic-600" />
+                <span className="text-xs font-bold hidden md:inline">
+                  {isSidebarOpen ? 'إخفاء القائمة' : 'القائمة'}
+                </span>
               </button>
 
-              {/* Profile Card Overlay */}
-              {isProfileOpen && (
-                <>
-                  <div className="fixed inset-0 z-40" onClick={() => setIsProfileOpen(false)} />
-                  <div className="absolute right-0 mt-2.5 w-64 bg-white border border-slate-200 rounded-xl shadow-xl z-50 p-4 animate-in fade-in slide-in-from-top-2 duration-150">
-                    <div className="border-b border-slate-100 pb-3 mb-3">
-                      <p className="text-sm font-bold text-slate-900">{currentUser.name}</p>
-                      <p className="text-xs text-slate-450">{currentUser.email}</p>
-                      <p className="text-[10px] text-clinic-700 font-bold bg-clinic-50 w-fit px-2 py-0.5 rounded mt-1.5 uppercase">
-                        {userRolesDisplay}
-                      </p>
-                    </div>
-                    <div className="space-y-1">
-                      <button
-                        onClick={() => {
-                          setIsProfileOpen(false);
-                          navigate('/settings');
-                        }}
-                        className="w-full text-left text-xs font-medium text-slate-600 hover:bg-slate-50 px-2 py-2 rounded-md flex items-center gap-2 cursor-pointer"
-                      >
-                        <User className="h-4 w-4" />
-                        <span>My Profile Settings</span>
-                      </button>
-                      <button
-                        onClick={handleLogout}
-                        className="w-full text-left text-xs font-medium text-red-650 hover:bg-red-50 px-2 py-2 rounded-md flex items-center gap-2 cursor-pointer"
-                      >
-                        <LogOut className="h-4 w-4" />
-                        <span>Logout Session</span>
-                      </button>
-                    </div>
+              {/* Brand Logo & Name (Shown when sidebar is collapsed) */}
+              {!isSidebarOpen && (
+                <div className="hidden sm:flex items-center gap-2 animate-in fade-in duration-200">
+                  <div className="bg-clinic-500 text-white p-1.5 rounded-lg shadow-xs">
+                    <Activity className="h-4 w-4 sm:h-4.5 sm:w-4.5" />
                   </div>
-                </>
+                  <span className="font-extrabold text-sm text-slate-800 tracking-tight hidden xl:inline">
+                    Healios SaaS
+                  </span>
+                </div>
+              )}
+
+              {/* Dynamic Page Title & Subtitle */}
+              {pageHeader && (
+                <div className="border-r border-slate-200 pr-2.5 mr-1 block">
+                  <h2 className="text-xs sm:text-sm font-bold text-slate-800 leading-tight m-0">
+                    {pageHeader.title}
+                  </h2>
+                  <p className="text-[10px] text-slate-400 font-medium leading-tight m-0 hidden sm:block">
+                    {pageHeader.subtitle}
+                  </p>
+                </div>
               )}
             </div>
+
+            {/* Right Controls (order-2 on < lg): Branch Switcher & User Profile */}
+            <div className="order-2 lg:order-3 flex items-center gap-2 sm:gap-3 shrink-0 ml-auto lg:ml-0">
+              {/* Branch Switcher Select Header */}
+              <div className="w-32 sm:w-44 lg:w-48">
+                <Select
+                  value={selectedBranchId || ''}
+                  onChange={(e) => {
+                    selectBranch(e.target.value);
+                  }}
+                  className="py-1 sm:py-1.5 pl-2 pr-6 sm:pr-8 border-slate-200 bg-slate-50/50 hover:bg-white text-[11px] sm:text-xs font-bold text-slate-700 cursor-pointer"
+                >
+                  {branches.map((b) => (
+                    <option key={b.id} value={b.id}>
+                      {b.name}
+                    </option>
+                  ))}
+                </Select>
+              </div>
+
+              {/* User Profile dropdown */}
+              <div className="relative">
+                <button
+                  onClick={() => setIsProfileOpen(!isProfileOpen)}
+                  className="flex items-center gap-1.5 sm:gap-2 p-1 sm:p-1.5 rounded-lg hover:bg-slate-50 text-left transition-colors cursor-pointer"
+                >
+                  <div className="h-7 w-7 sm:h-8 sm:w-8 rounded-full bg-clinic-100 border border-clinic-250 flex items-center justify-center font-bold text-clinic-700 text-xs shrink-0">
+                    {currentUser.name
+                      ? currentUser.name
+                        .split(' ')
+                        .map((n) => n[0])
+                        .join('')
+                        .substring(0, 2)
+                        .toUpperCase()
+                      : 'US'}
+                  </div>
+                  <div className="hidden xl:block">
+                    <p className="text-xs font-bold text-slate-800 leading-none">{currentUser.name}</p>
+                    <p className="text-[10px] text-slate-450 mt-0.5 leading-none capitalize">
+                      {userRolesDisplay}
+                    </p>
+                  </div>
+                  <ChevronDown className="h-3 w-3 sm:h-3.5 sm:w-3.5 text-slate-400 hidden sm:block" />
+                </button>
+
+                {/* Profile Card Overlay */}
+                {isProfileOpen && (
+                  <>
+                    <div className="fixed inset-0 z-40" onClick={() => setIsProfileOpen(false)} />
+                    <div className="absolute right-0 mt-2.5 w-64 bg-white border border-slate-200 rounded-xl shadow-xl z-50 p-4 animate-in fade-in slide-in-from-top-2 duration-150">
+                      <div className="border-b border-slate-100 pb-3 mb-3">
+                        <p className="text-sm font-bold text-slate-900">{currentUser.name}</p>
+                        <p className="text-xs text-slate-450">{currentUser.email}</p>
+                        <p className="text-[10px] text-clinic-700 font-bold bg-clinic-50 w-fit px-2 py-0.5 rounded mt-1.5 uppercase">
+                          {userRolesDisplay}
+                        </p>
+                      </div>
+                      <div className="space-y-1">
+                        <button
+                          onClick={() => {
+                            setIsProfileOpen(false);
+                            navigate('/settings');
+                          }}
+                          className="w-full text-left text-xs font-medium text-slate-600 hover:bg-slate-50 px-2 py-2 rounded-md flex items-center gap-2 cursor-pointer"
+                        >
+                          <User className="h-4 w-4" />
+                          <span>My Profile Settings</span>
+                        </button>
+                        <button
+                          onClick={handleLogout}
+                          className="w-full text-left text-xs font-medium text-red-650 hover:bg-red-50 px-2 py-2 rounded-md flex items-center gap-2 cursor-pointer"
+                        >
+                          <LogOut className="h-4 w-4" />
+                          <span>Logout Session</span>
+                        </button>
+                      </div>
+                    </div>
+                  </>
+                )}
+              </div>
+            </div>
+
+            {/* Middle Section on lg+ (order-2) / Row 2 on < lg (order-3): Page Action Controls */}
+            <div
+              id="layout-header-actions"
+              className="order-3 lg:order-2 w-full lg:w-auto flex-1 flex items-center justify-start lg:justify-center gap-1.5 sm:gap-2.5 overflow-x-auto no-scrollbar pt-1.5 lg:pt-0 border-t border-slate-100 lg:border-t-0 empty:hidden"
+            ></div>
           </div>
         </header>
 
