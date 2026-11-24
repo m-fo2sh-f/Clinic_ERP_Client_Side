@@ -2,7 +2,7 @@ import React from 'react';
 import { BrowserRouter } from 'react-router-dom';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { BranchProvider } from './context/BranchContext';
-import ErrorBoundary from './components/ErrorBoundary';
+import ErrorBoundary from './components/ui/ErrorBoundary';
 import GlobalErrorToast from './components/ui/GlobalErrorToast';
 import AppRoutes from './routes/AppRoutes';
 

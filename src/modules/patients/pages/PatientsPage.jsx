@@ -14,7 +14,6 @@ import {
   BadgeCheck,
   ChevronRight,
   Sparkles,
-  ShieldCheck,
   Pill,
 } from 'lucide-react';
 import { useBranchContext } from '../../../context/BranchContext';
@@ -31,7 +30,6 @@ import { getUserRoles } from '../../../utils/roleUtils';
 export default function PatientsPage() {
   const { activeBranch, user } = useBranchContext();
   const branchId = activeBranch?.id;
-  const branchName = activeBranch?.name || 'Active Branch';
 
   const userRoles = getUserRoles(user);
   const isClinicalStaff = userRoles.includes('doctor') || userRoles.includes('clinic_owner');
@@ -59,26 +57,16 @@ export default function PatientsPage() {
   return (
     <div className="space-y-6 max-w-7xl mx-auto">
       {/* ─── TOP ACTION BANNER ─── */}
-      <div className="bg-white px-6 py-5 rounded-xl border border-slate-200/80 shadow-sm flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+      <div className="bg-white px-5 py-4 rounded-xl border border-slate-200/80 shadow-xs flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
         <div>
-          <h2 className="text-xl font-bold text-slate-900 m-0 flex items-center gap-2">
-            <Users className="h-6 w-6 text-clinic-600 shrink-0" />
-            Patients Directory & Medical Profiles
+          <h2 className="text-lg font-bold text-slate-900 m-0 flex items-center gap-2">
+            <Users className="h-5 w-5 text-clinic-600 shrink-0" />
+            <span>Patients Directory & Medical Profiles</span>
           </h2>
-          <p className="text-xs text-slate-550 mt-1 flex items-center gap-2 font-medium">
-            <span>Branch Scoped:</span>
-            <strong className="text-clinic-700 bg-clinic-50 border border-clinic-150 px-2.5 py-0.5 rounded text-[11px] font-bold">
-              {branchName}
-            </strong>
-            {isLoading && <Loader2 className="h-3.5 w-3.5 text-clinic-600 animate-spin ml-1" />}
+          <p className="text-xs text-slate-500 mt-0.5 font-medium">
+            سجلات وبيانات المرضى والتاريخ المرضي للزيارات والفحوصات
+            {isLoading && <Loader2 className="h-3.5 w-3.5 text-clinic-600 animate-spin inline-block ml-2" />}
           </p>
-        </div>
-
-        <div className="flex items-center gap-3 w-full sm:w-auto justify-between sm:justify-end">
-          <div className="flex items-center gap-1.5 text-xs text-slate-600 font-semibold bg-slate-50 border border-slate-200 rounded-lg px-3.5 py-2">
-            <ShieldCheck className="h-4 w-4 text-clinic-600 shrink-0" />
-            <span>Multi-Tenant Records Active</span>
-          </div>
         </div>
       </div>
 

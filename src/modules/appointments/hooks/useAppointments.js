@@ -1,5 +1,5 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import api from '../../../services/api';
+import appointmentsApi from '../api/appointmentsApi';
 import { markQueryInvalidated, debouncedInvalidate } from '../../../utils/invalidationTracker';
 
 // Query Keys
@@ -15,10 +15,7 @@ export const appointmentKeys = {
 export const useBranchDoctorsQuery = (branchId) => {
   return useQuery({
     queryKey: ['branchDoctors', branchId],
-    queryFn: async () => {
-      const response = await api.get(`/branches/${branchId}/doctors`);
-      return response.data?.data || [];
-    },
+    queryFn: () => appointmentsApi.getBranchDoctors(branchId),
     enabled: !!branchId,
   });
 };
@@ -29,12 +26,7 @@ export const useBranchDoctorsQuery = (branchId) => {
 export const useAppointmentsQuery = (branchId, targetDate, doctorId) => {
   return useQuery({
     queryKey: appointmentKeys.list(branchId, targetDate, doctorId),
-    queryFn: async () => {
-      const response = await api.get('/appointments', {
-        params: { branch_id: branchId, date: targetDate, doctor_id: doctorId || undefined }
-      });
-      return response.data?.data || [];
-    },
+    queryFn: () => appointmentsApi.getAppointments(branchId, targetDate, doctorId),
     enabled: !!branchId,
   });
 };
@@ -56,10 +48,7 @@ export const useCreateAppointmentMutation = () => {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: async (appointmentData) => {
-      const response = await api.post('/appointments', appointmentData);
-      return response.data;
-    },
+    mutationFn: (appointmentData) => appointmentsApi.createAppointment(appointmentData),
     onMutate: () => markQueryInvalidated(),
     onSuccess: () => {
       invalidateAfterMutation(queryClient, [appointmentKeys.all]);
@@ -74,10 +63,7 @@ export const useUpdateAppointmentMutation = () => {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: async ({ id, ...appointmentData }) => {
-      const response = await api.put(`/appointments/${id}`, appointmentData);
-      return response.data;
-    },
+    mutationFn: ({ id, ...appointmentData }) => appointmentsApi.updateAppointment(id, appointmentData),
     onMutate: () => markQueryInvalidated(),
     onSuccess: () => {
       invalidateAfterMutation(queryClient);
@@ -92,10 +78,7 @@ export const useDeleteAppointmentMutation = () => {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: async (id) => {
-      const response = await api.delete(`/appointments/${id}`);
-      return response.data;
-    },
+    mutationFn: (id) => appointmentsApi.deleteAppointment(id),
     onMutate: () => markQueryInvalidated(),
     onSuccess: () => {
       invalidateAfterMutation(queryClient);
@@ -110,7 +93,7 @@ export const useCheckInMutation = () => {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: (id) => api.post(`/appointments/${id}/check-in`),
+    mutationFn: (id) => appointmentsApi.checkIn(id),
     // 🎯 Mark BEFORE the request is sent so that WebSocket events arriving
     // before the HTTP response (server broadcasts via afterCommit) are suppressed.
     onMutate: () => markQueryInvalidated(),

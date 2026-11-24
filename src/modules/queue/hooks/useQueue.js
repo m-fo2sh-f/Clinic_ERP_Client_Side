@@ -1,5 +1,5 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import api from '../../../services/api';
+import queueApi from '../api/queueApi';
 import { markQueryInvalidated, debouncedInvalidate } from '../../../utils/invalidationTracker';
 
 // Dedicated and unique query keys for live queue to prevent collision with bookings
@@ -27,15 +27,7 @@ const invalidateAfterMutation = (queryClient, keys = [queueKeys.all, ['appointme
 export const useLiveQueueQuery = (branchId, doctorId) => {
     return useQuery({
         queryKey: queueKeys.list(branchId, doctorId),
-        queryFn: async () => {
-            const response = await api.get('/live-queues', {
-                params: {
-                    branch_id: branchId,
-                    doctor_id: doctorId || undefined
-                }
-            });
-            return response.data?.data || [];
-        },
+        queryFn: () => queueApi.getLiveQueue(branchId, doctorId),
         enabled: !!branchId,
         staleTime: 1000 * 5, // 5s stale time for live operational queue
     });
@@ -47,19 +39,7 @@ export const useLiveQueueQuery = (branchId, doctorId) => {
 export const usePublicLiveQueueQuery = (branchId, doctorId) => {
     return useQuery({
         queryKey: queueKeys.publicList(branchId, doctorId),
-        queryFn: async () => {
-            try {
-                const response = await api.get('/public/live-queues', {
-                    params: { branch_id: branchId, doctor_id: doctorId || undefined }
-                });
-                return response.data?.data || [];
-            } catch (err) {
-                const response = await api.get('/live-queues', {
-                    params: { branch_id: branchId, doctor_id: doctorId || undefined }
-                });
-                return response.data?.data || [];
-            }
-        },
+        queryFn: () => queueApi.getPublicLiveQueue(branchId, doctorId),
         enabled: !!branchId,
         staleTime: 1000 * 5,
         refetchInterval: 10000, // 10s fallback polling for public TV displays
@@ -73,7 +53,7 @@ export const useUpdateQueueStatus = () => {
     const queryClient = useQueryClient();
 
     return useMutation({
-        mutationFn: ({ id, status }) => api.patch(`/live-queues/${id}`, { status }),
+        mutationFn: ({ id, status }) => queueApi.updateStatus(id, status),
         onMutate: () => markQueryInvalidated(),
         onSuccess: () => {
             invalidateAfterMutation(queryClient);
@@ -88,7 +68,7 @@ export const useDeleteQueueMutation = () => {
     const queryClient = useQueryClient();
 
     return useMutation({
-        mutationFn: (id) => api.delete(`/live-queues/${id}`),
+        mutationFn: (id) => queueApi.deleteQueueItem(id),
         onMutate: () => markQueryInvalidated(),
         onSuccess: () => {
             invalidateAfterMutation(queryClient);
@@ -103,7 +83,7 @@ export const useCancelQueueMutation = () => {
     const queryClient = useQueryClient();
 
     return useMutation({
-        mutationFn: ({ id, reason }) => api.patch(`/live-queues/${id}/cancel`, { reason }),
+        mutationFn: ({ id, reason }) => queueApi.cancelQueueItem(id, reason),
         onMutate: () => markQueryInvalidated(),
         onSuccess: () => {
             invalidateAfterMutation(queryClient);
@@ -115,11 +95,7 @@ export const useReorderQueueMutation = () => {
     const queryClient = useQueryClient();
 
     return useMutation({
-        mutationFn: ({ orderedIds, branchId }) => 
-            api.post('/live-queues/reorder', { 
-                ordered_ids: orderedIds, 
-                branch_id: branchId 
-            }),
+        mutationFn: ({ orderedIds, branchId }) => queueApi.reorderQueue(orderedIds, branchId),
         onMutate: () => markQueryInvalidated(),
         onSuccess: () => {
             invalidateAfterMutation(queryClient, [queueKeys.all]);
@@ -134,10 +110,7 @@ export const useCallNextPatientMutation = () => {
     const queryClient = useQueryClient();
 
     return useMutation({
-        mutationFn: (payload) => {
-            const body = typeof payload === 'object' ? payload : { branch_id: payload };
-            return api.post('/live-queues/next', body);
-        },
+        mutationFn: (payload) => queueApi.callNext(payload),
         onMutate: () => markQueryInvalidated(),
         onSuccess: () => {
             invalidateAfterMutation(queryClient);
@@ -151,10 +124,7 @@ export const useCallNextPatientMutation = () => {
 export const usePatientHistoryQuery = (patientId) => {
     return useQuery({
         queryKey: ['patientHistory', patientId],
-        queryFn: async () => {
-            const response = await api.get(`/patients/${patientId}/history`);
-            return response.data?.data || null;
-        },
+        queryFn: () => queueApi.getPatientHistory(patientId),
         enabled: !!patientId,
         staleTime: 1000 * 60 * 2, // 2 minutes stale time for medical history
     });
@@ -167,7 +137,7 @@ export const useWalkInMutation = () => {
     const queryClient = useQueryClient();
 
     return useMutation({
-        mutationFn: (walkInData) => api.post('/live-queues/check-in-walkin', walkInData),
+        mutationFn: (walkInData) => queueApi.walkInCheckIn(walkInData),
         onMutate: () => markQueryInvalidated(),
         onSuccess: () => {
             invalidateAfterMutation(queryClient);

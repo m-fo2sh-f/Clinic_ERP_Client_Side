@@ -7,10 +7,8 @@ import {
   Settings,
   Activity,
   ChevronDown,
-  Globe,
   User,
   LogOut,
-  Bell,
   Menu,
   X,
   Key,
@@ -21,12 +19,22 @@ import Select from '../components/ui/Select';
 import { useBranchContext } from '../context/BranchContext';
 import { getUserRoles } from '../utils/roleUtils';
 
+const getPageHeaderInfo = (pathname) => {
+  if (pathname.startsWith('/dashboard')) return { title: 'لوحة الاستقبال', subtitle: 'إدارة الحجوزات والانتظار' };
+  if (pathname.startsWith('/doctor')) return { title: 'عيادة الكشف الطبي', subtitle: 'الاستشارة والفحص' };
+  if (pathname.startsWith('/patients')) return { title: 'سجل المرضى', subtitle: 'الملفات الطبية' };
+  if (pathname.startsWith('/settings/prescription')) return { title: 'استوديو الروشتة', subtitle: 'تخصيص القوالب' };
+  if (pathname.startsWith('/settings/vitals')) return { title: 'القياسات الحيوية', subtitle: 'إعدادات الفحص' };
+  if (pathname.startsWith('/settings/services')) return { title: 'دليل الخدمات', subtitle: 'الخدمات والأسعار' };
+  if (pathname.startsWith('/settings')) return { title: 'إعدادات العيادة', subtitle: 'إعدادات النظام' };
+  return null;
+};
+
 export default function DashboardLayout({ children }) {
   const { branches, selectedBranchId, selectBranch, activeBranch, user, logout } = useBranchContext();
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const [isProfileOpen, setIsProfileOpen] = useState(false);
   const [isSettingsOpen, setIsSettingsOpen] = useState(false);
-  const [isTopSettingsOpen, setIsTopSettingsOpen] = useState(false);
   const navigate = useNavigate();
   const location = useLocation();
 
@@ -36,9 +44,7 @@ export default function DashboardLayout({ children }) {
     email: '',
   };
 
-  const simulatedSubdomain = activeBranch
-    ? activeBranch.clinicSubdomain || `${activeBranch.name.toLowerCase().replace(/\s+/g, '')}.my-saas.test`
-    : 'maadi.my-saas.test';
+  const pageHeader = getPageHeaderInfo(location.pathname);
 
   const userRoles = getUserRoles(currentUser);
   const userRolesDisplay = userRoles.map((r) => r.replace('_', ' ')).join(', ') || 'User';
@@ -250,8 +256,9 @@ export default function DashboardLayout({ children }) {
       {/* Main Dashboard Area: Dynamically takes all remaining width and slides smoothly */}
       <div className="flex-1 flex flex-col min-w-0 transition-all duration-300 ease-in-out">
         {/* Header Bar */}
-        <header className="h-16 bg-white border-b border-slate-200/80 px-4 sm:px-6 flex items-center justify-between sticky top-0 z-10 shadow-xs">
-          <div className="flex items-center gap-3 sm:gap-4">
+        <header className="h-16 bg-white border-b border-slate-200/80 px-3 sm:px-6 flex items-center justify-between sticky top-0 z-20 shadow-xs gap-2">
+          {/* Left section: Sidebar toggle + Page identity */}
+          <div className="flex items-center gap-2.5 sm:gap-3 shrink-0">
             {/* Toggle Button for Push Sidebar */}
             <button
               onClick={() => setIsSidebarOpen((prev) => !prev)}
@@ -262,98 +269,49 @@ export default function DashboardLayout({ children }) {
               title={isSidebarOpen ? 'إخفاء القائمة الجانبية (Collapse)' : 'إظهار القائمة الجانبية (Expand)'}
             >
               <Menu className="h-5 w-5 text-clinic-600" />
-              <span className="text-xs font-bold hidden sm:inline">
+              <span className="text-xs font-bold hidden md:inline">
                 {isSidebarOpen ? 'إخفاء القائمة' : 'القائمة'}
               </span>
             </button>
 
             {/* Brand Logo & Name (Shown when sidebar is collapsed) */}
             {!isSidebarOpen && (
-              <div className="flex items-center gap-2 animate-in fade-in duration-200">
+              <div className="hidden sm:flex items-center gap-2 animate-in fade-in duration-200">
                 <div className="bg-clinic-500 text-white p-1.5 rounded-lg shadow-xs">
                   <Activity className="h-4.5 w-4.5" />
                 </div>
-                <span className="font-extrabold text-sm text-slate-800 tracking-tight hidden md:inline">
+                <span className="font-extrabold text-sm text-slate-800 tracking-tight hidden lg:inline">
                   Healios SaaS
                 </span>
               </div>
             )}
 
-            {/* Tenant domain tracker */}
-            <div className="hidden lg:flex items-center gap-2 text-xs font-semibold text-slate-550 bg-slate-100 border border-slate-200 rounded-lg px-3 py-1.5">
-              <Globe className="h-3.5 w-3.5 text-clinic-500" />
-              <span className="text-slate-400">Tenant Domain:</span>
-              <span className="font-mono text-clinic-700 bg-white border border-slate-150 px-1.5 py-0.2 rounded">
-                {simulatedSubdomain}
-              </span>
-            </div>
-          </div>
-
-          {/* Right Controls: Branch Switcher & User Profile */}
-          <div className="flex items-center gap-2.5 sm:gap-4">
-            {/* Quick Settings Dropdown in Top Navbar */}
-            {canAccessSettings && settingsSubItems.length > 0 && (
-              <div className="relative">
-                <button
-                  type="button"
-                  onClick={() => setIsTopSettingsOpen((prev) => !prev)}
-                  className={`flex items-center gap-1.5 px-2.5 sm:px-3 py-1.5 rounded-xl text-xs font-bold border transition-all cursor-pointer shadow-2xs ${location.pathname.startsWith('/settings') || isTopSettingsOpen
-                    ? 'bg-clinic-50 text-clinic-700 border-clinic-300'
-                    : 'bg-slate-50/70 text-slate-700 hover:bg-white hover:text-clinic-700 border-slate-200'
-                    }`}
-                  title="إعدادات العيادة والروشتة"
-                >
-                  <Settings className="h-4 w-4 text-clinic-600" />
-                  <span className="hidden sm:inline">الإعدادات</span>
-                  <ChevronDown
-                    className={`h-3 w-3 text-slate-400 transition-transform duration-150 ${isTopSettingsOpen ? 'rotate-180 text-clinic-600' : ''
-                      }`}
-                  />
-                </button>
-
-                {isTopSettingsOpen && (
-                  <>
-                    <div className="fixed inset-0 z-40" onClick={() => setIsTopSettingsOpen(false)} />
-                    <div
-                      className="absolute right-0 mt-2 w-56 bg-white border border-slate-200 rounded-xl shadow-xl z-50 p-2 animate-in fade-in slide-in-from-top-2 duration-150"
-                      dir="rtl"
-                    >
-                      <div className="px-2.5 py-1 text-[11px] font-bold text-slate-400 border-b border-slate-100 mb-1">
-                        إعدادات العيادة
-                      </div>
-                      <div className="space-y-1">
-                        {settingsSubItems.map((sub) => {
-                          const SubIcon = sub.icon;
-                          return (
-                            <Link
-                              key={sub.href}
-                              to={sub.href}
-                              onClick={() => setIsTopSettingsOpen(false)}
-                              className={`flex items-center gap-2.5 px-2.5 py-2 rounded-lg text-xs font-semibold transition-all ${sub.active
-                                ? 'bg-clinic-50 text-clinic-700 font-bold'
-                                : 'text-slate-600 hover:bg-slate-50 hover:text-slate-900'
-                                }`}
-                            >
-                              <SubIcon className={`h-4 w-4 ${sub.active ? 'text-clinic-600' : 'text-slate-400'}`} />
-                              <span>{sub.name}</span>
-                            </Link>
-                          );
-                        })}
-                      </div>
-                    </div>
-                  </>
-                )}
+            {/* Dynamic Page Title & Subtitle */}
+            {pageHeader && (
+              <div className="border-r border-slate-200 pr-2.5 mr-1 hidden sm:block">
+                <h2 className="text-xs sm:text-sm font-bold text-slate-800 leading-tight m-0">
+                  {pageHeader.title}
+                </h2>
+                <p className="text-[10px] text-slate-400 font-medium leading-tight m-0">
+                  {pageHeader.subtitle}
+                </p>
               </div>
             )}
+          </div>
 
+          {/* Middle Section: Page Action Controls (Portaled dynamically from active view) */}
+          <div id="layout-header-actions" className="flex-1 flex items-center justify-end sm:justify-center gap-2 sm:gap-3 px-1 sm:px-3 overflow-x-auto no-scrollbar"></div>
+
+          {/* Right Controls: Branch Switcher & User Profile */}
+          <div className="flex items-center gap-2 sm:gap-3 shrink-0">
             {/* Branch Switcher Select Header */}
-            <div className="w-40 sm:w-52">
+            <div className="w-36 sm:w-48">
               <Select
                 value={selectedBranchId || ''}
                 onChange={(e) => {
                   selectBranch(e.target.value);
                 }}
-                className="py-1.5 pl-2.5 pr-8 border-slate-200 bg-slate-50/50 hover:bg-white text-xs font-bold text-slate-700 cursor-pointer"
+                className="py-1.5 pl-2 pr-7 sm:pr-8 border-slate-200 bg-slate-50/50 hover:bg-white text-xs font-bold text-slate-700 cursor-pointer"
               >
                 {branches.map((b) => (
                   <option key={b.id} value={b.id}>
@@ -363,11 +321,7 @@ export default function DashboardLayout({ children }) {
               </Select>
             </div>
 
-            {/* Notifications */}
-            <button className="relative p-2 text-slate-400 hover:text-slate-650 rounded-lg hover:bg-slate-50 cursor-pointer">
-              <Bell className="h-5 w-5" />
-              <span className="absolute top-1.5 right-1.5 h-2 w-2 rounded-full bg-red-500 ring-2 ring-white"></span>
-            </button>
+
 
             {/* User Profile dropdown */}
             <div className="relative">

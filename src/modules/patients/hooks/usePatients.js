@@ -1,5 +1,5 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import api from '../../../services/api';
+import patientApi from '../api/patientApi';
 import { markQueryInvalidated, debouncedInvalidate } from '../../../utils/invalidationTracker';
 
 // 🎯 Standardized Patient Query Keys
@@ -17,15 +17,7 @@ export const patientKeys = {
 export const usePatientsQuery = (branchId, search = '') => {
   return useQuery({
     queryKey: patientKeys.list(branchId, search),
-    queryFn: async () => {
-      const response = await api.get('/patients', {
-        params: { 
-          branch_id: branchId,
-          search: search?.trim() || undefined
-        }
-      });
-      return response.data?.data || [];
-    },
+    queryFn: () => patientApi.getPatients(branchId, search),
     enabled: !!branchId,
     staleTime: 1000 * 60 * 2,
   });
@@ -37,14 +29,9 @@ export const usePatientsQuery = (branchId, search = '') => {
 export const useSearchPatientsQuery = (searchTerm) => {
   return useQuery({
     queryKey: ['patients', 'search', searchTerm],
-    queryFn: async ({ signal }) => {
+    queryFn: ({ signal }) => {
       if (!searchTerm || searchTerm.trim().length < 2) return [];
-
-      const response = await api.get('/patients/search', {
-        params: { q: searchTerm.trim() },
-        signal,
-      });
-      return response.data?.data || [];
+      return patientApi.searchPatients(searchTerm, signal);
     },
     enabled: !!searchTerm && searchTerm.trim().length >= 2,
     staleTime: 1000 * 10,
@@ -57,10 +44,7 @@ export const useSearchPatientsQuery = (searchTerm) => {
 export const usePatientDetailQuery = (patientId) => {
   return useQuery({
     queryKey: patientKeys.detail(patientId),
-    queryFn: async () => {
-      const response = await api.get(`/patients/${patientId}`);
-      return response.data?.data || null;
-    },
+    queryFn: () => patientApi.getPatientDetail(patientId),
     enabled: !!patientId,
     staleTime: 1000 * 60 * 2,
   });
@@ -72,11 +56,7 @@ export const usePatientDetailQuery = (patientId) => {
 export const usePatientSummaryQuery = (patientId) => {
   return useQuery({
     queryKey: ['patients', 'summary', patientId],
-    queryFn: async () => {
-      if (!patientId) return null;
-      const response = await api.get(`/patients/${patientId}/summary`);
-      return response.data?.data || null;
-    },
+    queryFn: () => patientApi.getPatientSummary(patientId),
     enabled: !!patientId,
   });
 };
@@ -88,7 +68,7 @@ export const useUpdatePatientMutation = () => {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: ({ id, ...patientData }) => api.put(`/patients/${id}`, patientData),
+    mutationFn: ({ id, ...patientData }) => patientApi.updatePatient(id, patientData),
     onMutate: () => markQueryInvalidated(),
     onSuccess: (_data, variables) => {
       markQueryInvalidated();

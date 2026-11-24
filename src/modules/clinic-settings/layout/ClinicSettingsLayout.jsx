@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { Outlet, useLocation } from 'react-router-dom';
-import { Settings, Building2, UserCircle2, Stethoscope, Receipt, Activity, FileText } from 'lucide-react';
+import { Settings, UserCircle2, Stethoscope, Receipt, Activity, FileText } from 'lucide-react';
 import { useBranchContext } from '../../../context/BranchContext';
 import { getUserRoles } from '../../../utils/roleUtils';
 import usePrescriptionTemplate from '../hooks/usePrescriptionTemplate';
@@ -25,7 +25,6 @@ const PAGE_HEADERS = {
 
 export default function ClinicSettingsLayout() {
   const { activeBranch, user } = useBranchContext();
-  const branchName = activeBranch?.name || 'الفرع الرئيسي';
   const location = useLocation();
 
   const userRoles = getUserRoles(user);
@@ -61,13 +60,6 @@ export default function ClinicSettingsLayout() {
         </div>
 
         <div className="flex flex-wrap items-center gap-2.5 w-full lg:w-auto">
-          {/* Branch Badge */}
-          <div className="flex items-center gap-2 bg-slate-50 border border-slate-200 px-3 py-1.5 rounded-xl text-xs">
-            <Building2 className="h-4 w-4 text-clinic-600 shrink-0" />
-            <span className="text-slate-500 font-medium">الفرع:</span>
-            <strong className="text-slate-800 font-bold">{branchName}</strong>
-          </div>
-
           {/* Doctor Switcher for Clinic Owner */}
           {isOwnerOrAdmin ? (
             <div className="flex items-center gap-2 bg-slate-50 border border-slate-200 px-3 py-1 rounded-xl text-xs">
