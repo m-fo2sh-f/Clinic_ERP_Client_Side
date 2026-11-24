@@ -75,7 +75,7 @@ export default function PrescriptionSheet({
   const isPrintingRef = useRef(false);
 
   const handlePrint = useReactToPrint({
-    onBeforePrint: () => { isPrintingRef.current = true; },
+    onBeforePrint: async () => { isPrintingRef.current = true; },
     onAfterPrint: () => { isPrintingRef.current = false; },
     onPrintError: () => { isPrintingRef.current = false; },
     contentRef: printComponentRef,
@@ -193,7 +193,7 @@ export default function PrescriptionSheet({
           <Button
             variant="default"
             size="sm"
-            onClick={() => handlePrint()}
+            onClick={safeHandlePrint}
             className="gap-1.5 bg-clinic-600 hover:bg-clinic-700 text-white"
           >
             <Printer className="h-4 w-4" /> Print Prescription

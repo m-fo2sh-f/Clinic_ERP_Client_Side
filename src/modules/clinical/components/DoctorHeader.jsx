@@ -60,7 +60,10 @@ export default function DoctorHeader({
           <div className="min-w-0 flex-1">
             {displayActivePatient && patientName ? (
               <div className="flex flex-wrap items-center gap-2">
-
+                <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-xs font-bold bg-amber-50 text-amber-900 border border-amber-200/80 shrink-0">
+                  <HeartPulse className="h-3.5 w-3.5 text-amber-600 animate-pulse" />
+                  <span>العليه الدور:</span>
+                </span>
                 <span className="font-extrabold text-slate-900 text-sm sm:text-base truncate">
                   {patientName}
                 </span>

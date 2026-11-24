@@ -77,7 +77,7 @@ export default function PrescriptionSettingsPage() {
   const testPrintPageStyle = useMemo(() => getPrintPageStyle(paperSize), [paperSize]);
 
   const handleTestPrint = useReactToPrint({
-    onBeforePrint: () => { isPrintingRef.current = true; },
+    onBeforePrint: async () => { isPrintingRef.current = true; },
     onAfterPrint: () => { isPrintingRef.current = false; },
     onPrintError: () => { isPrintingRef.current = false; },
     contentRef: printComponentRef,
